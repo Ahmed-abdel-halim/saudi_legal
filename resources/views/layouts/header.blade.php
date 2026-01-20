@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/header.blade.php - Laravel Blade Header Template --}}
 @php
 // Get current locale and direction
 $currentLang = app()->getLocale();
@@ -89,7 +88,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
             <div class="flex justify-between items-center h-16">
 
                 {{-- Logo --}}
-                <a href="##" class="flex items-center gap-3 group">
+                <a href="{{ route('home') }}" class="flex items-center gap-3 group">
                     <img src="{{ asset('images/icon.png') }}"
                         onerror="this.src='https://placehold.co/40x40/4F46E5/FFFFFF?text=R'"
                         alt="Logo"
@@ -128,21 +127,30 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                     </a>
 
                     {{-- Authentication Links --}}
-                    @auth
-                    <a href="##"
-                        class="bg-brand-primary text-white px-6 py-2.5 rounded-full font-bold shadow-lg hover:bg-opacity-90 transition-all">
-                        {{ __('header.BTN_DASHBOARD', [], $currentLang) }}
-                    </a>
-                    @else
-                    <a href="###"
+                    @guest
+                    {{-- Guest: Show Login and Register buttons --}}
+                    <a href="{{ route('login') }}"
                         class="text-gray-600 hover:text-brand-primary font-bold transition">
                         {{ __('header.BTN_LOGIN', [], $currentLang) }}
                     </a>
-                    <a href="##"
+                    <a href="{{ route('register.company', ['type' => 'supplier']) }}"
                         class="bg-brand-primary text-white px-6 py-2.5 rounded-full font-bold shadow-lg hover:bg-opacity-90 transition-all">
                         {{ __('header.BTN_START_NOW', [], $currentLang) }}
                     </a>
-                    @endauth
+                    @else
+                    {{-- Authenticated: Show Dashboard and Logout buttons --}}
+                    <a href="{{ route('dashboard') }}"
+                        class="bg-brand-primary text-white px-6 py-2.5 rounded-full font-bold shadow-lg hover:bg-opacity-90 transition-all">
+                        {{ __('header.BTN_DASHBOARD', [], $currentLang) }}
+                    </a>
+                    <form action="{{ route('logout') }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit"
+                            class="text-gray-600 hover:text-red-600 font-bold transition px-4 py-2.5">
+                            {{ __('header.BTN_LOGOUT', [], $currentLang) }}
+                        </button>
+                    </form>
+                    @endguest
                 </div>
 
                 {{-- Mobile Menu Toggle --}}
@@ -188,21 +196,30 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         class="text-gray-600 font-bold">
                         {{ $targetLangText }}
                     </a>
-                    @auth
-                    <a href="#"
-                        class="bg-brand-primary text-white px-6 py-2.5 rounded-full font-bold text-center">
-                        {{ __('header.BTN_DASHBOARD', [], $currentLang) }}
-                    </a>
-                    @else
-                    <a href="#"
+                    @guest
+                    {{-- Guest: Show Login and Register buttons --}}
+                    <a href="{{ route('login') }}"
                         class="text-gray-600 font-bold">
                         {{ __('header.BTN_LOGIN', [], $currentLang) }}
                     </a>
-                    <a href="#"
+                    <a href="{{ route('register.company', ['type' => 'supplier']) }}"
                         class="bg-brand-primary text-white px-6 py-2.5 rounded-full font-bold text-center">
                         {{ __('header.BTN_START_NOW', [], $currentLang) }}
                     </a>
-                    @endauth
+                    @else
+                    {{-- Authenticated: Show Dashboard and Logout buttons --}}
+                    <a href="{{ route('dashboard') }}"
+                        class="bg-brand-primary text-white px-6 py-2.5 rounded-full font-bold text-center">
+                        {{ __('header.BTN_DASHBOARD', [], $currentLang) }}
+                    </a>
+                    <form action="{{ route('logout') }}" method="POST" class="w-full">
+                        @csrf
+                        <button type="submit"
+                            class="w-full text-gray-600 hover:text-red-600 font-bold text-center py-2.5">
+                            {{ __('header.BTN_LOGOUT', [], $currentLang) }}
+                        </button>
+                    </form>
+                    @endguest
                 </div>
             </div>
         </nav>

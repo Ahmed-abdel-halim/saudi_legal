@@ -13,6 +13,7 @@ return [
     // Buttons
     'BTN_DASHBOARD' => 'لوحة التحكم',
     'BTN_LOGIN' => 'تسجيل الدخول',
+    'BTN_LOGOUT' => 'تسجيل الخروج',
     'BTN_START_NOW' => 'ابدأ الآن',
     
     // Language Switcher
@@ -21,4 +22,7 @@ return [
     
     // Accessibility
     'ARIA_TOGGLE_MENU' => 'فتح/إغلاق القائمة',
+    
+    // Messages
+    'LOGOUT_SUCCESS' => 'تم تسجيل الخروج بنجاح',
 ];

@@ -13,6 +13,7 @@ return [
     // Buttons
     'BTN_DASHBOARD' => 'Dashboard',
     'BTN_LOGIN' => 'Login',
+    'BTN_LOGOUT' => 'Logout',
     'BTN_START_NOW' => 'Start Now',
     
     // Language Switcher
@@ -21,4 +22,7 @@ return [
     
     // Accessibility
     'ARIA_TOGGLE_MENU' => 'Toggle menu',
+    
+    // Messages
+    'LOGOUT_SUCCESS' => 'You have been logged out successfully',
 ];

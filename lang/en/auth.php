@@ -1,0 +1,63 @@
+<?php
+
+return [
+    // Page Titles
+    'AUTH_CREATE_COMPANY' => 'Register Your Company',
+    'AUTH_STEP_ACCOUNT' => 'Your Account',
+    'AUTH_STEP_COMPANY' => 'Your Company',
+    'AUTH_STEP_AGREEMENT' => 'Agreement',
+    
+    // Form Labels
+    'AUTH_FULL_NAME' => 'Full Name',
+    'AUTH_EMAIL_LABEL' => 'Email Address',
+    'AUTH_PASSWORD_LABEL' => 'Password',
+    'AUTH_PASSWORD_CONFIRM' => 'Confirm Password',
+    'AUTH_COMPANY_NAME' => 'Company Name',
+    'AUTH_CR_NUMBER' => 'Commercial Registration Number',
+    'AUTH_CR_PLACEHOLDER' => 'Example: 1234567890',
+    'AUTH_INDUSTRY' => 'Industry',
+    'AUTH_COMPANY_SIZE' => 'Company Size',
+    
+    // Industries
+    'INDUSTRY_IT' => 'Information Technology',
+    'INDUSTRY_UI' => 'UI Design',
+    'INDUSTRY_CX' => 'Customer Experience (CX)',
+    'INDUSTRY_FINANCE' => 'Financial Consulting',
+    'INDUSTRY_MARKETING' => 'Digital Marketing',
+    'INDUSTRY_OTHER' => 'Other',
+    
+    // Company Sizes
+    'SIZE_1_10' => '1-10 Employees',
+    'SIZE_11_50' => '11-50 Employees',
+    'SIZE_51_200' => '51-200 Employees',
+    'SIZE_201_PLUS' => '201+ Employees',
+    
+    // Legal
+    'AUTH_LEGAL_AGREEMENT' => 'Legal Agreement',
+    'AUTH_LEGAL_AGREEMENT_DESC' => 'Please read and agree to the Terms & Conditions and Privacy Policy',
+    'AUTH_I_AGREE' => 'I agree to the',
+    'AUTH_TERMS' => 'Terms & Conditions',
+    'AUTH_PRIVACY' => 'Privacy Policy',
+    'AND' => 'and',
+    
+    // Buttons
+    'BTN_NEXT' => 'Next',
+    'BTN_PREVIOUS' => 'Previous',
+    'BTN_SIGN_UP' => 'Sign Up',
+    'BTN_LOGIN' => 'Login',
+    
+    // Messages
+    'AUTH_ALREADY_HAVE_ACCOUNT' => 'Already have an account?',
+    'AUTH_LOGIN_TO_CONTINUE' => 'Register your company to start your journey with Radiif',
+    
+    // Errors
+    'ERROR_EMAIL_EXISTS' => 'Email already exists',
+    'ERROR_EMPTY_FIELDS' => 'Please fill all required fields',
+    'ERROR_GENERIC' => 'An error occurred, please try again',
+    'ERROR_INVALID_EMAIL' => 'Invalid email address',
+    'ERROR_PASSWORD_MIN' => 'Password must be at least 8 characters',
+    'ERROR_PASSWORD_CONFIRMATION' => 'Password confirmation does not match',
+    'ERROR_TERMS_REQUIRED' => 'You must agree to the terms and conditions',
+    'REGISTRATION_SUCCESS' => 'Account created successfully',
+    'required' => 'required',
+];
