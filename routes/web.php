@@ -5,6 +5,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Auth\RegisterCompanyController;
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\HowItWorksController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -44,3 +45,6 @@ Route::get('/requests/browse', [RequestController::class, 'browse'])->name('requ
 
 // Services Routes
 Route::get('/services/browse', [ServiceController::class, 'browse'])->name('services.browse');
+
+// How It Works Route
+Route::get('/how-it-works', [HowItWorksController::class, 'index'])->name('how-it-works');

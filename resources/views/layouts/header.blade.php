@@ -100,7 +100,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
 
                 {{-- Desktop Navigation --}}
                 <div class="hidden md:flex items-center gap-8">
-                    <a href="#"
+                    <a href="{{ route('how-it-works') }}"
                         class="text-gray-600 hover:text-brand-primary font-bold transition whitespace-nowrap">
                         {{ __('header.NAV_HOW_IT_WORKS', [], $currentLang) }}
                     </a>
@@ -175,7 +175,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 x-transition:leave-end="opacity-0 transform scale-95"
                 class="md:hidden mt-4 pb-4 border-t pt-4">
                 <div class="flex flex-col gap-4">
-                    <a href="#"
+                    <a href="{{ route('how-it-works') }}"
                         class="text-gray-600 font-bold">
                         {{ __('header.NAV_HOW_IT_WORKS', [], $currentLang) }}
                     </a>
