@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Auth\RegisterCompanyController;
+use App\Http\Controllers\RequestController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -36,3 +37,6 @@ Route::get('/legal/terms', function () {
 Route::get('/legal/privacy', function () {
     return view('legal.privacy');
 })->name('legal.privacy');
+
+// Requests Routes
+Route::get('/requests/browse', [RequestController::class, 'browse'])->name('requests.browse');
