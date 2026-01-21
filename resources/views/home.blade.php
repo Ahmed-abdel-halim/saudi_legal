@@ -128,17 +128,55 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
 
     /* Professional hero text styling - Fully Responsive */
     .hero-tagline {
-        display: inline-flex;
+        display: inline-flex !important;
         align-items: center;
         gap: clamp(0.5rem, 1vw, 0.75rem);
         padding: clamp(0.5rem, 1.2vw, 0.625rem) clamp(1rem, 2vw, 1.25rem);
         border-radius: 9999px;
         background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 0.5px solid rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(12px);
-        margin-bottom: clamp(1.5rem, 3vw, 2rem);
+        margin-bottom: 2rem !important;
         transition: all 0.3s ease;
         font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 10;
+        position: relative;
+        min-height: auto;
+        overflow: visible;
+        order: -1;
+    }
+
+    /* Arabic (RTL) specific styling - Position down more */
+    [dir="rtl"] .hero-tagline {
+        align-items: center;
+        text-align: right;
+        transform: translateY(4px);
+        margin-bottom: 1.75rem !important;
+    }
+
+    /* English (LTR) specific styling - Position up more */
+    [dir="ltr"] .hero-tagline {
+        align-items: center;
+        text-align: left;
+        transform: translateY(-4px);
+        margin-bottom: 2.25rem !important;
+    }
+
+    /* Ensure tagline is visible at all zoom levels */
+    @media (min-width: 320px) {
+        .hero-tagline {
+            display: inline-flex !important;
+            visibility: visible !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-tagline {
+            font-size: clamp(0.7rem, 2vw, 0.875rem);
+            padding: clamp(0.4rem, 1vw, 0.625rem) clamp(0.8rem, 2vw, 1.25rem);
+        }
     }
 
     .hero-tagline:hover {
@@ -393,7 +431,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
             {{-- Hero Text Content --}}
             <div class="hero-text-content w-full lg:w-1/2">
                 {{-- Tagline Badge --}}
-                <div class="hero-tagline animate-fade-in-up mx-auto lg:mx-0">
+                <div class="hero-tagline animate-fade-in-up mx-auto lg:mx-0" style="display: inline-flex !important; visibility: visible !important; opacity: 1 !important;">
                     <span class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-teal opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-teal"></span>

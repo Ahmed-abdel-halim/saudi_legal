@@ -112,7 +112,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         class="text-gray-600 hover:text-brand-primary font-bold transition whitespace-nowrap">
                         {{ __('header.NAV_REQUESTS', [], $currentLang) }}
                     </a>
-                    <a href="#"
+                    <a href="{{ route('suppliers.browse') }}"
                         class="text-gray-600 hover:text-brand-primary font-bold transition whitespace-nowrap">
                         {{ __('header.NAV_SUPPLIERS', [], $currentLang) }}
                     </a>
@@ -187,7 +187,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         class="text-gray-600 font-bold">
                         {{ __('header.NAV_REQUESTS', [], $currentLang) }}
                     </a>
-                    <a href="#"
+                    <a href="{{ route('suppliers.browse') }}"
                         class="text-gray-600 font-bold">
                         {{ __('header.NAV_SUPPLIERS', [], $currentLang) }}
                     </a>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\RegisterCompanyController;
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\HowItWorksController;
+use App\Http\Controllers\SupplierController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -48,3 +49,6 @@ Route::get('/services/browse', [ServiceController::class, 'browse'])->name('serv
 
 // How It Works Route
 Route::get('/how-it-works', [HowItWorksController::class, 'index'])->name('how-it-works');
+
+// Suppliers Route
+Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');
