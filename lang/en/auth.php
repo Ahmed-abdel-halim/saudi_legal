@@ -60,4 +60,31 @@ return [
     'ERROR_TERMS_REQUIRED' => 'You must agree to the terms and conditions',
     'REGISTRATION_SUCCESS' => 'Account created successfully',
     'required' => 'required',
+    
+    // Login Page
+    'PLATFORM_NAME' => 'Radiif',
+    'AUTH_WELCOME' => 'Welcome Back',
+    'AUTH_FORGOT_PASSWORD' => 'Forgot Password?',
+    'AUTH_REMEMBER_ME' => 'Remember me',
+    'AUTH_NEW_USER' => 'New to Radiif?',
+    'AUTH_EMAIL_PLACEHOLDER' => 'example@company.com',
+    'BACK_TO_HOME' => 'Back to Home',
+    
+    // Error Messages
+    'ERROR_INVALID_CREDENTIALS' => 'Invalid email or password',
+    'ERROR_AUTH_REQUIRED' => 'Authentication required',
+    
+    // Success Messages
+    'SUCCESS_REGISTER_COMPANY' => 'Registration successful! Please check your email for activation.',
+    'SUCCESS_ACTIVATED' => 'Account activated! Please log in.',
+    
+    // Feature Highlights
+    'FEATURE_SECURE' => 'Secure Login',
+    'FEATURE_FAST' => 'Fast Access',
+    
+    // Registration Page
+    'REGISTER_SUBTITLE' => 'Join thousands of companies on Radiif',
+    'STEP_1_SHORT' => 'Account',
+    'STEP_2_SHORT' => 'Company',
+    'STEP_3_SHORT' => 'Done',
 ];

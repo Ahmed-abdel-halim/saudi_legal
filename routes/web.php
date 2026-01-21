@@ -8,16 +8,38 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\HowItWorksController;
 use App\Http\Controllers\SupplierController;
 
+// Home Route
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Authentication Routes
 Route::get('/register/company', [RegisterCompanyController::class, 'showRegistrationForm'])->name('register.company');
 Route::post('/register/company', [RegisterCompanyController::class, 'handleRegistration'])->name('register.company.handle');
 
-// Login route (placeholder - you'll need to create this)
+// Login routes
 Route::get('/login', function () {
-    return redirect()->route('home');
+    return view('auth.login');
 })->name('login');
+
+Route::post('/login', function () {
+    $credentials = request()->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required'],
+    ]);
+
+    if (\Illuminate\Support\Facades\Auth::attempt($credentials, request()->boolean('remember'))) {
+        request()->session()->regenerate();
+        return redirect()->intended(route('dashboard'));
+    }
+
+    return back()->withErrors([
+        'email' => __('auth.ERROR_INVALID_CREDENTIALS', [], app()->getLocale()),
+    ])->onlyInput('email');
+})->name('login.handle');
+
+// Password reset route (placeholder - you'll need to create this)
+Route::get('/forgot-password', function () {
+    return view('auth.forgot-password');
+})->name('password.request');
 
 // Logout route
 Route::post('/logout', function () {
@@ -46,9 +68,11 @@ Route::get('/requests/browse', [RequestController::class, 'browse'])->name('requ
 
 // Services Routes
 Route::get('/services/browse', [ServiceController::class, 'browse'])->name('services.browse');
+Route::get('/services/{id}', [ServiceController::class, 'show'])->name('services.show');
 
 // How It Works Route
 Route::get('/how-it-works', [HowItWorksController::class, 'index'])->name('how-it-works');
 
-// Suppliers Route
+// Suppliers Routes
 Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');
+Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('suppliers.show');

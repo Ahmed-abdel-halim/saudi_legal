@@ -60,4 +60,31 @@ return [
     'ERROR_TERMS_REQUIRED' => 'يجب الموافقة على الشروط والأحكام',
     'REGISTRATION_SUCCESS' => 'تم إنشاء الحساب بنجاح',
     'required' => 'مطلوب',
+    
+    // Login Page
+    'PLATFORM_NAME' => 'رديف',
+    'AUTH_WELCOME' => 'مرحباً بعودتك',
+    'AUTH_FORGOT_PASSWORD' => 'نسيت كلمة المرور؟',
+    'AUTH_REMEMBER_ME' => 'تذكرني',
+    'AUTH_NEW_USER' => 'جديد على رديف؟',
+    'AUTH_EMAIL_PLACEHOLDER' => 'example@company.com',
+    'BACK_TO_HOME' => 'العودة للرئيسية',
+    
+    // Error Messages
+    'ERROR_INVALID_CREDENTIALS' => 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+    'ERROR_AUTH_REQUIRED' => 'يجب تسجيل الدخول',
+    
+    // Success Messages
+    'SUCCESS_REGISTER_COMPANY' => 'تم التسجيل بنجاح! يرجى التحقق من بريدك الإلكتروني للتفعيل.',
+    'SUCCESS_ACTIVATED' => 'تم تفعيل الحساب! يمكنك تسجيل الدخول الآن.',
+    
+    // Feature Highlights
+    'FEATURE_SECURE' => 'تسجيل دخول آمن',
+    'FEATURE_FAST' => 'وصول سريع',
+    
+    // Registration Page
+    'REGISTER_SUBTITLE' => 'انضم لآلاف الشركات على رديف',
+    'STEP_1_SHORT' => 'الحساب',
+    'STEP_2_SHORT' => 'الشركة',
+    'STEP_3_SHORT' => 'تم',
 ];

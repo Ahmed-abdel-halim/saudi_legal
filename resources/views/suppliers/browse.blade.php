@@ -131,7 +131,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                                 </span>
                             </p>
 
-                            <a href="#"
+                            <a href="{{ route('suppliers.show', $company->company_id) }}"
                                 class="block w-full text-center bg-brand-teal/10 text-brand-teal py-2 px-4 rounded-lg font-semibold hover:bg-brand-teal/20 transition-all">
                                 {{ __('suppliers.SUPPLIERS_CARD_VIEW_SERVICES', [], $currentLang) }}
                             </a>

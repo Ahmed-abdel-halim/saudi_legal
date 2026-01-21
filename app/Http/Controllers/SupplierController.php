@@ -51,6 +51,48 @@ class SupplierController extends Controller
         ]);
     }
 
+    /**
+     * Display a single supplier company profile.
+     */
+    public function show($id)
+    {
+        $currentLang = app()->getLocale();
+
+        try {
+            $company = $this->fetchCompanyById($id);
+            
+            if (!$company) {
+                abort(404);
+            }
+
+            $services = $this->fetchCompanyServices($id);
+            $ratingData = $this->fetchCompanyRating($id);
+            $projectCount = $this->fetchProjectCount($id);
+
+        } catch (\Exception $e) {
+            // Fallback to mock data
+            $mockCompanies = $this->getMockCompanies($currentLang);
+            $company = $mockCompanies->firstWhere('company_id', (int)$id);
+            
+            if (!$company) {
+                abort(404);
+            }
+
+            $services = $this->getMockServices($currentLang, $id);
+            $ratingData = ['avg' => $company->avg_rating ?? 4.5, 'count' => rand(10, 50)];
+            $projectCount = rand(5, 25);
+        }
+
+        return view('suppliers.profile', [
+            'company' => $company,
+            'services' => $services,
+            'avgRating' => $ratingData['avg'] ?? 0,
+            'reviewCount' => $ratingData['count'] ?? 0,
+            'projectCount' => $projectCount,
+            'currentLang' => $currentLang,
+        ]);
+    }
+
     private function fetchCompaniesFromDatabase($industryFilter, $sizeFilter)
     {
         $query = DB::table('companies as c')
@@ -204,5 +246,112 @@ class SupplierController extends Controller
             $lang === 'ar' ? 'متوسطة' : 'Medium',
             $lang === 'ar' ? 'كبيرة' : 'Large',
         ]);
+    }
+
+    /**
+     * Fetch a single company by ID from database.
+     */
+    private function fetchCompanyById($id)
+    {
+        $company = DB::table('companies as c')
+            ->where('c.company_id', $id)
+            ->where('c.status', 'active')
+            ->select([
+                'c.company_id',
+                'c.name',
+                'c.industry',
+                'c.size',
+                'c.logo as company_logo',
+                'c.description',
+                'c.created_at',
+                DB::raw('(SELECT COUNT(*) FROM services s WHERE s.company_id = c.company_id AND s.is_active = 1) AS service_count'),
+            ])
+            ->first();
+
+        if ($company) {
+            $company->company_logo = $this->resolveLogo($company->company_logo, $company->name);
+        }
+
+        return $company;
+    }
+
+    /**
+     * Fetch services for a specific company.
+     */
+    private function fetchCompanyServices($companyId, $limit = 6)
+    {
+        return DB::table('services')
+            ->where('company_id', $companyId)
+            ->where('is_active', 1)
+            ->select(['service_id', 'title', 'description', 'category', 'hourly_rate', 'is_featured'])
+            ->orderByDesc('is_featured')
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Fetch company rating data.
+     */
+    private function fetchCompanyRating($companyId)
+    {
+        $result = DB::table('reviews as r')
+            ->join('projects as p', 'r.project_id', '=', 'p.project_id')
+            ->where('p.supplier_company_id', $companyId)
+            ->selectRaw('AVG(r.rating) as avg, COUNT(*) as count')
+            ->first();
+
+        return [
+            'avg' => $result->avg ?? 0,
+            'count' => $result->count ?? 0,
+        ];
+    }
+
+    /**
+     * Fetch project count for a company.
+     */
+    private function fetchProjectCount($companyId)
+    {
+        return DB::table('projects')
+            ->where('supplier_company_id', $companyId)
+            ->where('status', 'completed')
+            ->count();
+    }
+
+    /**
+     * Mock services data for fallback.
+     */
+    private function getMockServices($lang, $companyId)
+    {
+        $services = [
+            [
+                'service_id' => 1,
+                'title' => $lang === 'ar' ? 'تطوير تطبيقات الويب' : 'Web Application Development',
+                'description' => $lang === 'ar' ? 'تطوير تطبيقات ويب متكاملة باستخدام أحدث التقنيات' : 'Full-stack web application development using latest technologies',
+                'category' => $lang === 'ar' ? 'تطوير' : 'Development',
+                'hourly_rate' => 250,
+                'is_featured' => 1,
+            ],
+            [
+                'service_id' => 2,
+                'title' => $lang === 'ar' ? 'تصميم واجهات المستخدم' : 'UI/UX Design',
+                'description' => $lang === 'ar' ? 'تصميم واجهات مستخدم جذابة وسهلة الاستخدام' : 'Creating beautiful and user-friendly interface designs',
+                'category' => $lang === 'ar' ? 'تصميم' : 'Design',
+                'hourly_rate' => 200,
+                'is_featured' => 0,
+            ],
+            [
+                'service_id' => 3,
+                'title' => $lang === 'ar' ? 'استشارات تقنية' : 'Technical Consulting',
+                'description' => $lang === 'ar' ? 'استشارات تقنية متخصصة لمشاريعك الرقمية' : 'Specialized technical consulting for your digital projects',
+                'category' => $lang === 'ar' ? 'استشارات' : 'Consulting',
+                'hourly_rate' => 300,
+                'is_featured' => 1,
+            ],
+        ];
+
+        return collect($services)->map(function ($item) {
+            return (object) $item;
+        });
     }
 }
