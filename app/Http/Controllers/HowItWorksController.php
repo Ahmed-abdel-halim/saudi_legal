@@ -17,4 +17,28 @@ class HowItWorksController extends Controller
             'currentLang' => $currentLang,
         ]);
     }
+
+    /**
+     * Display the Benefits page.
+     */
+    public function benefits()
+    {
+        return view('how-it-works.benefits');
+    }
+
+    /**
+     * Display the Pricing page.
+     */
+    public function pricing()
+    {
+        return view('how-it-works.pricing');
+    }
+
+    /**
+     * Display the FAQ page.
+     */
+    public function faq()
+    {
+        return view('how-it-works.faq');
+    }
 }
