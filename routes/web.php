@@ -14,6 +14,9 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Careers Route
 Route::get('/careers', [App\Http\Controllers\CareerController::class, 'index'])->name('careers');
 
+// Blog Route
+Route::get('/blog', [App\Http\Controllers\BlogController::class, 'index'])->name('blog');
+
 // Authentication Routes
 Route::get('/register/company', [RegisterCompanyController::class, 'showRegistrationForm'])->name('register.company');
 Route::post('/register/company', [RegisterCompanyController::class, 'handleRegistration'])->name('register.company.handle');
