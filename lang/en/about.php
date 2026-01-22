@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'ABOUT_TITLE' => 'Radiif',
+    'ABOUT_SUBTITLE' => 'The first B2B marketplace for optimizing tech workforce and eliminating bench waste, powered by UK legal standards.',
+    'OUR_VISION' => 'Empowering Tech Business',
+    'VISION_DESC' => 'RADIIF bridges the gap between software houses with available talent (Bench) and companies in need of immediate expertise. We are not just a freelance platform; we are a corporate resource exchange ecosystem.',
+    'OUR_VALUES' => 'Why Companies Trust Us?',
+    'VALUE_1' => 'We only deal with verified legal entities.',
+    'VALUE_2' => 'Contracts governed by UK law ensuring full protection.',
+    'LEGAL_STRUCTURE_TITLE' => 'Legal Entity & Governance',
+    'COMPANY_NO_PENDING' => 'Pending Incorporation',
+    'COMPANY_OWNERSHIP' => 'Radiif is a fully owned product and is managed and operated by Radiif Ltd, ensuring transparency and integrity in all transactions.',
+    'PARENT_COMPANY' => 'Parent Company',
+    'COMPANY_NAME' => 'RADIIF LTD',
+    'REGISTRATION' => 'Registration',
+    'REGISTERED_LOCATION' => 'Registered in England and Wales',
+    'COMPANY_NUMBER' => 'Company Number',
+    'COMPANY_NUMBER_STATUS' => 'Pending Incorporation',
+    'HEADQUARTERS' => 'Headquarters',
+    'HEADQUARTERS_ADDRESS' => 'Flat 7086, Unit 3A,-35 Hutton Garden, Holborn, London, EC1N 8DX, United Kingdom.',
+    'FOUNDER_QUOTE' => 'At Radiif, we are building the infrastructure for the future of work. Radiif is our main platform designed to add flexibility to the global software market.',
+    'FOUNDER_NAME' => 'Mohamed Abdel-Hamid',
+    'FOUNDER_TITLE' => 'Founder & CEO',
+];
