@@ -107,19 +107,19 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         </a>
                     </li>
                     <li>
-                        <a href="#"
+                        <a href="{{ route('how-it-works.benefits') }}"
                             class="text-gray-400 hover:text-brand-secondary {{ $direction === 'rtl' ? 'hover:translate-x-1' : 'hover:-translate-x-1' }} transition-all duration-300 block py-1">
                             {{ __('footer.NAV_MENU_BENEFITS', [], $currentLang) }}
                         </a>
                     </li>
                     <li>
-                        <a href="#"
+                        <a href="{{ route('how-it-works.pricing') }}"
                             class="text-gray-400 hover:text-brand-secondary {{ $direction === 'rtl' ? 'hover:translate-x-1' : 'hover:-translate-x-1' }} transition-all duration-300 block py-1">
                             {{ __('footer.NAV_MENU_PRICING', [], $currentLang) }}
                         </a>
                     </li>
                     <li>
-                        <a href="#"
+                        <a href="{{ route('how-it-works.faq') }}"
                             class="text-gray-400 hover:text-brand-secondary {{ $direction === 'rtl' ? 'hover:translate-x-1' : 'hover:-translate-x-1' }} transition-all duration-300 block py-1">
                             {{ __('footer.NAV_MENU_FAQ', [], $currentLang) }}
                         </a>
@@ -147,7 +147,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         </a>
                     </li>
                     <li>
-                        <a href="#"
+                        <a href="{{ route('legal.msa') }}"
                             class="text-gray-400 hover:text-brand-teal {{ $direction === 'rtl' ? 'hover:translate-x-1' : 'hover:-translate-x-1' }} transition-all duration-300 block py-1">
                             {{ __('footer.NAV_MENU_MSA', [], $currentLang) }}
                         </a>
