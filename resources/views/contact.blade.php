@@ -30,7 +30,7 @@
                             <p class="mb-4">{{ __('contact.CONTACT_ADDRESS') }}</p>
                             
                             <p class="font-semibold mb-1">London Office (HQ):</p>
-                            <p>Suite 7086, Unit 3A,<br>34-35 Hatton Garden, Holborn,<br>London, EC1N 8DX, UK.</p>
+                            <p>{{ __('contact.CONTACT_ADDRESS_2') }}</p>
                         </div>
                     </div>
                 </div>
