@@ -76,13 +76,15 @@ Route::get('/dashboard', function () {
 })->name('dashboard')->middleware('auth');
 
 // Legal routes (placeholder)
-Route::get('/legal/terms', function () {
-    return view('legal.terms');
-})->name('legal.terms');
+use App\Http\Controllers\LegalController;
 
-Route::get('/legal/privacy', function () {
-    return view('legal.privacy');
-})->name('legal.privacy');
+// ...
+
+// Legal routes
+Route::get('/legal/terms', [LegalController::class, 'terms'])->name('legal.terms');
+
+Route::get('/legal/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
+Route::get('/legal/msa', [LegalController::class, 'msa'])->name('legal.msa');
 
 // Requests Routes
 Route::get('/requests/browse', [RequestController::class, 'browse'])->name('requests.browse');
@@ -93,6 +95,9 @@ Route::get('/services/{id}', [ServiceController::class, 'show'])->name('services
 
 // How It Works Route
 Route::get('/how-it-works', [HowItWorksController::class, 'index'])->name('how-it-works');
+Route::get('/how-it-works/benefits', [HowItWorksController::class, 'benefits'])->name('how-it-works.benefits');
+Route::get('/how-it-works/pricing', [HowItWorksController::class, 'pricing'])->name('how-it-works.pricing');
+Route::get('/how-it-works/faq', [HowItWorksController::class, 'faq'])->name('how-it-works.faq');
 
 // Suppliers Routes
 Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');
