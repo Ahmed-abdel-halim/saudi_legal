@@ -85,7 +85,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         </a>
                     </li>
                     <li>
-                        <a href="#"
+                        <a href="{{ route('blog') }}"
                             class="text-gray-400 hover:text-brand-primary {{ $direction === 'rtl' ? 'hover:translate-x-1' : 'hover:-translate-x-1' }} transition-all duration-300 block py-1">
                             {{ __('footer.NAV_MENU_BLOG', [], $currentLang) }}
                         </a>
