@@ -67,19 +67,19 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 </h4>
                 <ul class="space-y-2 text-sm">
                     <li>
-                        <a href="#"
+                        <a href="{{ route('about') }}"
                             class="text-gray-400 hover:text-brand-primary {{ $direction === 'rtl' ? 'hover:translate-x-1' : 'hover:-translate-x-1' }} transition-all duration-300 block py-1">
                             {{ __('footer.NAV_MENU_ABOUT', [], $currentLang) }}
                         </a>
                     </li>
                     <li>
-                        <a href="#"
+                        <a href="{{ route('contact') }}"
                             class="text-gray-400 hover:text-brand-primary {{ $direction === 'rtl' ? 'hover:translate-x-1' : 'hover:-translate-x-1' }} transition-all duration-300 block py-1">
                             {{ __('footer.NAV_MENU_CONTACT', [], $currentLang) }}
                         </a>
                     </li>
                     <li>
-                        <a href="#"
+                        <a href="{{ route('careers') }}"
                             class="text-gray-400 hover:text-brand-primary {{ $direction === 'rtl' ? 'hover:translate-x-1' : 'hover:-translate-x-1' }} transition-all duration-300 block py-1">
                             {{ __('footer.NAV_MENU_CAREERS', [], $currentLang) }}
                         </a>
@@ -101,7 +101,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 </h4>
                 <ul class="space-y-2 text-sm">
                     <li>
-                        <a href="#"
+                        <a href="{{ route('how-it-works') }}"
                             class="text-gray-400 hover:text-brand-secondary {{ $direction === 'rtl' ? 'hover:translate-x-1' : 'hover:-translate-x-1' }} transition-all duration-300 block py-1">
                             {{ __('footer.NAV_MENU_HOW_IT_WORKS', [], $currentLang) }}
                         </a>

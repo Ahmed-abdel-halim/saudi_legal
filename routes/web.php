@@ -11,9 +11,27 @@ use App\Http\Controllers\SupplierController;
 // Home Route
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Careers Route
+Route::get('/careers', [App\Http\Controllers\CareerController::class, 'index'])->name('careers');
+
 // Authentication Routes
 Route::get('/register/company', [RegisterCompanyController::class, 'showRegistrationForm'])->name('register.company');
 Route::post('/register/company', [RegisterCompanyController::class, 'handleRegistration'])->name('register.company.handle');
+
+// About Us Route
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+
+// Contact Us Route
+Route::get('/contact', function () {
+    return view('contact');
+})->name('contact');
+
+Route::post('/contact', function () {
+    // Placeholder for contact form submission
+    return back()->with('success', __('contact.CONTACT_SUCCESS_MESSAGE'));
+})->name('contact.send');
 
 // Login routes
 Route::get('/login', function () {

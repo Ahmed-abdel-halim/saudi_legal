@@ -455,7 +455,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
 
                 {{-- Call to Action Buttons --}}
                 <div class="hero-cta-group justify-center lg:justify-start">
-                    <a href="{{ $exploreUrl }}"
+                    <a href="{{ route('services.browse') }}"
                         class="group relative px-6 py-4 bg-brand-primary rounded-2xl font-bold text-base lg:text-lg text-white shadow-lg shadow-brand-primary/30 hover:shadow-brand-primary/50 transition-all duration-300 hover:-translate-y-1 overflow-hidden focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-dark-navy whitespace-nowrap flex-shrink-0"
                         aria-label="{{ __('home.BROWSE_TALENT', [], $currentLang) }}">
                         <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -466,7 +466,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                             </svg>
                         </span>
                     </a>
-                    <a href="{{ $supplierUrl }}"
+                    <a href="{{ route('register.company') }}"
                         class="px-6 py-4 bg-white/5 border border-white/10 backdrop-blur-sm rounded-2xl font-bold text-base lg:text-lg text-white hover:bg-white/10 transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-dark-navy whitespace-nowrap flex-shrink-0"
                         aria-label="{{ __('home.REGISTER_COMPANY_NOW', [], $currentLang) }}">
                         {{ __('home.REGISTER_COMPANY_NOW', [], $currentLang) }}
@@ -653,7 +653,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
     <div class="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 relative z-10 text-center max-w-5xl">
         <h2 class="text-4xl md:text-5xl font-black text-white mb-8">{{ __('home.CTA_BANNER_TITLE', [], $currentLang) }}</h2>
         <p class="text-xl text-white/90 mb-10 max-w-2xl mx-auto">{{ __('home.CTA_BANNER_SUBTITLE', [], $currentLang) }}</p>
-        <a href="{{ $supplierUrl }}" class="bg-white text-brand-primary px-12 py-5 rounded-full font-bold text-xl shadow-2xl hover:bg-gray-50 transition transform hover:scale-105 inline-flex items-center gap-2">
+        <a href="{{ route('register.company') }}" class="bg-white text-brand-primary px-12 py-5 rounded-full font-bold text-xl shadow-2xl hover:bg-gray-50 transition transform hover:scale-105 inline-flex items-center gap-2">
             {{ __('home.CTA_BANNER_BTN', [], $currentLang) }}
         </a>
     </div>
