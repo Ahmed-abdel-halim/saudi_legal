@@ -1,0 +1,426 @@
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 141
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:51:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 212
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 141
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:11 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 212
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 141
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:14 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 212
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 141
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:15 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 212
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 141
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:16 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 212
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 141
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:18 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 212
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 141
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 05:52:25 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 212
+[14-Dec-2025 05:54:00 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:54:00 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:54:00 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 06:06:52 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 06:06:52 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 06:06:52 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 06:21:31 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 06:21:31 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 06:21:31 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 06:26:20 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 06:26:20 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 06:26:20 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 06:26:23 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 06:26:23 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 06:26:23 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 141
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:04 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 212
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 141
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 06:35:07 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 212
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 110
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 141
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 186
+[14-Dec-2025 10:19:22 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 212
+[24-Dec-2025 18:16:48 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[24-Dec-2025 18:16:48 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[24-Dec-2025 18:16:48 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[24-Dec-2025 18:23:21 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[24-Dec-2025 18:23:21 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[24-Dec-2025 18:23:21 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[24-Dec-2025 19:14:49 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[24-Dec-2025 19:14:49 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[24-Dec-2025 19:14:49 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[24-Dec-2025 20:14:58 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[24-Dec-2025 20:14:58 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[24-Dec-2025 20:14:58 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[24-Dec-2025 20:20:32 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[24-Dec-2025 20:20:32 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[24-Dec-2025 20:20:32 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[24-Dec-2025 20:26:03 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[24-Dec-2025 20:26:03 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[24-Dec-2025 20:26:03 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[25-Dec-2025 21:02:38 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[25-Dec-2025 21:02:38 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[25-Dec-2025 21:02:38 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[25-Dec-2025 21:02:47 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[25-Dec-2025 21:02:47 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[25-Dec-2025 21:02:47 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[26-Dec-2025 07:29:35 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[26-Dec-2025 07:29:35 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[26-Dec-2025 07:29:35 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94
+[30-Dec-2025 21:31:06 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[30-Dec-2025 21:31:06 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[30-Dec-2025 21:31:06 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/messages/index.php on line 94

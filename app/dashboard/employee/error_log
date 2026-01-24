@@ -1,0 +1,188 @@
+[21-Nov-2025 13:50:55 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'timeshar_ts.project_assignments' doesn't exist in /home/timeshar/public_html/dashboard/employee/my-assignments.php:21
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(21): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 21
+[21-Nov-2025 13:56:01 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'timeshar_ts.project_assignments' doesn't exist in /home/timeshar/public_html/dashboard/employee/my-assignments.php:21
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(21): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 21
+[21-Nov-2025 13:57:09 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'timeshar_ts.project_assignments' doesn't exist in /home/timeshar/public_html/dashboard/employee/my-assignments.php:21
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(21): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 21
+[21-Nov-2025 14:04:01 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'timeshar_ts.project_assignments' doesn't exist in /home/timeshar/public_html/dashboard/employee/my-assignments.php:21
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(21): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 21
+[22-Nov-2025 11:04:19 UTC] PHP Warning:  Undefined array key "EMP_ASSIGNMENTS_TITLE" in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 14
+[22-Nov-2025 11:04:19 UTC] PHP Warning:  Undefined array key "EMP_TABLE_PROJECT" in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 32
+[22-Nov-2025 11:04:19 UTC] PHP Warning:  Undefined array key "EMP_TABLE_ROLE" in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 33
+[22-Nov-2025 11:04:19 UTC] PHP Warning:  Undefined array key "EMP_TABLE_START_DATE" in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 34
+[22-Nov-2025 11:04:19 UTC] PHP Warning:  Undefined array key "EMP_TABLE_STATUS" in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 35
+[22-Nov-2025 11:04:19 UTC] PHP Warning:  Undefined array key "EMP_TABLE_ACTION" in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 36
+[22-Nov-2025 11:04:19 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[22-Nov-2025 11:04:21 UTC] PHP Warning:  Undefined array key "EMP_DAY_SUNDAY" in /home/timeshar/public_html/dashboard/employee/availability.php on line 15
+[22-Nov-2025 11:04:21 UTC] PHP Warning:  Undefined array key "EMP_DAY_MONDAY" in /home/timeshar/public_html/dashboard/employee/availability.php on line 16
+[22-Nov-2025 11:04:21 UTC] PHP Warning:  Undefined array key "EMP_DAY_TUESDAY" in /home/timeshar/public_html/dashboard/employee/availability.php on line 17
+[22-Nov-2025 11:04:21 UTC] PHP Warning:  Undefined array key "EMP_DAY_WEDNESDAY" in /home/timeshar/public_html/dashboard/employee/availability.php on line 18
+[22-Nov-2025 11:04:21 UTC] PHP Warning:  Undefined array key "EMP_DAY_THURSDAY" in /home/timeshar/public_html/dashboard/employee/availability.php on line 19
+[22-Nov-2025 11:04:21 UTC] PHP Warning:  Undefined array key "EMP_DAY_FRIDAY" in /home/timeshar/public_html/dashboard/employee/availability.php on line 20
+[22-Nov-2025 11:04:21 UTC] PHP Warning:  Undefined array key "EMP_DAY_SATURDAY" in /home/timeshar/public_html/dashboard/employee/availability.php on line 21
+[22-Nov-2025 11:04:21 UTC] PHP Warning:  Undefined array key "EMP_AVAILABILITY_TITLE" in /home/timeshar/public_html/dashboard/employee/availability.php on line 27
+[22-Nov-2025 11:04:21 UTC] PHP Warning:  Undefined array key "EMP_AVAILABILITY_DESC" in /home/timeshar/public_html/dashboard/employee/availability.php on line 28
+[22-Nov-2025 11:04:21 UTC] PHP Warning:  Undefined array key "EMP_AVAILABILITY_SUB_DESC" in /home/timeshar/public_html/dashboard/employee/availability.php on line 29
+[22-Nov-2025 11:04:21 UTC] PHP Warning:  Undefined array key "EMP_BTN_UPDATE_AVAILABILITY" in /home/timeshar/public_html/dashboard/employee/availability.php on line 67
+[22-Nov-2025 11:06:46 UTC] PHP Parse error:  syntax error, unexpected token "=>" in /home/timeshar/public_html/config/lang.php on line 1151
+[22-Nov-2025 11:09:27 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[22-Nov-2025 11:09:30 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[22-Nov-2025 11:34:58 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[22-Nov-2025 11:35:15 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[22-Nov-2025 11:58:13 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/timeshar/public_html/layout/dashboard_header.php:110) in /home/timeshar/public_html/dashboard/employee/availability.php on line 7
+[14-Dec-2025 05:35:40 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:35:40 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:35:40 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/timeshar/public_html/layout/dashboard_header.php:165) in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 8
+[14-Dec-2025 05:37:36 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:37:36 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:37:38 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:37:38 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:37:38 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[14-Dec-2025 05:37:44 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:37:44 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:37:48 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:37:48 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:37:48 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[14-Dec-2025 05:51:40 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:51:40 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:51:40 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 29
+[14-Dec-2025 05:51:40 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 32
+[14-Dec-2025 05:51:40 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 36
+[14-Dec-2025 05:51:40 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[14-Dec-2025 05:51:52 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:51:52 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:51:52 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 29
+[14-Dec-2025 05:51:52 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 32
+[14-Dec-2025 05:51:52 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 36
+[14-Dec-2025 05:51:52 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[14-Dec-2025 05:52:10 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:52:10 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:52:10 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 29
+[14-Dec-2025 05:52:10 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 32
+[14-Dec-2025 05:52:10 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 36
+[14-Dec-2025 05:52:10 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[14-Dec-2025 05:54:19 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:54:19 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:54:19 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/timeshar/public_html/layout/dashboard_header.php:116) in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 8
+[14-Dec-2025 06:07:05 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 06:07:05 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 06:07:05 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/timeshar/public_html/layout/dashboard_header.php:130) in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 8
+[14-Dec-2025 06:35:06 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 06:35:06 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 06:35:06 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 29
+[14-Dec-2025 06:35:06 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 32
+[14-Dec-2025 06:35:06 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 36
+[14-Dec-2025 06:35:06 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[14-Dec-2025 10:19:24 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 10:19:24 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 10:19:24 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 29
+[14-Dec-2025 10:19:24 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 32
+[14-Dec-2025 10:19:24 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 36
+[14-Dec-2025 10:19:24 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[24-Dec-2025 18:16:07 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[24-Dec-2025 18:16:07 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[24-Dec-2025 18:16:07 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/timeshar/public_html/layout/dashboard_header.php:120) in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 8
+[24-Dec-2025 18:21:02 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[24-Dec-2025 18:21:02 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[24-Dec-2025 18:21:02 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/timeshar/public_html/layout/dashboard_header.php:120) in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 8
+[24-Dec-2025 19:14:59 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[24-Dec-2025 19:14:59 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[24-Dec-2025 19:14:59 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/timeshar/public_html/layout/dashboard_header.php:120) in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 8
+[24-Dec-2025 19:15:11 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[24-Dec-2025 19:15:11 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[24-Dec-2025 19:15:11 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/timeshar/public_html/layout/dashboard_header.php:120) in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 8
+[24-Dec-2025 20:14:47 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[24-Dec-2025 20:14:47 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[24-Dec-2025 20:14:47 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/timeshar/public_html/layout/dashboard_header.php:120) in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 8
+[24-Dec-2025 20:14:51 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[24-Dec-2025 20:14:51 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[24-Dec-2025 20:14:51 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/timeshar/public_html/layout/dashboard_header.php:120) in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 8
+[24-Dec-2025 20:25:54 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[24-Dec-2025 20:25:54 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[24-Dec-2025 20:25:54 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 29
+[24-Dec-2025 20:25:54 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 32
+[24-Dec-2025 20:25:54 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 36
+[24-Dec-2025 20:25:55 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[25-Dec-2025 18:12:17 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[25-Dec-2025 18:12:17 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[25-Dec-2025 18:12:17 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/timeshar/public_html/layout/dashboard_header.php:120) in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 8
+[25-Dec-2025 21:02:40 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[25-Dec-2025 21:02:40 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[25-Dec-2025 21:02:40 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 29
+[25-Dec-2025 21:02:40 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 32
+[25-Dec-2025 21:02:40 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 36
+[25-Dec-2025 21:02:40 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'p.start_date' in 'SELECT' in /home/timeshar/public_html/dashboard/employee/my-assignments.php:42
+Stack trace:
+#0 /home/timeshar/public_html/dashboard/employee/my-assignments.php(42): mysqli->prepare()
+#1 {main}
+  thrown in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 42
+[26-Dec-2025 07:29:37 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[26-Dec-2025 07:29:37 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[26-Dec-2025 07:29:37 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/timeshar/public_html/layout/dashboard_header.php:120) in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 8
+[30-Dec-2025 21:57:10 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[30-Dec-2025 21:57:10 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[30-Dec-2025 21:57:10 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/timeshar/public_html/layout/dashboard_header.php:120) in /home/timeshar/public_html/dashboard/employee/my-assignments.php on line 8

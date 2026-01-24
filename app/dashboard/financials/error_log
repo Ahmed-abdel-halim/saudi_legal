@@ -1,0 +1,7 @@
+[25-Dec-2025 20:39:56 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[25-Dec-2025 20:39:56 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[25-Dec-2025 20:39:56 UTC] PHP Warning:  Undefined variable $company_type in /home/timeshar/public_html/dashboard/financials/index.php on line 28
+[25-Dec-2025 20:39:56 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/financials/index.php on line 51
+[25-Dec-2025 20:39:56 UTC] PHP Warning:  Undefined variable $company_type in /home/timeshar/public_html/dashboard/financials/index.php on line 62
+[25-Dec-2025 20:39:56 UTC] PHP Warning:  Undefined variable $dir in /home/timeshar/public_html/dashboard/financials/index.php on line 107
+[25-Dec-2025 20:39:56 UTC] PHP Warning:  Undefined variable $company_type in /home/timeshar/public_html/dashboard/financials/index.php on line 121

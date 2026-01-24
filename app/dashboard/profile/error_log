@@ -1,0 +1,6 @@
+[14-Dec-2025 05:33:18 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:33:18 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:33:59 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:33:59 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
+[14-Dec-2025 05:37:53 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 4
+[14-Dec-2025 05:37:53 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/timeshar/public_html/config/db_connect.php on line 5
