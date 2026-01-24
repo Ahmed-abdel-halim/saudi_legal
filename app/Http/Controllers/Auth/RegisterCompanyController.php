@@ -34,7 +34,7 @@ class RegisterCompanyController extends Controller
         // Validate the request
         $validator = Validator::make($request->all(), [
             'full-name' => 'required|string|max:255',
-            'work-email' => 'required|email|max:255|unique:users,email',
+            'work-email' => 'required|email|max:255',
             'password' => 'required|string|min:8|confirmed',
             'company-name' => 'required|string|max:255',
             'cr-number' => 'required|string|max:50',
@@ -61,6 +61,13 @@ class RegisterCompanyController extends Controller
         if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
+                ->withInput();
+        }
+
+        // Manual uniqueness check to avoid Validator DB driver issues
+        if (User::where('email', $request->input('work-email'))->exists()) {
+            return redirect()->back()
+                ->withErrors(['work-email' => __('auth.ERROR_EMAIL_EXISTS', [], app()->getLocale())])
                 ->withInput();
         }
 
