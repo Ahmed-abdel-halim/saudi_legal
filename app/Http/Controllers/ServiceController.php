@@ -317,4 +317,81 @@ class ServiceController extends Controller
             $currentLang === 'ar' ? 'الاختبار' : 'Testing',
         ])->sort()->values();
     }
+
+    /**
+     * Display the specified service detail.
+     */
+    public function show($id)
+    {
+        $currentLang = app()->getLocale();
+        
+        try {
+            // Fetch from database
+            $service = DB::table('services as s')
+                ->join('users as u', 's.user_id', '=', 'u.user_id')
+                ->join('companies as c', 's.company_id', '=', 'c.company_id')
+                ->where('s.service_id', $id)
+                ->where('s.is_active', 1)
+                ->select([
+                    's.*',
+                    'u.full_name as expert_name',
+                    'u.image as expert_image',
+                    'u.job_title as expert_title',
+                    'u.bio as expert_bio',
+                    'c.name as company_name',
+                    'c.company_id',
+                    'c.industry',
+                    'c.logo as company_logo',
+                    'c.description as company_description',
+                    DB::raw("(SELECT AVG(r.rating) FROM reviews r WHERE r.service_id = s.service_id) as avg_rating"),
+                    DB::raw("(SELECT COUNT(r.review_id) FROM reviews r WHERE r.service_id = s.service_id) as reviews_count"),
+                    DB::raw("(SELECT GROUP_CONCAT(IFNULL(sk.name_ar, sk.name) SEPARATOR ', ') 
+                             FROM user_skills us 
+                             JOIN skills sk ON us.skill_id = sk.skill_id 
+                             WHERE us.user_id = s.user_id) AS skills_list")
+                ])
+                ->first();
+                
+                if (!$service) {
+                    throw new \Exception("Not found in DB");
+                }
+                
+                // Format skills
+                $service->skills_array = !empty($service->skills_list) 
+                    ? explode(', ', $service->skills_list) 
+                    : [];
+
+        } catch (\Exception $e) {
+            // Mock data fallback
+            $services = $this->getMockServices();
+            $service = $services->firstWhere('service_id', (int)$id);
+            
+            if (!$service) {
+                // If not found in mock, create a generic mock on the fly based on ID
+                $service = (object)[
+                    'service_id' => $id,
+                    'title' => $currentLang === 'ar' ? 'خدمة نموذجية رقم ' . $id : 'Sample Service #' . $id,
+                    'description' => $currentLang === 'ar' ? 'وصف تفصيلي للخدمة...' : 'Detailed service description...',
+                    'hourly_rate' => 100,
+                    'service_image' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80',
+                    'expert_name' => 'Expert Name',
+                    'expert_image' => 'https://ui-avatars.com/api/?name=Expert&background=random',
+                    'expert_title' => 'Senior Developer',
+                    'expert_bio' => 'Experienced professional with 5+ years...',
+                    'company_name' => 'Company Name',
+                    'company_id' => 1,
+                    'industry' => 'Tech',
+                    'company_logo' => 'https://ui-avatars.com/api/?name=Company&background=random',
+                    'company_description' => 'A leading company in...',
+                    'avg_rating' => 4.5,
+                    'reviews_count' => 12,
+                    'skills_array' => ['Skill 1', 'Skill 2'],
+                    'delivery_mode' => 'Remote',
+                    'experience_level' => 'Senior'
+                ];
+            }
+        }
+
+        return view('services.show', compact('service', 'currentLang'));
+    }
 }

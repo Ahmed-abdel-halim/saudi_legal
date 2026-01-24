@@ -115,7 +115,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @forelse($services as $service)
                     <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 transform hover:-translate-y-1 hover:shadow-teal-glow border border-gray-100">
-                        <a href="#" class="block">
+                        <a href="{{ route('services.show', ['id' => $service->service_id]) }}" class="block">
 
                             {{-- Service Image --}}
                             <div class="relative h-48 overflow-hidden bg-gray-200">
