@@ -10,8 +10,8 @@ class HomeController extends Controller
     {
         // Mock services data - Replace with actual database query when models are ready
         $services = [
-            [
-                'id' => 1,
+            (object)[
+                'service_id' => 1,
                 'title' => 'Full Stack Developer',
                 'expert_name' => 'أحمد محمد',
                 'expert_image' => null,
@@ -19,8 +19,8 @@ class HomeController extends Controller
                 'hourly_rate' => 150,
                 'image' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80',
             ],
-            [
-                'id' => 2,
+            (object)[
+                'service_id' => 2,
                 'title' => 'UI/UX Designer',
                 'expert_name' => 'سارة علي',
                 'expert_image' => null,
@@ -28,8 +28,8 @@ class HomeController extends Controller
                 'hourly_rate' => 120,
                 'image' => 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&q=80',
             ],
-            [
-                'id' => 3,
+            (object)[
+                'service_id' => 3,
                 'title' => 'DevOps Engineer',
                 'expert_name' => 'خالد أحمد',
                 'expert_image' => null,
@@ -40,7 +40,7 @@ class HomeController extends Controller
         ];
 
         $isLoggedIn = auth()->check();
-        $exploreUrl = '#';
+        $exploreUrl = route('services.browse');
         $supplierUrl = $isLoggedIn ? '#' : '#';
 
         return view('home', compact('services', 'isLoggedIn', 'exploreUrl', 'supplierUrl'));

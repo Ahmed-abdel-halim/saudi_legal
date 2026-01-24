@@ -562,42 +562,42 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 lg:gap-8 justify-items-center">
                 @foreach($services as $service)
                 <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 w-full max-w-md">
-                    <a href="#" class="block">
+                    <a href="{{ route('services.show', ['id' => $service->service_id]) }}" class="block">
                         <div class="relative h-48 overflow-hidden bg-gray-200">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
                             @php
-                            $serviceImg = !empty($service['image'])
-                            ? $service['image']
+                            $serviceImg = !empty($service->image)
+                            ? $service->image
                             : 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80';
                             $onError = "this.onerror=null; this.src='https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80';";
                             @endphp
                             <img src="{{ $serviceImg }}"
-                                alt="{{ $service['title'] }}"
+                                alt="{{ $service->title }}"
                                 class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700"
                                 onerror="{{ $onError }}">
 
                             <div class="absolute bottom-4 {{ $direction === 'rtl' ? 'right-4' : 'left-4' }} z-20">
                                 <span class="bg-white/20 backdrop-blur-md border border-white/30 text-white px-3 py-1 rounded-full text-xs font-bold">
-                                    {{ $service['company_name'] }}
+                                    {{ $service->company_name }}
                                 </span>
                             </div>
                         </div>
                         <div class="p-6">
-                            <h3 class="text-xl font-bold text-dark-navy mb-2 line-clamp-1 group-hover:text-brand-primary transition-colors">{{ $service['title'] }}</h3>
+                            <h3 class="text-xl font-bold text-dark-navy mb-2 line-clamp-1 group-hover:text-brand-primary transition-colors">{{ $service->title }}</h3>
                             <div class="flex items-center gap-3 mb-4">
                                 <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 overflow-hidden">
-                                    @if(!empty($service['expert_image']))
-                                    <img src="{{ $service['expert_image'] }}" class="w-full h-full object-cover" alt="{{ $service['expert_name'] }}">
+                                    @if(!empty($service->expert_image))
+                                    <img src="{{ $service->expert_image }}" class="w-full h-full object-cover" alt="{{ $service->expert_name }}">
                                     @else
-                                    {{ mb_substr($service['expert_name'], 0, 1, "UTF-8") }}
+                                    {{ mb_substr($service->expert_name, 0, 1, "UTF-8") }}
                                     @endif
                                 </div>
-                                <span class="text-sm text-gray-500">{{ $service['expert_name'] }}</span>
+                                <span class="text-sm text-gray-500">{{ $service->expert_name }}</span>
                             </div>
                             <div class="flex justify-between items-center pt-4 border-t border-gray-100">
                                 <div class="flex flex-col">
                                     <span class="text-xs text-gray-400 uppercase tracking-wider">{{ __('home.PRICE_LABEL', [], $currentLang) }}</span>
-                                    <span class="text-lg font-bold text-dark-navy">{{ $service['hourly_rate'] }} <span class="text-sm font-normal text-gray-500">{{ __('home.CURRENCY_HOUR', [], $currentLang) }}</span></span>
+                                    <span class="text-lg font-bold text-dark-navy">{{ $service->hourly_rate }} <span class="text-sm font-normal text-gray-500">{{ __('home.CURRENCY_HOUR', [], $currentLang) }}</span></span>
                                 </div>
                                 <span class="text-brand-primary bg-brand-primary/10 p-2 rounded-lg group-hover:bg-brand-primary group-hover:text-white transition-colors">
                                     <svg class="w-5 h-5 {{ $direction === 'rtl' ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">

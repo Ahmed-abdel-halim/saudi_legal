@@ -70,10 +70,17 @@ Route::post('/logout', function () {
     return redirect()->route('home')->with('success', __('header.LOGOUT_SUCCESS', [], app()->getLocale()));
 })->name('logout')->middleware('auth');
 
-// Dashboard route (placeholder - you'll need to create this)
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard')->middleware('auth');
+// Dashboard Routes
+use App\Http\Controllers\DashboardController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
+    Route::post('/dashboard/settings', [DashboardController::class, 'updateSettings'])->name('dashboard.settings.update');
+    Route::get('/dashboard/projects', [DashboardController::class, 'projects'])->name('dashboard.projects');
+    Route::get('/dashboard/team', [DashboardController::class, 'team'])->name('dashboard.team');
+    Route::post('/dashboard/team/invite', [DashboardController::class, 'inviteMember'])->name('dashboard.team.invite');
+});
 
 // Legal routes (placeholder)
 use App\Http\Controllers\LegalController;
