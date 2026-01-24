@@ -96,7 +96,7 @@
                         </div>
                     </div>
 
-                    <a href="##" class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 transition transform hover:-translate-y-1 mb-4">
+                    <a href="{{ route('services.request', $service->service_id) }}" class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 transition transform hover:-translate-y-1 mb-4">
                         {{ __('dashboard.btn_request_expert') }}
                     </a>
                    <a href="{{ route('services.contact', $service->service_id) }}"

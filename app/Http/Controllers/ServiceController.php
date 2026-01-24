@@ -433,4 +433,45 @@ class ServiceController extends Controller
 
         return view('services.contact', compact('service', 'currentLang'));
     }
+
+    /**
+     * Show request expert form for a specific service.
+     */
+    public function request($id)
+    {
+        $currentLang = app()->getLocale();
+        
+        try {
+            $service = DB::table('services as s')
+                ->join('users as u', 's.user_id', '=', 'u.user_id')
+                ->join('companies as c', 's.company_id', '=', 'c.company_id')
+                ->where('s.service_id', $id)
+                ->where('s.is_active', 1)
+                ->select([
+                    's.service_id',
+                    's.title',
+                    's.hourly_rate',
+                    's.description',
+                    'u.full_name as expert_name',
+                    'c.name as company_name',
+                    'c.company_id'
+                ])
+                ->first();
+
+            if (!$service) {
+                throw new \Exception("Not found in DB");
+            }
+
+        } catch (\Exception $e) {
+            // Mock fallback
+            $services = $this->getMockServices();
+            $service = $services->firstWhere('service_id', (int)$id);
+            
+            if (!$service) {
+                abort(404);
+            }
+        }
+
+        return view('services.request', compact('service', 'currentLang'));
+    }
 }
