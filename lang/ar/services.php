@@ -26,4 +26,12 @@ return [
     'PRICE_LABEL' => 'السعر',
     'CURRENCY_HOUR' => 'ر.س/س',
     'VIEW_DETAILS' => 'عرض التفاصيل',
+    // Contact Company
+    'CONTACT_COMPANY_TITLE' => 'تواصل مع الشركة',
+    'CONTACT_COMPANY_DESC' => 'أرسل رسالة إلى :company بخصوص ":service".',
+    'FORM_NAME' => 'الاسم الكريم',
+    'FORM_EMAIL' => 'البريد الإلكتروني',
+    'FORM_MESSAGE' => 'الرسالة',
+    'BTN_SEND_MESSAGE' => 'إرسال الرسالة',
+    'BTN_CANCEL' => 'إلغاء',
 ];

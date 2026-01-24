@@ -99,6 +99,10 @@ Route::get('/requests/browse', [RequestController::class, 'browse'])->name('requ
 // Services Routes
 Route::get('/services/browse', [ServiceController::class, 'browse'])->name('services.browse');
 Route::get('/services/{id}', [ServiceController::class, 'show'])->name('services.show');
+Route::get('/services/{id}/contact', [ServiceController::class, 'contact'])->name('services.contact');
+Route::post('/services/{id}/contact', function() {
+    return back()->with('success', __('contact.CONTACT_SUCCESS_MESSAGE')); // Reusing existing message key
+})->name('services.contact.send');
 
 // How It Works Route
 Route::get('/how-it-works', [HowItWorksController::class, 'index'])->name('how-it-works');

@@ -96,12 +96,14 @@
                         </div>
                     </div>
 
-                    <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 transition transform hover:-translate-y-1 mb-4">
+                    <a href="##" class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 transition transform hover:-translate-y-1 mb-4">
                         {{ __('dashboard.btn_request_expert') }}
-                    </button>
-                    <button class="w-full bg-white border-2 border-slate-200 hover:border-indigo-600 hover:text-indigo-600 text-slate-700 py-3 rounded-xl font-bold transition">
-                        {{ __('dashboard.btn_contact_company') }}
-                    </button>
+                    </a>
+                   <a href="{{ route('services.contact', $service->service_id) }}"
+   class="block w-full text-center bg-white border-2 border-slate-200 hover:border-indigo-600 hover:text-indigo-600 text-slate-700 py-3 rounded-xl font-bold transition">
+    {{ __('dashboard.btn_contact_company') }}
+</a>
+
 
                     <div class="mt-6 pt-6 border-t border-slate-100">
                         <div class="flex items-center gap-3">

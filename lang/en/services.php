@@ -26,4 +26,12 @@ return [
     'PRICE_LABEL' => 'Price',
     'CURRENCY_HOUR' => 'SAR/Hr',
     'VIEW_DETAILS' => 'View Details',
+    // Contact Company
+    'CONTACT_COMPANY_TITLE' => 'Contact Company',
+    'CONTACT_COMPANY_DESC' => 'Send a message to :company regarding ":service".',
+    'FORM_NAME' => 'Your Name',
+    'FORM_EMAIL' => 'Email Address',
+    'FORM_MESSAGE' => 'Message',
+    'BTN_SEND_MESSAGE' => 'Send Message',
+    'BTN_CANCEL' => 'Cancel',
 ];
