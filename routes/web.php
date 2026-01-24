@@ -109,3 +109,4 @@ Route::get('/how-it-works/faq', [HowItWorksController::class, 'faq'])->name('how
 // Suppliers Routes
 Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');
 Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('suppliers.show');
+
