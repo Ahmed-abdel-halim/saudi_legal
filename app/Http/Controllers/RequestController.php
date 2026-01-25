@@ -197,4 +197,122 @@ class RequestController extends Controller
 
         return $requests;
     }
+
+    /**
+     * Display the specified request detail.
+     */
+    public function show($id)
+    {
+        $currentLang = app()->getLocale();
+        
+        try {
+            $request = DB::table('projects as p')
+                ->join('companies as c', 'p.requester_company_id', '=', 'c.company_id')
+                ->where('p.project_id', $id)
+                ->where('p.status', 'posted')
+                ->select([
+                    'p.*',
+                    'c.name as requester_name',
+                    'c.logo as requester_logo',
+                    'c.description as requester_description',
+                    DB::raw("(SELECT GROUP_CONCAT(IFNULL(s.name_ar, s.name) SEPARATOR ', ') 
+                             FROM project_required_skills prs 
+                             JOIN skills s ON prs.skill_id = s.skill_id 
+                             WHERE prs.project_id = p.project_id) AS skills_list")
+                ])
+                ->first();
+                
+            if (!$request) {
+                throw new \Exception("Not found in DB");
+            }
+            
+            // Format skills
+            $request->skills_array = !empty($request->skills_list) 
+                ? explode(', ', $request->skills_list) 
+                : [];
+
+        } catch (\Exception $e) {
+            // Mock data fallback
+            $requests = $this->getMockRequests();
+            $request = $requests->firstWhere('project_id', (int)$id);
+            
+            if (!$request) {
+                abort(404);
+            }
+        }
+
+        return view('requests.show', compact('request', 'currentLang'));
+    }
+
+    /**
+     * Show submit proposal form for a specific request.
+     */
+    public function proposal($id)
+    {
+        $currentLang = app()->getLocale();
+        
+        try {
+            $request = DB::table('projects as p')
+                ->join('companies as c', 'p.requester_company_id', '=', 'c.company_id')
+                ->where('p.project_id', $id)
+                ->where('p.status', 'posted')
+                ->select([
+                    'p.project_id',
+                    'p.title',
+                    'p.max_hourly_rate',
+                    'c.name as requester_name'
+                ])
+                ->first();
+
+            if (!$request) {
+                throw new \Exception("Not found in DB");
+            }
+
+        } catch (\Exception $e) {
+            $requests = $this->getMockRequests();
+            $request = $requests->firstWhere('project_id', (int)$id);
+            
+            if (!$request) {
+                abort(404);
+            }
+        }
+
+        return view('requests.proposal', compact('request', 'currentLang'));
+    }
+
+    /**
+     * Show contact form for a specific request company.
+     */
+    public function contact($id)
+    {
+        $currentLang = app()->getLocale();
+        
+        try {
+            $request = DB::table('projects as p')
+                ->join('companies as c', 'p.requester_company_id', '=', 'c.company_id')
+                ->where('p.project_id', $id)
+                ->where('p.status', 'posted')
+                ->select([
+                    'p.project_id',
+                    'p.title',
+                    'c.name as requester_name',
+                    'c.company_id'
+                ])
+                ->first();
+
+            if (!$request) {
+                throw new \Exception("Not found in DB");
+            }
+
+        } catch (\Exception $e) {
+            $requests = $this->getMockRequests();
+            $request = $requests->firstWhere('project_id', (int)$id);
+            
+            if (!$request) {
+                abort(404);
+            }
+        }
+
+        return view('requests.contact', compact('request', 'currentLang'));
+    }
 }

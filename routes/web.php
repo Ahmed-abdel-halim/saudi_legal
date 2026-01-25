@@ -95,6 +95,15 @@ Route::get('/legal/msa', [LegalController::class, 'msa'])->name('legal.msa');
 
 // Requests Routes
 Route::get('/requests/browse', [RequestController::class, 'browse'])->name('requests.browse');
+Route::get('/requests/{id}', [RequestController::class, 'show'])->name('requests.show');
+Route::get('/requests/{id}/proposal', [RequestController::class, 'proposal'])->name('requests.proposal');
+Route::post('/requests/{id}/proposal', function() {
+    return back()->with('success', __('requests.PROPOSAL_SUCCESS_MESSAGE'));
+})->name('requests.proposal.send');
+Route::get('/requests/{id}/contact', [RequestController::class, 'contact'])->name('requests.contact');
+Route::post('/requests/{id}/contact', function() {
+    return back()->with('success', __('contact.CONTACT_SUCCESS_MESSAGE'));
+})->name('requests.contact.send');
 
 // Services Routes
 Route::get('/services/browse', [ServiceController::class, 'browse'])->name('services.browse');

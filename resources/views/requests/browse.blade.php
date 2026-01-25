@@ -121,7 +121,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                                     {{ $project->requester_name }}
                                 </span>
                                 <h3 class="text-xl font-bold text-dark-navy mt-2 mb-2">
-                                    <a href="#" 
+                                    <a href="{{ route('requests.show', $project->project_id) }}" 
                                         class="hover:text-brand-teal transition-colors duration-300">
                                         {{ $project->title }}
                                     </a>
@@ -163,7 +163,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                         
                         {{-- Details Button --}}
                         <div class="flex justify-{{ $direction === 'rtl' ? 'start' : 'end' }} mt-4">
-                            <a href="#" 
+                            <a href="{{ route('requests.show', $project->project_id) }}" 
                                 class="inline-block bg-brand-magenta text-white px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-opacity-90 transition-all duration-300 shadow-md hover:shadow-lg">
                                 {{ __('requests.REQUEST_DETAILS', [], $currentLang) }}
                             </a>
