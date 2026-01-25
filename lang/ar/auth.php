@@ -87,4 +87,13 @@ return [
     'STEP_1_SHORT' => 'الحساب',
     'STEP_2_SHORT' => 'الشركة',
     'STEP_3_SHORT' => 'تم',
+    
+    // Forgot Password
+    'FORGOT_PASSWORD_TITLE' => 'نسيت كلمة المرور؟',
+    'FORGOT_PASSWORD_DESC' => 'أدخل عنوان بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور.',
+    'BTN_SEND_RESET_LINK' => 'إرسال رابط إعادة التعيين',
+    'BACK_TO_LOGIN' => 'العودة لتسجيل الدخول',
+    'NEED_HELP' => 'تحتاج مساعدة؟',
+    'CONTACT_SUPPORT' => 'تواصل مع الدعم',
+    'PASSWORD_RESET_SENT' => 'لقد أرسلنا لك رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.',
 ];

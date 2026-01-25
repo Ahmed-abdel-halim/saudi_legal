@@ -62,6 +62,11 @@ Route::get('/forgot-password', function () {
     return view('auth.forgot-password');
 })->name('password.request');
 
+Route::post('/forgot-password', function() {
+    // Placeholder for password reset email logic
+    return back()->with('status', __('auth.PASSWORD_RESET_SENT'));
+})->name('password.email');
+
 // Logout route
 Route::post('/logout', function () {
     \Illuminate\Support\Facades\Auth::logout();

@@ -87,4 +87,13 @@ return [
     'STEP_1_SHORT' => 'Account',
     'STEP_2_SHORT' => 'Company',
     'STEP_3_SHORT' => 'Done',
+    
+    // Forgot Password
+    'FORGOT_PASSWORD_TITLE' => 'Forgot Password?',
+    'FORGOT_PASSWORD_DESC' => 'Enter your email address and we\'ll send you a link to reset your password.',
+    'BTN_SEND_RESET_LINK' => 'Send Reset Link',
+    'BACK_TO_LOGIN' => 'Back to Login',
+    'NEED_HELP' => 'Need help?',
+    'CONTACT_SUPPORT' => 'Contact Support',
+    'PASSWORD_RESET_SENT' => 'We have sent you a password reset link to your email address.',
 ];
