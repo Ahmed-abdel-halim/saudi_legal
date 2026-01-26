@@ -7,6 +7,10 @@ use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\HowItWorksController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\Auth\ActivationController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExpertDashboardController;
+use App\Http\Controllers\LegalController;
 
 // Home Route
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -75,22 +79,23 @@ Route::post('/logout', function () {
     return redirect()->route('home')->with('success', __('header.LOGOUT_SUCCESS', [], app()->getLocale()));
 })->name('logout')->middleware('auth');
 
-// Dashboard Routes
-use App\Http\Controllers\DashboardController;
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/expert', [ExpertDashboardController::class, 'index'])->name('dashboard.expert');
+    Route::get('/dashboard/expert/availability', [ExpertDashboardController::class, 'availability'])->name('dashboard.expert.availability');
+    Route::post('/dashboard/expert/availability', [ExpertDashboardController::class, 'availability'])->name('dashboard.expert.availability');
+    Route::get('/dashboard/expert/cv-builder', [ExpertDashboardController::class, 'cvBuilder'])->name('dashboard.expert.cv-builder');
+    Route::post('/dashboard/expert/cv-builder', [ExpertDashboardController::class, 'cvBuilder'])->name('dashboard.expert.cv-builder');
+    Route::get('/dashboard/expert/services', [ExpertDashboardController::class, 'services'])->name('dashboard.expert.services');
+    Route::get('/dashboard/expert/workbench', [ExpertDashboardController::class, 'workbench'])->name('dashboard.expert.workbench');
+    Route::get('/dashboard/expert/settings', [ExpertDashboardController::class, 'settings'])->name('dashboard.expert.settings');
+    Route::post('/dashboard/expert/settings', [ExpertDashboardController::class, 'settings'])->name('dashboard.expert.settings');
     Route::get('/dashboard/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
     Route::post('/dashboard/settings', [DashboardController::class, 'updateSettings'])->name('dashboard.settings.update');
     Route::get('/dashboard/projects', [DashboardController::class, 'projects'])->name('dashboard.projects');
     Route::get('/dashboard/team', [DashboardController::class, 'team'])->name('dashboard.team');
     Route::post('/dashboard/team/invite', [DashboardController::class, 'inviteMember'])->name('dashboard.team.invite');
 });
-
-// Legal routes (placeholder)
-use App\Http\Controllers\LegalController;
-
-// ...
 
 // Legal routes
 Route::get('/legal/terms', [LegalController::class, 'terms'])->name('legal.terms');
@@ -127,6 +132,10 @@ Route::get('/how-it-works', [HowItWorksController::class, 'index'])->name('how-i
 Route::get('/how-it-works/benefits', [HowItWorksController::class, 'benefits'])->name('how-it-works.benefits');
 Route::get('/how-it-works/pricing', [HowItWorksController::class, 'pricing'])->name('how-it-works.pricing');
 Route::get('/how-it-works/faq', [HowItWorksController::class, 'faq'])->name('how-it-works.faq');
+
+
+Route::get('/activate/{id}', [ActivationController::class, 'show'])->name('activation.show')->middleware('signed');
+Route::post('/activate/{id}', [ActivationController::class, 'activate'])->name('activation.handle');
 
 // Suppliers Routes
 Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');

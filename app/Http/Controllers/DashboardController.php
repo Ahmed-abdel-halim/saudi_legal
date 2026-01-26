@@ -158,19 +158,28 @@ class DashboardController extends Controller
 
         $validated = $request->validate([
             'email' => 'required|email|unique:users,email',
-            'name' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
         ]);
 
         // Creating a new user as "invited"
-        // In a real app we would send an email. For now, we create the user with a dummy password and inactive status.
         $member = new User();
-        $member->name = $validated['name'] ?? explode('@', $validated['email'])[0];
+        $member->name = $validated['name'];
         $member->email = $validated['email'];
-        $member->password = \Illuminate\Support\Facades\Hash::make('password'); // Temporary
+        $member->phone = $validated['phone'] ?? null;
+        $member->password = \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(16)); // Random password
         $member->company_id = $company->company_id;
         $member->role = 'expert'; // Default role
         $member->is_active = false; // Pending
         $member->save();
+
+        // Generate signed activation URL
+        $activationUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'activation.show', now()->addDays(7), ['id' => $member->id]
+        );
+
+        // Send invitation email
+        \Illuminate\Support\Facades\Mail::to($member->email)->send(new \App\Mail\InviteEmployee($member, $activationUrl));
 
         return back()->with('success', __('dashboard.invite_sent_success'));
     }
