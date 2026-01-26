@@ -72,15 +72,25 @@ class RegisterCompanyController extends Controller
         }
 
         try {
-            // Create user
+            // Create company first
+            $company = \App\Models\Company::create([
+                'name' => $request->input('company-name'),
+                'cr_number' => $request->input('cr-number'),
+                'industry' => $request->input('industry'),
+                'size' => $request->input('company-size'),
+                'is_supplier' => $request->input('registration-type') === 'supplier',
+                'is_requester' => $request->input('registration-type') === 'requester',
+                'status' => 'active',
+            ]);
+
+            // Create user and link to company
             $user = User::create([
                 'name' => $request->input('full-name'),
                 'email' => $request->input('work-email'),
                 'password' => Hash::make($request->input('password')),
+                'company_id' => $company->company_id,
+                'role' => $request->input('registration-type') === 'supplier' ? 'supplier' : 'requester',
             ]);
-
-            // Here you would typically create a Company model and associate it with the user
-            // For now, we'll just log the user in and redirect
 
             // Log the user in
             Auth::login($user);
@@ -89,7 +99,7 @@ class RegisterCompanyController extends Controller
             return redirect()->route('dashboard')->with('success', __('auth.REGISTRATION_SUCCESS', [], app()->getLocale()));
         } catch (\Exception $e) {
             return redirect()->back()
-                ->withErrors(['error' => __('auth.ERROR_GENERIC', [], app()->getLocale())])
+                ->withErrors(['error' => __('auth.ERROR_GENERIC', [], app()->getLocale()) . ' ' . $e->getMessage()])
                 ->withInput();
         }
     }
