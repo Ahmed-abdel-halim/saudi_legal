@@ -20,6 +20,8 @@ class Company extends Model
         'size',
         'is_requester',
         'is_supplier',
+        'status',
+        'description',
     ];
 
     // Disable timestamps if the legacy table doesn't have created_at/updated_at
