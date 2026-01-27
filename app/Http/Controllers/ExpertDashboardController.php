@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\AiTask;
+use App\Models\ExpertService;
 
 class ExpertDashboardController extends Controller
 {
@@ -12,13 +14,6 @@ class ExpertDashboardController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Check permissions (already handled by middleware, but double check role if needed)
-        // Assuming there is a role column or method. The original code checked $_SESSION['role'] !== 'expert'.
-        // We'll rely on the user object. If role is not on user model, we might need to check how it's stored.
-        // For now, I will proceed assuming role is on user table or we just show the board.
-        // Original: if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'expert')
-        // We will assume the middleware handles authentication. Role check might need refinement if 'role' is not a column.
-        
         // 2. Statistics
         $total_tasks = 0;
         $tasks_today = 0;
@@ -34,7 +29,6 @@ class ExpertDashboardController extends Controller
             $total_tasks = $stats->total_tasks ?? 0;
             $tasks_today = $stats->tasks_today ?? 0;
         } catch (\Exception $e) {
-            // Tables don't exist yet, use default values
             $total_tasks = 0;
             $tasks_today = 0;
         }
@@ -64,15 +58,7 @@ class ExpertDashboardController extends Controller
         }
 
         // 5. Pending Tasks Count
-        $pending_count = 0;
-        try {
-            $pending_count = DB::table('ai_tasks_v2')
-                ->where('status', 'pending')
-                ->count();
-        } catch (\Exception $e) {
-            // Table doesn't exist yet
-            $pending_count = 0;
-        }
+        $pending_count = AiTask::where('status', 'pending')->count();
 
         // 6. History
         $history = collect([]);
@@ -83,7 +69,6 @@ class ExpertDashboardController extends Controller
                 ->limit(5)
                 ->get();
         } catch (\Exception $e) {
-            // Table doesn't exist yet
             $history = collect([]);
         }
 
@@ -102,10 +87,38 @@ class ExpertDashboardController extends Controller
         ));
     }
 
-    public function availability()
+    public function availability(Request $request)
     {
         $user = Auth::user();
-        return view('dashboard.expert.availability', compact('user'));
+        $msg = '';
+
+        if ($request->isMethod('post')) {
+            $days = $request->input('days', []);
+            $start_time = $request->input('start_time');
+            $end_time = $request->input('end_time');
+            $is_active = $request->has('is_active') ? 1 : 0;
+
+            $availability_json = json_encode(['days' => $days, 'start' => $start_time, 'end' => $end_time]);
+
+            // Using DB update or Model update
+            // Since we added columns to users table
+            DB::table('users')->where('id', $user->id)->update([
+                'availability_settings' => $availability_json,
+                'is_active_for_hire' => $is_active,
+                'updated_at' => now()
+            ]);
+            
+            // Refresh user to get updated data if needed, or just set msg
+            $msg = "✅ تم تحديث أوقات العمل بنجاح. أنت الآن جاهز للاستقبال!";
+            
+            // Re-fetch user to make sure we have latest data for view
+            $user = DB::table('users')->where('id', $user->id)->first();
+        }
+
+        $settings = json_decode($user->availability_settings ?? '{"days":[], "start":"09:00", "end":"17:00"}', true);
+        $active_days = $settings['days'] ?? [];
+        
+        return view('dashboard.expert.availability', compact('user', 'settings', 'active_days', 'msg'));
     }
 
     public function cvBuilder()
@@ -114,16 +127,125 @@ class ExpertDashboardController extends Controller
         return view('dashboard.expert.cv-builder', compact('user'));
     }
 
-    public function services()
+    public function services(Request $request)
     {
         $user = Auth::user();
-        return view('dashboard.expert.services', compact('user'));
+        $msg = '';
+
+        // 1. Add Service
+        if ($request->isMethod('post') && $request->has('add_service')) {
+            $data = $request->validate([
+                'title' => 'required|string|max:255',
+                'category' => 'required|string',
+                'price' => 'required|numeric|min:0',
+                'delivery_days' => 'required|integer|min:1',
+                'description' => 'required|string',
+            ]);
+
+            ExpertService::create([
+                'expert_id' => $user->id,
+                'title' => $data['title'],
+                'category' => $data['category'],
+                'price' => $data['price'],
+                'delivery_days' => $data['delivery_days'],
+                'description' => $data['description'],
+            ]);
+
+            $msg = "✅ تم إضافة الباقة بنجاح!";
+        }
+
+        // Fetch Services
+        $services = ExpertService::where('expert_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('dashboard.expert.services', compact('user', 'services', 'msg'));
+    }
+
+    public function deleteService($id)
+    {
+        $user = Auth::user();
+        $service = ExpertService::where('service_id', $id)->where('expert_id', $user->id)->first();
+
+        if ($service) {
+            $service->delete();
+            return redirect()->route('dashboard.expert.services')->with('success', 'تم حذف الخدمة بنجاح');
+        }
+
+        return redirect()->route('dashboard.expert.services')->with('error', 'فشل حذف الخدمة');
     }
 
     public function workbench()
     {
         $user = Auth::user();
-        return view('dashboard.expert.workbench', compact('user'));
+
+        // 1. Stats for Today
+        $today_date = date('Y-m-d');
+        $tasks_today = DB::table('ai_responses_v2')
+            ->where('expert_id', $user->id)
+            ->whereDate('created_at', $today_date)
+            ->count();
+            
+        $price_per_task = 5;
+        $earnings_today = $tasks_today * $price_per_task;
+        
+        // 2. Fetch one pending task (random or next available)
+        // Ignoring tasks assigned to others if that logic existed, but for now just any pending
+        $currentTask = AiTask::where('status', 'pending')
+            ->orderBy('id', 'asc')
+            ->first();
+
+        // Pass data to view (matching the view's expected variables from standard Controller practice)
+        // The view expects: $currentTask (array or object), $tasks_today, $earnings_today
+        return view('dashboard.expert.workbench', compact('user', 'currentTask', 'tasks_today', 'earnings_today'));
+    }
+
+    public function handleTaskAction(Request $request)
+    {
+        $user = Auth::user();
+        $action = $request->input('action');
+        $taskId = $request->input('task_id');
+
+        if (!$taskId) {
+            return response()->json(['success' => false, 'message' => 'معرف المهمة مفقود']);
+        }
+
+        $task = AiTask::find($taskId);
+        if (!$task) {
+            return response()->json(['success' => false, 'message' => 'المهمة غير موجودة']);
+        }
+
+        if ($action === 'skip_task') {
+            // Update status to skipped
+            $task->status = 'skipped';
+            $task->save();
+            return response()->json(['success' => true]);
+        }
+
+        if ($action === 'submit_task') {
+            $correction = trim($request->input('correction'));
+            
+            if (empty($correction)) {
+                return response()->json(['success' => false, 'message' => 'البيانات فارغة']);
+            }
+
+            // Save response in ai_responses_v2
+            // Assuming we have a model or use DB
+            DB::table('ai_responses_v2')->insert([
+                'task_id' => $taskId,
+                'expert_id' => $user->id,
+                'correction' => $correction,
+                'created_at' => now(),
+            ]);
+
+            // Mark task as completed
+            $task->status = 'completed';
+            $task->save();
+
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'إجراء غير معروف']);
     }
 
     public function settings()

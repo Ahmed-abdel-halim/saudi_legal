@@ -2,164 +2,92 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ __('expert_availability.title') }} | Radiif</title>
+    <title>إعدادات التوفر | Radiif</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Cairo', sans-serif; }</style>
 </head>
-<body class="text-slate-800">
+<body class="bg-slate-50 min-h-screen">
 
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div class="container mx-auto px-4 h-16 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-green-700 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-green-200 shadow-lg">R</div>
-                <div>
-                    <h1 class="font-bold text-lg leading-none text-slate-800">Radiif</h1>
-                    <span class="text-[10px] text-slate-500 font-bold tracking-wider">EXPERT DASHBOARD</span>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-4">
-                <a href="{{ route('dashboard.expert') }}" class="text-slate-600 hover:text-green-600 transition text-sm font-medium">
-                    <i class="fa-solid fa-arrow-left ml-2"></i> {{ __('expert_availability.back_to_dashboard') }}
-                </a>
-            </div>
+    <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center max-w-2xl">
+            <span class="font-bold text-lg text-slate-800">إعدادات التوفر (الدوام)</span>
+            <a href="{{ route('dashboard.expert') }}" class="text-indigo-600 font-bold text-sm">عودة</a>
         </div>
     </nav>
 
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <div class="container mx-auto px-4 py-8 max-w-2xl">
         
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-slate-800 mb-2">{{ __('expert_availability.title') }}</h1>
-            <p class="text-slate-600">{{ __('expert_availability.subtitle') }}</p>
-        </div>
-
-        @if(session('success'))
-            <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
-                <i class="fa-solid fa-circle-check ml-2"></i> {{ session('success') }}
+        @if($msg)
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6 text-sm font-bold">
+                {{ $msg }}
             </div>
         @endif
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Statistics Cards -->
-            <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-slate-500 text-sm font-medium mb-1">{{ __('expert_availability.availability_status') }}</p>
-                            <h2 class="text-2xl font-bold text-green-600">{{ __('expert_availability.currently_available') }}</h2>
-                        </div>
-                        <div class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-xl">
-                            <i class="fa-solid fa-circle-check"></i>
-                        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <form id="availabilityForm" method="POST" class="space-y-6" action="{{ route('dashboard.expert.availability') }}">
+                @csrf
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">متى يمكن حجزك؟</h2>
+                        <p class="text-slate-500 text-sm mt-1">حدد أيام وساعات عملك المعتادة لتظهر للعملاء.</p>
                     </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="is_active" class="sr-only peer" {{ $user->is_active_for_hire ? 'checked' : '' }}>
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                        <span class="mr-3 text-sm font-bold text-slate-700">متاح للحجز</span>
+                    </label>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-slate-500 text-sm font-medium mb-1">{{ __('expert_availability.total_hours_week') }}</p>
-                            <h2 class="text-2xl font-bold text-slate-800">40 <span class="text-sm text-slate-400 font-normal">{{ __('expert_availability.hours') }}</span></h2>
-                        </div>
-                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
-                            <i class="fa-solid fa-clock"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-slate-500 text-sm font-medium mb-1">{{ __('expert_availability.available_days') }}</p>
-                            <h2 class="text-2xl font-bold text-slate-800">5 <span class="text-sm text-slate-400 font-normal">{{ __('expert_availability.days_count') }}</span></h2>
-                        </div>
-                        <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center text-xl">
-                            <i class="fa-solid fa-calendar-days"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Weekly Schedule -->
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <h3 class="text-xl font-bold text-slate-800 mb-6">{{ __('expert_availability.weekly_schedule') }}</h3>
-                    
-                    <form method="POST" action="{{ route('dashboard.expert.availability') }}">
-                        @csrf
-                        
-                        <div class="space-y-4">
-                            @foreach(['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as $day)
-                            <div class="border border-slate-200 rounded-xl p-4 hover:border-green-300 transition">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="flex items-center gap-3">
-                                        <input type="checkbox" id="{{ $day }}" name="days[]" value="{{ $day }}" class="w-5 h-5 text-green-600 rounded" checked>
-                                        <label for="{{ $day }}" class="font-bold text-slate-700 cursor-pointer">{{ __('expert_availability.days.' . $day) }}</label>
-                                    </div>
-                                    <button type="button" class="text-green-600 hover:text-green-700 text-sm font-medium">
-                                        <i class="fa-solid fa-plus ml-1"></i> {{ __('expert_availability.add_time_slot') }}
-                                    </button>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-3">أيام العمل الأسبوعية</label>
+                    <div class="grid grid-cols-4 gap-3 sm:grid-cols-7">
+                        @php 
+                        $days_map = ['Sun'=>'الأحد', 'Mon'=>'الاثنين', 'Tue'=>'الثلاثاء', 'Wed'=>'الأربعاء', 'Thu'=>'الخميس', 'Fri'=>'الجمعة', 'Sat'=>'السبت'];
+                        @endphp
+                        @foreach ($days_map as $key => $label)
+                            @php
+                                $checked = in_array($key, $active_days) ? 'checked' : '';
+                                $bg_class = in_array($key, $active_days) ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300';
+                            @endphp
+                            <label class="cursor-pointer relative">
+                                <input type="checkbox" name="days[]" value="{{ $key }}" class="peer sr-only" {{ $checked }}>
+                                <div class="w-full py-2 rounded-lg border-2 text-center text-xs font-bold transition-all peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 bg-white text-slate-600 border-slate-200 hover:bg-slate-50">
+                                    {{ $label }}
                                 </div>
-                                
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="text-xs text-slate-500 mb-1 block">{{ __('expert_availability.from') }}</label>
-                                        <input type="time" name="{{ $day }}_from[]" value="09:00" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
-                                    </div>
-                                    <div>
-                                        <label class="text-xs text-slate-500 mb-1 block">{{ __('expert_availability.to') }}</label>
-                                        <input type="time" name="{{ $day }}_to[]" value="17:00" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
-                                    </div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-
-                        <div class="mt-6 flex gap-3">
-                            <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold transition">
-                                <i class="fa-solid fa-save ml-2"></i> {{ __('expert_availability.save_schedule') }}
-                            </button>
-                            <button type="button" class="px-6 py-3 border border-slate-300 text-slate-600 rounded-xl font-medium hover:bg-slate-50 transition">
-                                {{ __('expert_availability.cancel') }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <h4 class="font-bold text-slate-700 mb-4">{{ __('expert_availability.quick_actions') }}</h4>
-                    <div class="space-y-3">
-                        <button class="w-full py-3 bg-green-50 text-green-700 rounded-lg font-medium hover:bg-green-100 transition">
-                            <i class="fa-solid fa-check-circle ml-2"></i> {{ __('expert_availability.mark_available_today') }}
-                        </button>
-                        <button class="w-full py-3 bg-red-50 text-red-700 rounded-lg font-medium hover:bg-red-100 transition">
-                            <i class="fa-solid fa-times-circle ml-2"></i> {{ __('expert_availability.mark_unavailable_today') }}
-                        </button>
-                        <button class="w-full py-3 bg-blue-50 text-blue-700 rounded-lg font-medium hover:bg-blue-100 transition">
-                            <i class="fa-solid fa-copy ml-2"></i> {{ __('expert_availability.copy_to_all_days') }}
-                        </button>
+                            </label>
+                        @endforeach
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-br from-green-600 to-green-700 rounded-2xl shadow-lg p-6 text-white">
-                    <div class="text-center">
-                        <i class="fa-solid fa-lightbulb text-4xl mb-3 opacity-80"></i>
-                        <h4 class="font-bold text-lg mb-2">نصيحة</h4>
-                        <p class="text-sm text-green-100">حافظ على جدول منتظم لزيادة فرص الحصول على مهام جديدة</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">من الساعة</label>
+                        <input type="time" name="start_time" value="{{ $settings['start'] ?? '09:00' }}" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold text-slate-800 focus:border-indigo-500 focus:bg-white outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">إلى الساعة</label>
+                        <input type="time" name="end_time" value="{{ $settings['end'] ?? '17:00' }}" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold text-slate-800 focus:border-indigo-500 focus:bg-white outline-none transition">
                     </div>
                 </div>
-            </div>
+
+                <div class="pt-4 border-t border-slate-100">
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-200 transition transform active:scale-95 flex justify-center items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        حفظ وتحديث التوفر
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+        <div class="mt-6 text-center">
+            <p class="text-xs text-slate-400">
+                ⚠️ بتفعيلك للحجز، أنت توافق على استقبال الطلبات الفورية خلال هذه الأوقات.
+                <br> عدم الاستجابة قد يعرض حساب الشركة للإيقاف المؤقت.
+            </p>
         </div>
 
     </div>
-
 </body>
 </html>

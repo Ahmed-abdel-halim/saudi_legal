@@ -26,15 +26,12 @@
             
             <div class="flex items-center gap-4">
                 <div class="hidden md:flex flex-col items-end">
-                    <span class="text-sm font-bold text-slate-700">{{ $user->full_name }}</span>
+                    <span class="text-sm font-bold text-slate-700">{{ $user->full_name ?? $user->name }}</span>
                     <span class="text-xs text-green-600 font-medium">{{ $expert_level }}</span>
                 </div>
                 <div class="h-10 w-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm">
                     @php
-                        // Handle profile picture logic
-                         $avatar = !empty($user->profile_picture) ? asset($user->profile_picture) : "https://ui-avatars.com/api/?name=".urlencode($user->full_name)."&background=random&color=fff&background=006C35";
-                         // Note: The original PHP code used "../../".$user['profile_picture']. In Laravel we use asset(). 
-                         // Check if profile_picture stores relative path or full path. Usually simpler to assume relative to public.
+                        $avatar = !empty($user->profile_picture) ? asset($user->profile_picture) : "https://ui-avatars.com/api/?name=".urlencode($user->full_name ?? $user->name)."&background=random&color=fff&background=006C35";
                     @endphp
                     <img src="{{ $avatar }}" class="w-full h-full object-cover">
                 </div>
@@ -125,12 +122,12 @@
                             <tbody class="divide-y divide-slate-100">
                                 @forelse($history as $row)
                                 <tr class="hover:bg-slate-50 transition">
-                                    <td class="p-4 font-mono text-slate-600">#{{ $row->task_id }}</td>
+                                    <td class="p-4 font-mono text-slate-600">#{{ $row->task_id ?? $row->id ?? 'unknown' }}</td> <!-- Ensuring fallback if needed -->
                                     <td class="p-4">
                                         <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">تم التصحيح</span>
                                     </td>
                                     <td class="p-4 text-slate-500">{{ date('H:i A', strtotime($row->created_at)) }}</td>
-                                    <td class="p-4 font-bold text-slate-700">+{{ $price_per_task }} ريال</td>
+                                    <td class="p-4 font-bold text-slate-700">+{{ number_format($price_per_task, 2) }} ريال</td>
                                 </tr>
                                 @empty
                                 <tr>
@@ -146,21 +143,21 @@
 
             <div class="space-y-6">
                 
-                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden relative">
-                    <div class="h-24 bg-gradient-to-r from-green-700 to-green-600"></div>
-                    
-                    <div class="px-6 pb-6 relative">
-                        <div class="w-24 h-24 bg-white rounded-full p-1 shadow-lg absolute -top-12 right-1/2 translate-x-1/2">
-                            <img src="{{ $avatar }}" class="w-full h-full rounded-full object-cover">
-                        </div>
-                        
-                        <div class="mt-14 text-center">
-                            <h3 class="text-xl font-bold text-slate-800">{{ $user->full_name }}</h3>
-                            <p class="text-sm text-slate-500 mt-1">{{ !empty($user->job_title) ? $user->job_title : 'خبير بيانات' }}</p>
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                    <div class="px-6 py-6">
+                        <div class="flex flex-col items-center">
+                            <div class="w-24 h-24 bg-white rounded-full p-1 shadow-lg">
+                                <img src="{{ $avatar }}" class="w-full h-full rounded-full object-cover">
+                            </div>
                             
-                            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border mt-4 {{ $badge_color }}">
-                                <i class="fa-solid {{ $badge_icon }}"></i>
-                                <span class="text-xs font-bold">{{ $expert_level }}</span>
+                            <div class="mt-4 text-center">
+                                <h3 class="text-xl font-bold text-slate-800">{{ $user->full_name ?? $user->name }}</h3>
+                                <p class="text-sm text-slate-500 mt-1">{{ !empty($user->job_title) ? $user->job_title : 'خبير بيانات' }}</p>
+                                
+                                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border mt-4 {{ $badge_color }}">
+                                    <i class="fa-solid {{ $badge_icon }}"></i>
+                                    <span class="text-xs font-bold">{{ $expert_level }}</span>
+                                </div>
                             </div>
                         </div>
 
