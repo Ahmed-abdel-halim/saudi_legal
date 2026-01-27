@@ -24,55 +24,15 @@ class ServiceController extends Controller
         $filterMaxPrice = $request->get('max_price', '');
         $filterRating = $request->get('rating', '');
         
-        try {
-            // Try to fetch from database
-            $services = $this->fetchServicesFromDatabase(
-                $filterSearch,
-                $filterIndustries,
-                $filterMinPrice,
-                $filterMaxPrice,
-                $filterRating
-            );
-            $industries = $this->fetchIndustriesFromDatabase();
-        } catch (\Exception $e) {
-            // If database tables don't exist, use mock data
-            $services = $this->getMockServices();
-            $industries = $this->getMockIndustries();
-            
-            // Apply filters to mock data
-            if (!empty($filterSearch)) {
-                $searchTerm = strtolower($filterSearch);
-                $services = $services->filter(function($service) use ($searchTerm) {
-                    return str_contains(strtolower($service->title), $searchTerm)
-                        || str_contains(strtolower($service->description), $searchTerm)
-                        || str_contains(strtolower($service->skills_list ?? ''), $searchTerm);
-                })->values();
-            }
-            
-            if (!empty($filterIndustries)) {
-                $services = $services->filter(function($service) use ($filterIndustries) {
-                    return in_array($service->industry, $filterIndustries);
-                })->values();
-            }
-            
-            if (!empty($filterMinPrice)) {
-                $services = $services->filter(function($service) use ($filterMinPrice) {
-                    return $service->hourly_rate >= $filterMinPrice;
-                })->values();
-            }
-            
-            if (!empty($filterMaxPrice)) {
-                $services = $services->filter(function($service) use ($filterMaxPrice) {
-                    return $service->hourly_rate <= $filterMaxPrice;
-                })->values();
-            }
-            
-            if (!empty($filterRating)) {
-                $services = $services->filter(function($service) use ($filterRating) {
-                    return ($service->avg_rating ?? 0) >= $filterRating;
-                })->values();
-            }
-        }
+        // Fetch from database
+        $services = $this->fetchServicesFromDatabase(
+            $filterSearch,
+            $filterIndustries,
+            $filterMinPrice,
+            $filterMaxPrice,
+            $filterRating
+        );
+        $industries = $this->fetchIndustriesFromDatabase();
         
         return view('services.browse', [
             'services' => $services,
@@ -87,58 +47,113 @@ class ServiceController extends Controller
     }
     
     /**
-     * Fetch services from database
+     * Fetch services from database (both company services and expert services)
      */
     private function fetchServicesFromDatabase($filterSearch, $filterIndustries, $filterMinPrice, $filterMaxPrice, $filterRating)
     {
-        $query = DB::table('services as s')
-            ->join('users as u', 's.user_id', '=', 'u.user_id')
-            ->join('companies as c', 's.company_id', '=', 'c.company_id')
-            ->where('s.is_active', 1)
-            ->where('c.status', 'active')
-            ->select([
-                's.service_id',
-                's.title',
-                's.description',
-                's.hourly_rate',
-                's.image as service_image',
-                'u.full_name as expert_name',
-                'u.image as expert_image',
-                'c.name as company_name',
-                'c.company_id',
-                'c.industry',
-                'c.logo as company_logo',
-                DB::raw("(SELECT AVG(r.rating) FROM reviews r WHERE r.service_id = s.service_id) as avg_rating"),
-                DB::raw("(SELECT GROUP_CONCAT(IFNULL(sk.name_ar, sk.name) SEPARATOR ', ') 
-                         FROM user_skills us 
-                         JOIN skills sk ON us.skill_id = sk.skill_id 
-                         WHERE us.user_id = s.user_id) AS skills_list")
-            ]);
+        $companyServices = collect([]);
         
-        // Apply filters
-        if (!empty($filterIndustries)) {
-            $query->whereIn('c.industry', $filterIndustries);
+        // Fetch company services (if table exists)
+        try {
+            $companyServicesQuery = DB::table('services as s')
+                ->join('users as u', 's.user_id', '=', 'u.user_id')
+                ->join('companies as c', 's.company_id', '=', 'c.company_id')
+                ->where('s.is_active', 1)
+                ->where('c.status', 'active')
+                ->select([
+                    's.service_id',
+                    's.title',
+                    's.description',
+                    's.hourly_rate',
+                    's.image as service_image',
+                    'u.full_name as expert_name',
+                    'u.image as expert_image',
+                    'c.name as company_name',
+                    'c.company_id',
+                    'c.industry',
+                    'c.logo as company_logo',
+                    DB::raw("'company' as service_type"),
+                    DB::raw("(SELECT AVG(r.rating) FROM reviews r WHERE r.service_id = s.service_id) as avg_rating"),
+                    DB::raw("(SELECT GROUP_CONCAT(IFNULL(sk.name_ar, sk.name) SEPARATOR ', ') 
+                             FROM user_skills us 
+                             JOIN skills sk ON us.skill_id = sk.skill_id 
+                             WHERE us.user_id = s.user_id) AS skills_list")
+                ]);
+            
+            // Apply filters for company services
+            if (!empty($filterIndustries)) {
+                $companyServicesQuery->whereIn('c.industry', $filterIndustries);
+            }
+            
+            if (!empty($filterMinPrice)) {
+                $companyServicesQuery->where('s.hourly_rate', '>=', $filterMinPrice);
+            }
+            
+            if (!empty($filterMaxPrice)) {
+                $companyServicesQuery->where('s.hourly_rate', '<=', $filterMaxPrice);
+            }
+            
+            $companyServices = $companyServicesQuery->get();
+        } catch (\Exception $e) {
+            // Services table doesn't exist or query failed, continue with empty collection
+            $companyServices = collect([]);
         }
         
-        if (!empty($filterMinPrice)) {
-            $query->where('s.hourly_rate', '>=', $filterMinPrice);
+        $expertServices = collect([]);
+        
+        // Fetch expert services
+        try {
+            $expertServicesQuery = DB::table('expert_services as es')
+                ->join('users as u', 'es.expert_id', '=', 'u.id')
+                ->where('es.is_active', 1)
+                ->select([
+                    'es.service_id',
+                    'es.title',
+                    'es.description',
+                    'es.price as hourly_rate',
+                    DB::raw("NULL as service_image"),
+                    'u.name as expert_name',
+                    DB::raw("COALESCE(u.image, CONCAT('https://ui-avatars.com/api/?name=', REPLACE(u.name, ' ', '+'), '&background=4F46E5&color=fff')) as expert_image"),
+                    'u.name as company_name',
+                    DB::raw("NULL as company_id"),
+                    'es.category as industry',
+                    DB::raw("CONCAT('https://ui-avatars.com/api/?name=', SUBSTRING(u.name, 1, 1), '&background=8B5CF6&color=fff') as company_logo"),
+                    DB::raw("'expert' as service_type"),
+                    DB::raw("NULL as avg_rating"),
+                    DB::raw("NULL as skills_list")
+                ]);
+            
+            // Apply filters for expert services
+            if (!empty($filterIndustries)) {
+                $expertServicesQuery->whereIn('es.category', $filterIndustries);
+            }
+            
+            if (!empty($filterMinPrice)) {
+                $expertServicesQuery->where('es.price', '>=', $filterMinPrice);
+            }
+            
+            if (!empty($filterMaxPrice)) {
+                $expertServicesQuery->where('es.price', '<=', $filterMaxPrice);
+            }
+            
+            $expertServices = $expertServicesQuery->get();
+        } catch (\Exception $e) {
+            // Expert services table doesn't exist or query failed
+            $expertServices = collect([]);
         }
         
-        if (!empty($filterMaxPrice)) {
-            $query->where('s.hourly_rate', '<=', $filterMaxPrice);
-        }
+        // Merge both collections
+        $services = $companyServices->merge($expertServices);
         
-        // Get results first
-        $services = $query->get();
-        
-        // Apply search and rating filters (post-query filtering for HAVING clauses)
+        // Apply search and rating filters (post-query filtering)
         if (!empty($filterSearch)) {
             $searchTerm = strtolower($filterSearch);
             $services = $services->filter(function($service) use ($searchTerm) {
                 $skillsList = strtolower($service->skills_list ?? '');
                 return str_contains(strtolower($service->title), $searchTerm)
                     || str_contains(strtolower($service->description), $searchTerm)
-                    || str_contains($skillsList, $searchTerm);
+                    || str_contains($skillsList, $searchTerm)
+                    || str_contains(strtolower($service->industry ?? ''), $searchTerm);
             })->values();
         }
         
@@ -163,18 +178,32 @@ class ServiceController extends Controller
     }
     
     /**
-     * Fetch industries from database
+     * Fetch industries from database (both company and expert services)
      */
     private function fetchIndustriesFromDatabase()
     {
-        return DB::table('companies as c')
+        // Get industries from company services
+        $companyIndustries = DB::table('companies as c')
             ->join('services as s', 'c.company_id', '=', 's.company_id')
             ->whereNotNull('c.industry')
             ->where('c.industry', '!=', '')
             ->where('s.is_active', 1)
             ->where('c.status', 'active')
             ->distinct()
-            ->pluck('c.industry')
+            ->pluck('c.industry');
+        
+        // Get categories from expert services
+        $expertCategories = DB::table('expert_services')
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->where('is_active', 1)
+            ->distinct()
+            ->pluck('category');
+        
+        // Merge and deduplicate
+        return $companyIndustries
+            ->merge($expertCategories)
+            ->unique()
             ->sort()
             ->values();
     }
@@ -325,72 +354,71 @@ class ServiceController extends Controller
     {
         $currentLang = app()->getLocale();
         
-        try {
-            // Fetch from database
-            $service = DB::table('services as s')
-                ->join('users as u', 's.user_id', '=', 'u.user_id')
-                ->join('companies as c', 's.company_id', '=', 'c.company_id')
-                ->where('s.service_id', $id)
-                ->where('s.is_active', 1)
+        // First, try to fetch from company services
+        $service = DB::table('services as s')
+            ->join('users as u', 's.user_id', '=', 'u.user_id')
+            ->join('companies as c', 's.company_id', '=', 'c.company_id')
+            ->where('s.service_id', $id)
+            ->where('s.is_active', 1)
+            ->select([
+                's.*',
+                'u.full_name as expert_name',
+                'u.image as expert_image',
+                'u.job_title as expert_title',
+                'u.bio as expert_bio',
+                'c.name as company_name',
+                'c.company_id',
+                'c.industry',
+                'c.logo as company_logo',
+                'c.description as company_description',
+                DB::raw("'company' as service_type"),
+                DB::raw("(SELECT AVG(r.rating) FROM reviews r WHERE r.service_id = s.service_id) as avg_rating"),
+                DB::raw("(SELECT COUNT(r.review_id) FROM reviews r WHERE r.service_id = s.service_id) as reviews_count"),
+                DB::raw("(SELECT GROUP_CONCAT(IFNULL(sk.name_ar, sk.name) SEPARATOR ', ') 
+                         FROM user_skills us 
+                         JOIN skills sk ON us.skill_id = sk.skill_id 
+                         WHERE us.user_id = s.user_id) AS skills_list")
+            ])
+            ->first();
+            
+        // If not found in company services, try expert services
+        if (!$service) {
+            $service = DB::table('expert_services as es')
+                ->join('users as u', 'es.expert_id', '=', 'u.id')
+                ->where('es.service_id', $id)
+                ->where('es.is_active', 1)
                 ->select([
-                    's.*',
-                    'u.full_name as expert_name',
-                    'u.image as expert_image',
+                    'es.service_id',
+                    'es.title',
+                    'es.description',
+                    'es.price as hourly_rate',
+                    'es.delivery_days',
+                    DB::raw("NULL as image"),
+                    'u.name as expert_name',
+                    DB::raw("COALESCE(u.image, CONCAT('https://ui-avatars.com/api/?name=', REPLACE(u.name, ' ', '+'), '&background=4F46E5&color=fff')) as expert_image"),
                     'u.job_title as expert_title',
                     'u.bio as expert_bio',
-                    'c.name as company_name',
-                    'c.company_id',
-                    'c.industry',
-                    'c.logo as company_logo',
-                    'c.description as company_description',
-                    DB::raw("(SELECT AVG(r.rating) FROM reviews r WHERE r.service_id = s.service_id) as avg_rating"),
-                    DB::raw("(SELECT COUNT(r.review_id) FROM reviews r WHERE r.service_id = s.service_id) as reviews_count"),
-                    DB::raw("(SELECT GROUP_CONCAT(IFNULL(sk.name_ar, sk.name) SEPARATOR ', ') 
-                             FROM user_skills us 
-                             JOIN skills sk ON us.skill_id = sk.skill_id 
-                             WHERE us.user_id = s.user_id) AS skills_list")
+                    'u.name as company_name',
+                    DB::raw("NULL as company_id"),
+                    'es.category as industry',
+                    DB::raw("CONCAT('https://ui-avatars.com/api/?name=', SUBSTRING(u.name, 1, 1), '&background=8B5CF6&color=fff') as company_logo"),
+                    DB::raw("NULL as company_description"),
+                    DB::raw("'expert' as service_type"),
+                    DB::raw("NULL as avg_rating"),
+                    DB::raw("0 as reviews_count"),
+                    DB::raw("NULL as skills_list")
                 ])
                 ->first();
-                
-                if (!$service) {
-                    throw new \Exception("Not found in DB");
-                }
-                
-                // Format skills
-                $service->skills_array = !empty($service->skills_list) 
-                    ? explode(', ', $service->skills_list) 
-                    : [];
-
-        } catch (\Exception $e) {
-            // Mock data fallback
-            $services = $this->getMockServices();
-            $service = $services->firstWhere('service_id', (int)$id);
-            
-            if (!$service) {
-                // If not found in mock, create a generic mock on the fly based on ID
-                $service = (object)[
-                    'service_id' => $id,
-                    'title' => $currentLang === 'ar' ? 'خدمة نموذجية رقم ' . $id : 'Sample Service #' . $id,
-                    'description' => $currentLang === 'ar' ? 'وصف تفصيلي للخدمة...' : 'Detailed service description...',
-                    'hourly_rate' => 100,
-                    'service_image' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80',
-                    'expert_name' => 'Expert Name',
-                    'expert_image' => 'https://ui-avatars.com/api/?name=Expert&background=random',
-                    'expert_title' => 'Senior Developer',
-                    'expert_bio' => 'Experienced professional with 5+ years...',
-                    'company_name' => 'Company Name',
-                    'company_id' => 1,
-                    'industry' => 'Tech',
-                    'company_logo' => 'https://ui-avatars.com/api/?name=Company&background=random',
-                    'company_description' => 'A leading company in...',
-                    'avg_rating' => 4.5,
-                    'reviews_count' => 12,
-                    'skills_array' => ['Skill 1', 'Skill 2'],
-                    'delivery_mode' => 'Remote',
-                    'experience_level' => 'Senior'
-                ];
-            }
         }
+            
+        if (!$service) {
+            abort(404);
+        }
+            
+        // Format skills
+        $service->skills_array = !empty($service->skills_list) 
+            ? explode(', ', $service->skills_list) 
+            : [];
 
         return view('services.show', compact('service', 'currentLang'));
     }
@@ -402,33 +430,41 @@ class ServiceController extends Controller
     {
         $currentLang = app()->getLocale();
         
-        try {
-            $service = DB::table('services as s')
-                ->join('users as u', 's.user_id', '=', 'u.user_id')
-                ->join('companies as c', 's.company_id', '=', 'c.company_id')
-                ->where('s.service_id', $id)
-                ->where('s.is_active', 1)
+        // Try company services first
+        $service = DB::table('services as s')
+            ->join('users as u', 's.user_id', '=', 'u.user_id')
+            ->join('companies as c', 's.company_id', '=', 'c.company_id')
+            ->where('s.service_id', $id)
+            ->where('s.is_active', 1)
+            ->select([
+                's.service_id',
+                's.title',
+                'u.full_name as expert_name',
+                'c.name as company_name',
+                'c.company_id',
+                DB::raw("'company' as service_type")
+            ])
+            ->first();
+
+        // If not found, try expert services
+        if (!$service) {
+            $service = DB::table('expert_services as es')
+                ->join('users as u', 'es.expert_id', '=', 'u.id')
+                ->where('es.service_id', $id)
+                ->where('es.is_active', 1)
                 ->select([
-                    's.service_id',
-                    's.title',
-                    'u.full_name as expert_name',
-                    'c.name as company_name',
-                    'c.company_id'
+                    'es.service_id',
+                    'es.title',
+                    'u.name as expert_name',
+                    'u.name as company_name',
+                    DB::raw("NULL as company_id"),
+                    DB::raw("'expert' as service_type")
                 ])
                 ->first();
+        }
 
-            if (!$service) {
-                throw new \Exception("Not found in DB");
-            }
-
-        } catch (\Exception $e) {
-            // Mock fallback
-            $services = $this->getMockServices();
-            $service = $services->firstWhere('service_id', (int)$id);
-            
-            if (!$service) {
-                abort(404);
-            }
+        if (!$service) {
+            abort(404);
         }
 
         return view('services.contact', compact('service', 'currentLang'));
@@ -441,35 +477,45 @@ class ServiceController extends Controller
     {
         $currentLang = app()->getLocale();
         
-        try {
-            $service = DB::table('services as s')
-                ->join('users as u', 's.user_id', '=', 'u.user_id')
-                ->join('companies as c', 's.company_id', '=', 'c.company_id')
-                ->where('s.service_id', $id)
-                ->where('s.is_active', 1)
+        // Try company services first
+        $service = DB::table('services as s')
+            ->join('users as u', 's.user_id', '=', 'u.user_id')
+            ->join('companies as c', 's.company_id', '=', 'c.company_id')
+            ->where('s.service_id', $id)
+            ->where('s.is_active', 1)
+            ->select([
+                's.service_id',
+                's.title',
+                's.hourly_rate',
+                's.description',
+                'u.full_name as expert_name',
+                'c.name as company_name',
+                'c.company_id',
+                DB::raw("'company' as service_type")
+            ])
+            ->first();
+
+        // If not found, try expert services
+        if (!$service) {
+            $service = DB::table('expert_services as es')
+                ->join('users as u', 'es.expert_id', '=', 'u.id')
+                ->where('es.service_id', $id)
+                ->where('es.is_active', 1)
                 ->select([
-                    's.service_id',
-                    's.title',
-                    's.hourly_rate',
-                    's.description',
-                    'u.full_name as expert_name',
-                    'c.name as company_name',
-                    'c.company_id'
+                    'es.service_id',
+                    'es.title',
+                    'es.price as hourly_rate',
+                    'es.description',
+                    'u.name as expert_name',
+                    'u.name as company_name',
+                    DB::raw("NULL as company_id"),
+                    DB::raw("'expert' as service_type")
                 ])
                 ->first();
+        }
 
-            if (!$service) {
-                throw new \Exception("Not found in DB");
-            }
-
-        } catch (\Exception $e) {
-            // Mock fallback
-            $services = $this->getMockServices();
-            $service = $services->firstWhere('service_id', (int)$id);
-            
-            if (!$service) {
-                abort(404);
-            }
+        if (!$service) {
+            abort(404);
         }
 
         return view('services.request', compact('service', 'currentLang'));
