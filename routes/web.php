@@ -26,25 +26,14 @@ Route::get('/register/company', [RegisterCompanyController::class, 'showRegistra
 Route::post('/register/company', [RegisterCompanyController::class, 'handleRegistration'])->name('register.company.handle');
 
 // About Us Route
-Route::get('/about', function () {
-    return view('about');
-})->name('about');
+Route::get('/about', function () { return view('about'); })->name('about');
 
 // Contact Us Route
-Route::get('/contact', function () {
-    return view('contact');
-})->name('contact');
-
-Route::post('/contact', function () {
-    // Placeholder for contact form submission
-    return back()->with('success', __('contact.CONTACT_SUCCESS_MESSAGE'));
-})->name('contact.send');
+Route::get('/contact', function () { return view('contact');})->name('contact');
+Route::post('/contact', function () { return back()->with('success', __('contact.CONTACT_SUCCESS_MESSAGE'));})->name('contact.send');
 
 // Login routes
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
-
+Route::get('/login', function () {return view('auth.login');})->name('login');
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'store'])->name('login.handle');
 
 // Password reset route (placeholder - you'll need to create this)
@@ -52,12 +41,7 @@ Route::get('/forgot-password', function () {
     return view('auth.forgot-password');
 })->name('password.request');
 
-Route::post('/forgot-password', function() {
-    // Placeholder for password reset email logic
-    return back()->with('status', __('auth.PASSWORD_RESET_SENT'));
-})->name('password.email');
-
-// Logout route
+Route::post('/forgot-password', function() { return back()->with('status', __('auth.PASSWORD_RESET_SENT'));})->name('password.email');
 Route::post('/logout', function () {
     \Illuminate\Support\Facades\Auth::logout();
     request()->session()->invalidate();
