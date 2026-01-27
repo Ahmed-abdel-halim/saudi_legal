@@ -45,21 +45,7 @@ Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
 
-Route::post('/login', function () {
-    $credentials = request()->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
-
-    if (\Illuminate\Support\Facades\Auth::attempt($credentials, request()->boolean('remember'))) {
-        request()->session()->regenerate();
-        return redirect()->intended(route('dashboard'));
-    }
-
-    return back()->withErrors([
-        'email' => __('auth.ERROR_INVALID_CREDENTIALS', [], app()->getLocale()),
-    ])->onlyInput('email');
-})->name('login.handle');
+Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'store'])->name('login.handle');
 
 // Password reset route (placeholder - you'll need to create this)
 Route::get('/forgot-password', function () {
@@ -79,7 +65,13 @@ Route::post('/logout', function () {
     return redirect()->route('home')->with('success', __('header.LOGOUT_SUCCESS', [], app()->getLocale()));
 })->name('logout')->middleware('auth');
 
+
+// Public Expert's Dashboard Routes
+Route::get('/dashboard/expert', [ExpertDashboardController::class, 'index'])->name('dashboard.expert');
+
+
 Route::middleware(['auth'])->group(function () {
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/expert', [ExpertDashboardController::class, 'index'])->name('dashboard.expert');
     Route::get('/dashboard/expert/availability', [ExpertDashboardController::class, 'availability'])->name('dashboard.expert.availability');
@@ -90,6 +82,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/expert/workbench', [ExpertDashboardController::class, 'workbench'])->name('dashboard.expert.workbench');
     Route::get('/dashboard/expert/settings', [ExpertDashboardController::class, 'settings'])->name('dashboard.expert.settings');
     Route::post('/dashboard/expert/settings', [ExpertDashboardController::class, 'settings'])->name('dashboard.expert.settings');
+
+    // Company's Dashboard Routes
     Route::get('/dashboard/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
     Route::post('/dashboard/settings', [DashboardController::class, 'updateSettings'])->name('dashboard.settings.update');
     Route::get('/dashboard/projects', [DashboardController::class, 'projects'])->name('dashboard.projects');
@@ -99,7 +93,6 @@ Route::middleware(['auth'])->group(function () {
 
 // Legal routes
 Route::get('/legal/terms', [LegalController::class, 'terms'])->name('legal.terms');
-
 Route::get('/legal/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
 Route::get('/legal/msa', [LegalController::class, 'msa'])->name('legal.msa');
 

@@ -20,15 +20,24 @@ class ExpertDashboardController extends Controller
         // We will assume the middleware handles authentication. Role check might need refinement if 'role' is not a column.
         
         // 2. Statistics
-        $stats = DB::table('ai_responses_v2')
-            ->select(DB::raw('count(*) as total_tasks'))
-            ->selectRaw("SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as tasks_today")
-            ->selectRaw("MAX(created_at) as last_activity")
-            ->where('expert_id', $user->id) // Assuming user_id in session maps to id in users table
-            ->first();
+        $total_tasks = 0;
+        $tasks_today = 0;
+        
+        try {
+            $stats = DB::table('ai_responses_v2')
+                ->select(DB::raw('count(*) as total_tasks'))
+                ->selectRaw("SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as tasks_today")
+                ->selectRaw("MAX(created_at) as last_activity")
+                ->where('expert_id', $user->id)
+                ->first();
 
-        $total_tasks = $stats->total_tasks ?? 0;
-        $tasks_today = $stats->tasks_today ?? 0;
+            $total_tasks = $stats->total_tasks ?? 0;
+            $tasks_today = $stats->tasks_today ?? 0;
+        } catch (\Exception $e) {
+            // Tables don't exist yet, use default values
+            $total_tasks = 0;
+            $tasks_today = 0;
+        }
 
         // 3. Financials
         $price_per_task = 5;
@@ -55,16 +64,28 @@ class ExpertDashboardController extends Controller
         }
 
         // 5. Pending Tasks Count
-        $pending_count = DB::table('ai_tasks_v2')
-            ->where('status', 'pending')
-            ->count();
+        $pending_count = 0;
+        try {
+            $pending_count = DB::table('ai_tasks_v2')
+                ->where('status', 'pending')
+                ->count();
+        } catch (\Exception $e) {
+            // Table doesn't exist yet
+            $pending_count = 0;
+        }
 
         // 6. History
-        $history = DB::table('ai_responses_v2')
-            ->where('expert_id', $user->id)
-            ->orderBy('id', 'desc')
-            ->limit(5)
-            ->get();
+        $history = collect([]);
+        try {
+            $history = DB::table('ai_responses_v2')
+                ->where('expert_id', $user->id)
+                ->orderBy('id', 'desc')
+                ->limit(5)
+                ->get();
+        } catch (\Exception $e) {
+            // Table doesn't exist yet
+            $history = collect([]);
+        }
 
         return view('dashboard.expert.index', compact(
             'user',
