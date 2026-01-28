@@ -434,6 +434,14 @@
             margin-bottom: 15px;
         }
 
+        /* المنطقة القابلة للـ scroll */
+        .scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -451,10 +459,6 @@
                 overflow-y: auto;      /* 👈 scrolling */
                 padding-bottom: 140px; /* 👈 مساحة للأزرار تحت */
             }
-
-
-
-
             .main-container {
                 padding: 0;
                 align-items: stretch;
