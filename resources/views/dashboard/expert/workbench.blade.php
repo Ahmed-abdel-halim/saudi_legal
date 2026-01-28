@@ -30,12 +30,15 @@
             background: var(--bg-color);
             background-image: radial-gradient(#d1d5db 1px, transparent 1px);
             background-size: 24px 24px;
-            min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             color: var(--text-dark);
-            overflow: hidden;
+
+            overflow-y: auto;              /* ✅ خلي الصفحة Scrollable */
+            -webkit-overflow-scrolling: touch;
         }
+
 
         /* --- Header & Stats --- */
         .top-nav {
@@ -94,18 +97,15 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            overflow-y: auto;
         }
 
         .wb-card {
             background: #fff;
-             width: 100%;
+            width: 100%;
             max-width: 700px;
             border-radius: 24px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
                 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            overflow-y: auto;          /* 👈 هنا */
-            max-height: 100%;          /* 👈 مهم */
             display: flex;
             flex-direction: column;
         }
@@ -452,6 +452,7 @@
 
             body {
                 background: #fff;
+                padding-bottom: 160px; /* مساحة للأزرار */
             }
 
            .wb-card {
@@ -464,13 +465,10 @@
                 align-items: stretch;
             }
 
-            .wb-card {
-                height: 100%;
+           .wb-card {
+                height: auto;        /* ❌ متبقاش 100vh */
                 border-radius: 0;
                 box-shadow: none;
-                border: none;
-                display: flex;
-                flex-direction: column;
             }
 
             .question-box {
