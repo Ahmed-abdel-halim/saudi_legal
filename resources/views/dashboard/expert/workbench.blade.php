@@ -99,17 +99,17 @@
 
         .wb-card {
             background: #fff;
-            width: 100%;
+             width: 100%;
             max-width: 700px;
             border-radius: 24px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            overflow-y: auto;          /* 👈 هنا */
+            max-height: 100%;          /* 👈 مهم */
             display: flex;
             flex-direction: column;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            position: relative;
-            animation: slideIn 0.4s ease-out;
         }
+
 
         @keyframes slideIn {
             from {
@@ -445,6 +445,15 @@
             body {
                 background: #fff;
             }
+
+           .wb-card {
+                height: 100dvh;        /* 👈 ارتفاع الشاشة الحقيقي */
+                overflow-y: auto;      /* 👈 scrolling */
+                padding-bottom: 140px; /* 👈 مساحة للأزرار تحت */
+            }
+
+
+
 
             .main-container {
                 padding: 0;
