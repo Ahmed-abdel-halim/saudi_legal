@@ -35,7 +35,6 @@
             flex-direction: column;
             color: var(--text-dark);
             overflow: hidden;
-            /* لمنع السكرول في وضع التطبيق */
         }
 
         /* --- Header & Stats --- */
@@ -222,9 +221,8 @@
         }
 
         .skip-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
+            display: inline-block;
+            padding: 15px 20px;
             text-align: center;
             background: transparent;
             border: none;
@@ -239,6 +237,36 @@
         .skip-btn:hover {
             background: #f1f5f9;
             color: #64748b;
+        }
+
+        .nav-buttons-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .nav-btn {
+            padding: 12px 20px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #64748b;
+            font-family: 'Tajawal';
+            transition: 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .nav-btn:hover {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* --- Editor --- */
@@ -259,6 +287,18 @@
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        .editor-form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #475569;
+            font-size: 0.95rem;
         }
 
         textarea {
@@ -298,6 +338,17 @@
             cursor: pointer;
             font-size: 1rem;
             box-shadow: 0 10px 15px -3px rgba(0, 108, 53, 0.3);
+            font-family: 'Tajawal';
+            transition: 0.2s;
+        }
+
+        .btn-main:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 20px -3px rgba(0, 108, 53, 0.4);
+        }
+
+        .btn-main:active {
+            transform: scale(0.98);
         }
 
         .btn-sec {
@@ -308,6 +359,13 @@
             border-radius: 12px;
             cursor: pointer;
             font-weight: 700;
+            font-family: 'Tajawal';
+            transition: 0.2s;
+        }
+
+        .btn-sec:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
         }
 
         /* --- Empty State & Refresh --- */
@@ -384,7 +442,6 @@
 
         @media (max-width: 600px) {
 
-            /* Full screen clean white layout */
             body {
                 background: #fff;
             }
@@ -403,7 +460,6 @@
                 flex-direction: column;
             }
 
-            /* Question takes most of the screen */
             .question-box {
                 flex: 1;
                 display: flex;
@@ -426,15 +482,11 @@
                 text-align: center;
             }
 
-            /* Header: Earnings + Timer inline */
             .card-header {
                 display: flex;
                 justify-content: flex-end;
-                /* على اليمين في RTL */
                 align-items: center;
-                /* نفس الصف */
                 gap: 8px;
-                /* مسافة بسيطة بين الرصيد وTimer */
                 padding: 10px 16px;
                 font-size: 0.9rem;
                 background: #fff;
@@ -452,32 +504,20 @@
                 gap: 4px;
             }
 
-            /* #timer {
-                font-weight: 700;
-                color: #374151;
-                font-size: 0.85rem;
-            } */
-
             .timer-mobile {
                 display: inline-flex;
-                /* تظهر على الموبايل */
                 align-items: center;
                 gap: 4px;
-                /* مسافة بين الايقونة والوقت */
                 color: #94a3b8;
                 font-size: 0.9rem;
                 font-weight: 700;
                 margin: 0 8px;
-                /* مسافة بينها وبين باقي العناصر */
             }
-
 
             .user-info .stat-badge:first-child {
                 display: none;
-                /* لو عايز نخفي "اليوم" */
             }
 
-            /* Buttons + Skip */
             .decision-area {
                 position: fixed;
                 bottom: 70px;
@@ -491,12 +531,20 @@
                 display: flex;
                 flex-direction: column;
                 gap: 8px;
-                /* Space between skip and buttons */
             }
 
-            /* Show skip button above Correct/Edit */
+            .nav-buttons-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .nav-btn {
+                width: 100%;
+            }
+
             .skip-btn {
                 display: block !important;
+                width: 100%;
                 text-align: center;
                 padding: 12px;
                 background: #f1f5f9;
@@ -528,7 +576,6 @@
                 font-size: 1.6rem;
             }
 
-            /* Hide non-essential elements on mobile */
             .task-id {
                 display: none !important;
             }
@@ -590,17 +637,45 @@
                     </button>
                 </div>
 
-                <button class="skip-btn" onclick="skipTask()">
-                    غير متأكد؟ <b>تخطي المهمة</b>
-                </button>
+                <div class="nav-buttons-row">
+                    <button class="nav-btn" id="prevBtn" onclick="loadPreviousTask()" title="المهمة السابقة">
+                        <i class="fa-solid fa-chevron-right"></i> السابقة
+                    </button>
+                    <button class="skip-btn" onclick="skipTask()" style="flex:1;">
+                        غير متأكد؟ <b>تخطي</b>
+                    </button>
+                </div>
             </div>
 
             <div class="editor-area" id="editorStep">
-                <div style="margin-bottom:15px; font-weight:700; color:#475569;">التصحيح المقترح:</div>
+                <div class="editor-form-group">
+                    <label class="form-label">النص الأصلي:</label>
+                    <div style="padding:15px; background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0; color:#475569; line-height:1.6;">
+                        <span id="originalPreview"></span>
+                    </div>
+                </div>
+
                 <form id="taskForm">
                     <input type="hidden" name="action" value="submit_task">
                     <input type="hidden" name="task_id" value="{{ $currentTask->id }}">
-                    <textarea id="editor" name="correction" placeholder="اكتب النص الصحيح هنا..."></textarea>
+
+                    <div class="editor-form-group">
+                        <label class="form-label">النص المصحح:</label>
+                        <textarea id="editor" name="corrected_data" placeholder="اكتب النص الصحيح هنا..." required></textarea>
+                    </div>
+
+                    <div class="editor-form-group">
+                        <label class="form-label">ملاحظات التصحيح (اختياري):</label>
+                        <textarea id="correction_notes" name="correction_notes" placeholder="أضف ملاحظاتك حول التصحيح..." style="min-height:100px;"></textarea>
+                    </div>
+
+                    <div class="editor-form-group">
+                        <label class="form-label">درجة الثقة (1-10):</label>
+                        <input type="range" id="confidence_level" name="confidence_level" min="1" max="10" value="7" style="width:100%; cursor:pointer;">
+                        <div style="text-align:center; color:#64748b; font-weight:600; margin-top:8px;">
+                            <span id="confidenceDisplay">7</span>/10
+                        </div>
+                    </div>
 
                     <div class="editor-actions">
                         <button type="button" class="btn-sec" onclick="cancelEdit()">إلغاء</button>
@@ -631,6 +706,7 @@
     </div>
 
     <input type="hidden" id="rawOriginal" value="{{ $currentTask->original_data ?? '' }}">
+    <input type="hidden" id="hasPreviousTask" value="{{ $hasPreviousTask ? 'true' : 'false' }}">
 
     <script>
         // Timer
@@ -640,18 +716,28 @@
             document.getElementById('timer').innerText = new Date(sec * 1000).toISOString().substr(14, 5);
         }, 1000);
 
+        // Confidence Level Slider
+        const confidenceSlider = document.getElementById('confidence_level');
+        if (confidenceSlider) {
+            confidenceSlider.addEventListener('input', (e) => {
+                document.getElementById('confidenceDisplay').innerText = e.target.value;
+            });
+        }
+
         // API Handler
-        function postAction(action, text) {
+        function postAction(action, payload = {}) {
             const loader = document.getElementById('loader');
             loader.style.display = 'flex';
 
             const formData = new FormData();
             formData.append('action', action);
             formData.append('task_id', document.querySelector('input[name="task_id"]').value);
-            if (text) formData.append('correction', text);
-
-            // Add CSRF Token
             formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
+            // Add payload fields
+            Object.keys(payload).forEach(key => {
+                formData.append(key, payload[key]);
+            });
 
             fetch('{{ route("dashboard.expert.workbench.action") }}', {
                     method: 'POST',
@@ -659,49 +745,78 @@
                 })
                 .then(r => r.json())
                 .then(d => {
-                    if (d.success) window.location.reload();
-                    else {
-                        alert(d.message);
+                    if (d.success) {
+                        if (d.redirect) {
+                            window.location.href = d.redirect;
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        alert(d.message || 'حدث خطأ');
                         loader.style.display = 'none';
                     }
                 })
                 .catch(() => {
-                    alert('فشل الاتصال');
+                    alert('فشل الاتصال بالخادم');
                     loader.style.display = 'none';
                 });
         }
 
         // Actions
         function markAsCorrect() {
-            postAction('submit_task', document.getElementById('rawOriginal').value);
+            postAction('mark_correct', {});
         }
 
         function submitCorrection() {
-            const val = document.getElementById('editor').value.trim();
-            if (!val) {
-                document.getElementById('editor').style.borderColor = 'red';
+            const correctedText = document.getElementById('editor').value.trim();
+            if (!correctedText) {
+                document.getElementById('editor').style.borderColor = '#dc2626';
+                alert('يجب إدخال النص المصحح');
                 return;
             }
-            postAction('submit_task', val);
+
+            const payload = {
+                corrected_data: correctedText,
+                correction_notes: document.getElementById('correction_notes').value.trim(),
+                confidence_level: document.getElementById('confidence_level').value
+            };
+
+            postAction('submit_correction', payload);
         }
 
         function skipTask() {
-            if (confirm('هل أنت متأكد من تخطي هذه المهمة؟')) postAction('skip_task', null);
+            postAction('skip_task', {});
+        }
+
+        function loadPreviousTask() {
+            postAction('load_previous', {});
         }
 
         // UI Toggles
         function showEditor() {
             document.getElementById('decisionStep').style.display = 'none';
             document.getElementById('editorStep').style.display = 'block';
-            const ed = document.getElementById('editor');
-            ed.value = document.getElementById('rawOriginal').value;
-            ed.focus();
+
+            const originalText = document.getElementById('rawOriginal').value;
+            document.getElementById('originalPreview').innerText = originalText;
+            document.getElementById('editor').value = originalText;
+            document.getElementById('editor').focus();
         }
 
         function cancelEdit() {
             document.getElementById('editorStep').style.display = 'none';
             document.getElementById('decisionStep').style.display = 'block';
+            document.getElementById('editor').style.borderColor = '#e2e8f0';
         }
+
+        // Initialize previous button state
+        window.addEventListener('DOMContentLoaded', () => {
+            const hasPrev = document.getElementById('hasPreviousTask').value === 'true';
+            const prevBtn = document.getElementById('prevBtn');
+            if (prevBtn) {
+                prevBtn.disabled = !hasPrev;
+            }
+        });
 
         // Refresh Button Logic
         function checkNewTasks() {
@@ -714,7 +829,7 @@
 
             setTimeout(() => {
                 window.location.reload();
-            }, 800); // تأخير بسيط لجمالية التفاعل
+            }, 800);
         }
 
         // Security

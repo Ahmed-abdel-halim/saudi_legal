@@ -65,8 +65,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/expert/services', [ExpertDashboardController::class, 'services'])->name('dashboard.expert.services');
     Route::post('/dashboard/expert/services', [ExpertDashboardController::class, 'services']);
     Route::delete('/dashboard/expert/services/{id}', [ExpertDashboardController::class, 'deleteService'])->name('dashboard.expert.services.delete');
-    Route::get('/dashboard/expert/workbench', [ExpertDashboardController::class, 'workbench'])->name('dashboard.expert.workbench');
-    Route::post('/dashboard/expert/workbench/action', [ExpertDashboardController::class, 'handleTaskAction'])->name('dashboard.expert.workbench.action');
+    Route::get('/dashboard/expert/workbench', [\App\Http\Controllers\Dashboard\Expert\WorkbenchController::class, 'index'])->name('dashboard.expert.workbench');
+    Route::post('/dashboard/expert/workbench/action', [\App\Http\Controllers\Dashboard\Expert\WorkbenchController::class, 'action'])->name('dashboard.expert.workbench.action');
     Route::get('/dashboard/expert/settings', [ExpertDashboardController::class, 'settings'])->name('dashboard.expert.settings');
     Route::post('/dashboard/expert/settings', [ExpertDashboardController::class, 'settings'])->name('dashboard.expert.settings');
 
