@@ -19,6 +19,8 @@ class AiResponse extends Model
         'confidence_level',
         'action',
         'reward_amount',
+        'reward_status',
+        'final_reward_amount',
     ];
 
     protected $casts = [

@@ -19,6 +19,11 @@ class AiTask extends Model
         'assigned_expert_id',
         'assigned_at',
         'completed_at',
+        'is_gold_standard',
+        'gold_answer',
+        'required_responses',
+        'current_responses',
+        'consensus_status',
     ];
 
     protected $casts = [

@@ -32,6 +32,13 @@ class User extends Authenticatable
         'company_id',
         'role',
         'phone',
+        'trust_score',
+        'gold_tasks_completed',
+        'gold_tasks_failed',
+        'trust_warning_issued',
+        'is_banned',
+        'banned_at',
+        'ban_reason',
     ];
 
     /**
