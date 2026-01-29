@@ -140,7 +140,7 @@
                         inline-flex items-center gap-3">
 
                         <span>
-                            {{ app()->getLocale() == 'ar' ? 'طلب تنقيح بيانات' : 'Data Refinement' }}
+                            {{ app()->getLocale() == 'ar' ? 'طلب تنقيح بيانات' : 'Data Annotation' }}
                         </span>
 
                         {{-- Color Sparkles Icon --}}
