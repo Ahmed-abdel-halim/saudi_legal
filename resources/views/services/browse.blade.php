@@ -201,6 +201,11 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                     </div>
                     @endforelse
                 </div>
+                
+                {{-- Pagination Links --}}
+                <div class="mt-8">
+                    {{ $services->appends(request()->query())->links() }}
+                </div>
             </main>
         </div>
     </div>
