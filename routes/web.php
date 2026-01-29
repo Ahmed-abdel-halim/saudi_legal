@@ -56,7 +56,6 @@ Route::get('/dashboard/expert', [ExpertDashboardController::class, 'index'])->na
 
 Route::middleware(['auth'])->group(function () {
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/expert', [ExpertDashboardController::class, 'index'])->name('dashboard.expert');
     Route::get('/dashboard/expert/availability', [ExpertDashboardController::class, 'availability'])->name('dashboard.expert.availability');
     Route::post('/dashboard/expert/availability', [ExpertDashboardController::class, 'availability'])->name('dashboard.expert.availability');
@@ -71,11 +70,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/dashboard/expert/settings', [ExpertDashboardController::class, 'settings'])->name('dashboard.expert.settings');
 
     // Company's Dashboard Routes
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
     Route::post('/dashboard/settings', [DashboardController::class, 'updateSettings'])->name('dashboard.settings.update');
     Route::get('/dashboard/projects', [DashboardController::class, 'projects'])->name('dashboard.projects');
     Route::get('/dashboard/team', [DashboardController::class, 'team'])->name('dashboard.team');
     Route::post('/dashboard/team/invite', [DashboardController::class, 'inviteMember'])->name('dashboard.team.invite');
+
+    // Client Governance Dashboard
+    Route::get('/client/governance', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'index'])->name('client.governance.dashboard');
+    Route::post('/client/governance/analyze', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'analyzeCsv'])->name('client.governance.analyze');
 });
 
 // Legal routes
