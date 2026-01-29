@@ -95,12 +95,34 @@ class WorkbenchController extends Controller
     /**
      * Mark task as correct (no edits)
      */
+    /**
+     * Mark task as correct (no edits)
+     */
     private function markCorrect(AiTask $task)
     {
-        $task->update([
-            'status'       => 'completed',
-            'completed_at' => Carbon::now(),
-        ]);
+        $expert = Auth::user();
+
+        // Wrap in transaction to ensure response creation and task update happen together
+        DB::transaction(function () use ($task, $expert) {
+            // Create response record for "Accepted" action
+            $response = AiResponse::create([
+                'task_id'          => $task->id,
+                'expert_id'        => $expert->id,
+                'corrected_data'   => $task->ai_suggestion ?? '', // Handle nullable suggestion
+                'correction_notes' => null,
+                'confidence_level' => 10, // Max confidence for accepted tasks
+                'action'           => 'accepted',
+                'reward_amount'    => $this->calculateReward(10), // Full reward for correct acceptance
+            ]);
+
+            $task->update([
+                'status'       => 'completed',
+                'completed_at' => Carbon::now(),
+            ]);
+
+            // Trigger Governance Event
+            event(new \App\Events\ExpertAnswerSubmitted($response));
+        });
 
         return response()->json([
             'success' => true,
@@ -122,7 +144,7 @@ class WorkbenchController extends Controller
 
         DB::transaction(function () use ($task, $validated, $expert) {
 
-            AiResponse::create([
+            $response = AiResponse::create([
                 'task_id'          => $task->id,
                 'expert_id'        => $expert->id,
                 'corrected_data'   => $validated['corrected_data'],
@@ -136,6 +158,9 @@ class WorkbenchController extends Controller
                 'status'       => 'completed',
                 'completed_at' => Carbon::now(),
             ]);
+
+            // Trigger Governance Event
+            event(new \App\Events\ExpertAnswerSubmitted($response));
         });
 
         return response()->json([
