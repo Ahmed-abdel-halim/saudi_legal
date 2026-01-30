@@ -12,29 +12,36 @@
                 </a>
                 <span class="font-bold text-xl text-slate-800">{{ __('dashboard.projects_contracts') }}</span>
             </div>
-            <div class="flex gap-2">
-               {{-- Governance / Data Refinement Button --}}
-<a href="{{ route('client.governance.dashboard') }}"
-   class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition flex items-center gap-2">
+       <div class="hidden md:flex items-center gap-3">
 
-    <span class="hidden md:inline flex items-center gap-1">
-        طلب تنقيح بيانات
-        {{-- Gemini Icon --}}
-        <svg class="w-4 h-4 text-indigo-500 inline-block align-middle"
-             viewBox="0 0 24 24"
-             fill="currentColor"
-             aria-hidden="true">
-            <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/>
+        {{-- Governance / Data Refinement Button --}}
+        <a href="{{ route('client.governance.dashboard') }}"
+          class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition flex items-center gap-2">
+
+        <span class="flex items-center gap-1">
+            طلب تنقيح بيانات
+            <svg class="w-4 h-4 text-indigo-500"
+                 viewBox="0 0 24 24"
+                 fill="currentColor">
+                <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/>
+            </svg>
+        </span>
+      </a>
+
+      {{-- New Project Button --}}
+      <a href="{{ route('requests.browse') }}"
+         class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md transition flex items-center gap-2">
+
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 4v16m8-8H4"/>
         </svg>
-    </span>
 
-</a>
-                {{-- Assuming post_project.php corresponds to 'requests.create' or similar --}}
-                <a href="{{ route('requests.browse') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md transition flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    <span class="hidden md:inline">{{ __('dashboard.btn_new_project') }}</span>
-                </a>
-            </div>
+        <span>{{ __('dashboard.btn_new_project') }}</span>
+      </a>
+
+</div>
+
         </div>
     </nav>
 
@@ -134,24 +141,24 @@
                         <a href="{{ route('services.browse') }}" class="bg-white border border-slate-300 text-slate-700 hover:border-slate-400 px-8 py-3 rounded-xl font-bold transition">
                             {{ __('dashboard.btn_find_expert') }}
                         </a>
-                     <a href="{{ route('client.governance.dashboard') }}"
-                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-bold
-                        shadow-lg shadow-emerald-200 transition transform hover:-translate-y-1
-                        inline-flex items-center gap-3">
+                        <a href="{{ route('client.governance.dashboard') }}"
+                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-bold
+                            shadow-lg shadow-emerald-200 transition transform hover:-translate-y-1
+                            inline-flex items-center justify-center gap-3">
+                            <span>
+                                {{ app()->getLocale() == 'ar' ? 'طلب تنقيح بيانات' : 'Data Annotation' }}
+                            </span>
 
-                        <span>
-                            {{ app()->getLocale() == 'ar' ? 'طلب تنقيح بيانات' : 'Data Annotation' }}
-                        </span>
-
-                        {{-- Color Sparkles Icon --}}
-                        <svg width="32" height="32" viewBox="0 0 512 512" aria-hidden="true">
-                            <path fill="#2DD4FF" d="M256 32l40 144 144 40-144 40-40 144-40-144-144-40 144-40z"/>
-                            <path fill="#A5F3FC" d="M400 96l20 72 72 20-72 20-20 72-20-72-72-20 72-20z"/>
-                            <path fill="#34F5C5" d="M384 320l16 56 56 16-56 16-16 56-16-56-56-16 56-16z"/>
-                            <path fill="#38BDF8" d="M96 112l12 40 40 12-40 12-12 40-12-40-40-12 40-12z"/>
-                        </svg>
-
-                    </a>
+                            {{-- Sparkles Icon (same one, resized & centered) --}}
+                            <svg class="w-10 h-10"
+                                viewBox="0 0 512 512"
+                                aria-hidden="true">
+                                <path fill="#2DD4FF" d="M256 32l40 144 144 40-144 40-40 144-40-144-144-40 144-40z"/>
+                                <path fill="#A5F3FC" d="M400 96l20 72 72 20-72 20-20 72-20-72-72-20 72-20z"/>
+                                <path fill="#34F5C5" d="M384 320l16 56 56 16-56 16-16 56-16-56-56-16 56-16z"/>
+                                <path fill="#38BDF8" d="M96 112l12 40 40 12-40 12-12 40-12-40-40-12 40-12z"/>
+                            </svg>
+                        </a>
                     </div>
                 </div>
 
