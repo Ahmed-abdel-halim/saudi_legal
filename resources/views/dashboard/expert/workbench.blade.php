@@ -244,7 +244,7 @@
         .nav-buttons-row {
             display: flex;
             gap: 20px;
-            justify-content: space-between; /* Previous Right, Skip Left */
+            justify-content: space-between; /* Skip Right, Previous Left */
             margin-top: 25px;
             width: 100%;
         }
@@ -734,14 +734,14 @@
                 </div>
 
                 <div class="nav-buttons-row">
-                     <!-- زر السابقة (Past/Right) -->
-                     <button class="nav-btn prev" id="prevBtn" onclick="loadPreviousTask()">
-                        <i class="fa-solid fa-chevron-right"></i> <span>السابقة</span>
+                     <!-- زر تخطي (Future/Right) -->
+                     <button class="skip-btn" onclick="skipTask()">
+                        <i class="fa-solid fa-chevron-right"></i> <span>تخطي</span>
                      </button>
 
-                     <!-- زر تخطي (Future/Left) -->
-                     <button class="skip-btn" onclick="skipTask()">
-                        <span>تخطي</span> <i class="fa-solid fa-chevron-left"></i>
+                     <!-- زر السابقة (Past/Left) -->
+                     <button class="nav-btn prev" id="prevBtn" onclick="loadPreviousTask()">
+                        <span>السابقة</span> <i class="fa-solid fa-chevron-left"></i>
                      </button>
                 </div>
 
