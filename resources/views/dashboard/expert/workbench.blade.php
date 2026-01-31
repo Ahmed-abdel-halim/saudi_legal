@@ -830,41 +830,62 @@
         }
 
         // API Handler
+        // API Handler
         function postAction(action, payload = {}) {
-            const loader = document.getElementById('loader');
-            loader.style.display = 'flex';
+            try {
+                const taskIdInput = document.querySelector('input[name="task_id"]');
+                if (!taskIdInput) {
+                    alert('خطأ برمجي: لم يتم العثور على رقم المهمة (Task ID Input missing)');
+                    return;
+                }
 
-            const formData = new FormData();
-            formData.append('action', action);
-            formData.append('task_id', document.querySelector('input[name="task_id"]').value);
-            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+                const loader = document.getElementById('loader');
+                if (loader) loader.style.display = 'flex';
 
-            // Add payload fields
-            Object.keys(payload).forEach(key => {
-                formData.append(key, payload[key]);
-            });
+                const formData = new FormData();
+                formData.append('action', action);
+                formData.append('task_id', taskIdInput.value);
+                const token = document.querySelector('meta[name="csrf-token"]');
+                if (token) {
+                    formData.append('_token', token.getAttribute('content'));
+                } else {
+                     alert('خطأ: رمز الأمان غير موجود (CSRF Token missing)');
+                     if(loader) loader.style.display = 'none';
+                     return;
+                }
 
-            fetch('{{ route("dashboard.expert.workbench.action") }}', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.success) {
-                        if (d.redirect) {
-                            window.location.href = d.redirect;
-                        } else {
-                            window.location.reload();
-                        }
-                    } else {
-                        alert(d.message || 'حدث خطأ');
-                        loader.style.display = 'none';
-                    }
-                })
-                .catch(() => {
-                    alert('فشل الاتصال بالخادم');
-                    loader.style.display = 'none';
+                // Add payload fields
+                Object.keys(payload).forEach(key => {
+                    formData.append(key, payload[key]);
                 });
+
+                fetch('{{ route("dashboard.expert.workbench.action") }}', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.success) {
+                            if (d.redirect) {
+                                window.location.href = d.redirect;
+                            } else {
+                                window.location.reload();
+                            }
+                        } else {
+                            alert(d.message || 'حدث خطأ');
+                            if(loader) loader.style.display = 'none';
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        alert('فشل الاتصال بالخادم: ' + err.message);
+                        if(loader) loader.style.display = 'none';
+                    });
+            } catch (e) {
+                alert('حدث خطأ في المتصفح: ' + e.message);
+                const loader = document.getElementById('loader');
+                if(loader) loader.style.display = 'none';
+            }
         }
 
         // Actions
