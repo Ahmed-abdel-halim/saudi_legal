@@ -481,7 +481,7 @@
            .wb-card {
                height: auto;        /* متبقاش 100vh */
                overflow-y: auto;    /* scrolling */
-               padding-bottom: 140px; /* مساحة للأزرار تحت */
+               padding-bottom: 220px; /* مساحة للأزرار تحت */
                border-radius: 0;
                box-shadow: none;
            }
@@ -551,7 +551,7 @@
 
            .decision-area {
                position: fixed;
-               bottom: 0;
+               bottom: 90px;
                left: 0;
                right: 0;
                width: 100%;
