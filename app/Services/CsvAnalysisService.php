@@ -26,6 +26,15 @@ class CsvAnalysisService
         // 1. Parse and Validate CSV
         $records = $this->parseCsv($file);
         
+        // 1.1 Integrity Check: Validate Expert IDs exist
+        $csvExpertIds = array_unique(array_column($records, 'expert_id'));
+        $existingIds = User::whereIn('id', $csvExpertIds)->pluck('id')->toArray();
+        $missingIds = array_diff($csvExpertIds, $existingIds);
+
+        if (!empty($missingIds)) {
+             throw new \Exception('Integrity Error: The following Expert IDs do not exist in the database: ' . implode(', ', $missingIds));
+        }
+
         // 2. Initialize Virtual State
         $expertScores = $this->loadInitialExpertScores(array_column($records, 'expert_id'));
         $tasks = $this->groupRecordsByTask($records);
@@ -126,15 +135,40 @@ class CsvAnalysisService
         $handle = fopen($file->getRealPath(), 'r');
         $headers = fgetcsv($handle);
 
-        // Validate Headers
-        if (!$headers || count(array_diff(self::REQUIRED_HEADERS, $headers)) > 0) {
+        if (!$headers) {
             fclose($handle);
-            throw new \Exception('Invalid CSV headers. Required: ' . implode(', ', self::REQUIRED_HEADERS));
+            throw new \Exception('CSV file is empty or could not be read');
+        }
+
+        // 1. Remove BOM if present from first header
+        if (isset($headers[0])) {
+            $bom = pack('H*', 'EFBBBF');
+            $headers[0] = preg_replace("/^$bom/", '', $headers[0]);
+        }
+
+        // 2. Normalize headers (trim whitespace, lowercase)
+        $normalizedHeaders = array_map(function($h) {
+            return strtolower(trim($h));
+        }, $headers);
+
+        // 3. Normalize Expected Headers
+        $expectedHeaders = array_map('strtolower', self::REQUIRED_HEADERS);
+
+        // 4. Validate
+        $missing = array_diff($expectedHeaders, $normalizedHeaders);
+        if (count($missing) > 0) {
+            fclose($handle);
+            throw new \Exception('Invalid CSV headers. Missing: ' . implode(', ', $missing) . '. Found: ' . implode(', ', $headers));
         }
 
         $records = [];
         while (($row = fgetcsv($handle)) !== false) {
-            $data = array_combine($headers, $row);
+            // Ensure row length matches headers
+            if (count($row) !== count($normalizedHeaders)) {
+                continue; // Skip malformed rows
+            }
+            
+            $data = array_combine($normalizedHeaders, $row);
             
             // Basic data cleanup
             $data['is_gold_standard'] = filter_var($data['is_gold_standard'], FILTER_VALIDATE_BOOLEAN);
