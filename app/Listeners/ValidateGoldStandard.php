@@ -25,6 +25,14 @@ class ValidateGoldStandard
             return;
         }
 
+        // Idempotency check: prevent double processing
+        if (GovernanceLog::where('expert_id', $response->expert_id)
+            ->where('task_id', $task->id)
+            ->where('event_type', 'like', 'gold_task_%')
+            ->exists()) {
+            return;
+        }
+
         $expert = $response->expert;
         $isCorrect = $this->compareAnswers($response->corrected_data, $task->gold_answer);
 

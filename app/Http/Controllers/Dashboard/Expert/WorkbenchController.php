@@ -38,7 +38,7 @@ class WorkbenchController extends Controller
          * 2️⃣ Determine if any previous completed task exists
          * - Independent from current task (safe)
          */
-        $hasPreviousTask = AiTask::where('status', 'completed')
+        $hasPreviousTask = AiTask::whereIn('status', ['completed', 'skipped'])
             ->exists();
 
         /**
@@ -179,9 +179,21 @@ class WorkbenchController extends Controller
             'status' => 'skipped',
         ]);
 
+        // Find the absolute next task by ID (regardless of status)
+        $nextTask = AiTask::where('id', '>', $task->id)
+            ->orderBy('id')
+            ->first();
+
+        if ($nextTask) {
+            return response()->json([
+                'success' => true,
+                'redirect' => route('dashboard.expert.workbench', ['task_id' => $nextTask->id])
+            ]);
+        }
+
         return response()->json([
             'success' => true,
-            'redirect' => route('dashboard.expert.workbench') // Reloading without params gets the next available task
+            'redirect' => route('dashboard.expert.workbench') // No more tasks, fall back to default logic
         ]);
     }
 
@@ -190,11 +202,13 @@ class WorkbenchController extends Controller
      */
     private function loadPrevious(AiTask $currentTask, $expert)
     {
-        $query = AiTask::where('status', 'completed')
-            ->orderByDesc('completed_at'); // Use completed_at for chronological history
+        $query = AiTask::whereIn('status', ['completed', 'skipped'])
+            ->orderByDesc('updated_at');
 
-        if ($currentTask->exists && $currentTask->completed_at) {
-             $query->where('completed_at', '<', $currentTask->completed_at);
+        // Only filter by time if we are navigating strictly within history (not from a new/pending task)
+        // If current task is pending, we just want the absolute latest completed/skipped task
+        if ($currentTask->exists && $currentTask->status !== 'pending' && $currentTask->updated_at) {
+             $query->where('updated_at', '<', $currentTask->updated_at);
         }
 
         $previousTask = $query->first();

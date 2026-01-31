@@ -29,5 +29,11 @@ class AiTask extends Model
     protected $casts = [
         'assigned_at' => 'datetime',
         'completed_at' => 'datetime',
+        'gold_answer' => 'array', // Assuming gold answer is stored as JSON/array
     ];
+
+    public function responses()
+    {
+        return $this->hasMany(AiResponse::class, 'task_id');
+    }
 }
