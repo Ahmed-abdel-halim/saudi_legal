@@ -551,11 +551,15 @@
 
            .decision-area {
                position: fixed;
-               bottom: 70px;
+               bottom: 0; /* Stick to bottom */
+               left: 0;
                right: 0;
                width: 100%;
-               padding: 2px 12px calc(env(safe-area-inset-bottom) + 6px);
-               z-index: 50;
+               padding: 12px 16px calc(env(safe-area-inset-bottom) + 12px);
+               z-index: 1000;
+               background: #ffffff;
+               border-top: 1px solid #e2e8f0;
+               box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
                background: #ffffff;
                border-top: none;
                box-shadow: none;
@@ -567,6 +571,9 @@
            .nav-buttons-row {
                display: flex;
                gap: 12px;
+               margin-top: 8px; /* Reset from desktop */
+               position: relative;
+               z-index: 1002;
            }
 
            /* زر السابقة - على اليمين */
