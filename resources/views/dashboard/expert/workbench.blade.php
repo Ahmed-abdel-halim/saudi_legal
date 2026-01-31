@@ -448,149 +448,220 @@
             }
         }
 
-        @media (max-width: 600px) {
+       @media (max-width: 600px) {
 
-            body {
-                background: #fff;
-                padding-bottom: 160px; /* مساحة للأزرار */
-            }
-
-           .wb-card {
-                height: 100dvh;        /* 👈 ارتفاع الشاشة الحقيقي */
-                overflow-y: auto;      /* 👈 scrolling */
-                padding-bottom: 140px; /* 👈 مساحة للأزرار تحت */
-            }
-            .main-container {
-                padding: 0;
-                align-items: stretch;
-            }
+           body {
+               background: #fff;
+               padding-bottom: 160px; /* مساحة للأزرار */
+               direction: rtl;
+           }
 
            .wb-card {
-                height: auto;        /* ❌ متبقاش 100vh */
-                border-radius: 0;
-                box-shadow: none;
-            }
+               height: auto;        /* متبقاش 100vh */
+               overflow-y: auto;    /* scrolling */
+               padding-bottom: 140px; /* مساحة للأزرار تحت */
+               border-radius: 0;
+               box-shadow: none;
+           }
 
-            .question-box {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                padding: 32px 20px;
-                background: #fff;
-                border-bottom: none;
-            }
+           .main-container {
+               padding: 0;
+               align-items: stretch;
+           }
 
-            .q-label {
-                font-size: 1rem;
-                margin-bottom: 20px;
-                opacity: 0.75;
-            }
+           .question-box {
+               flex: 1;
+               display: flex;
+               flex-direction: column;
+               justify-content: center;
+               padding: 32px 20px;
+               background: #fff;
+               border-bottom: none;
+           }
 
-            .q-text {
-                font-size: 2.1rem;
-                line-height: 1.5;
-                text-align: center;
-            }
+           .q-label {
+               font-size: 1rem;
+               margin-bottom: 20px;
+               opacity: 0.75;
+           }
 
-            .card-header {
-                display: flex;
-                justify-content: flex-end;
-                align-items: center;
-                gap: 8px;
-                padding: 10px 16px;
-                font-size: 0.9rem;
-                background: #fff;
-                border-bottom: none;
-            }
+           .q-text {
+               font-size: 2.1rem;
+               line-height: 1.5;
+               text-align: center;
+           }
 
-            .stat-badge.earnings {
-                background: #fffbeb;
-                color: #b45309;
-                padding: 4px 8px;
-                font-size: 0.8rem;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                gap: 4px;
-            }
+           .card-header {
+               display: flex;
+               justify-content: flex-start;
+               align-items: center;
+               gap: 8px;
+               padding: 10px 16px;
+               font-size: 0.9rem;
+               background: #fff;
+               border-bottom: none;
+           }
 
-            .timer-mobile {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                color: #94a3b8;
-                font-size: 0.9rem;
-                font-weight: 700;
-                margin: 0 8px;
-            }
+           .stat-badge.earnings {
+               background: #fffbeb;
+               color: #b45309;
+               padding: 4px 8px;
+               font-size: 0.8rem;
+               border-radius: 8px;
+               display: flex;
+               align-items: center;
+               gap: 4px;
+           }
 
-            .user-info .stat-badge:first-child {
-                display: none;
-            }
+           .timer-mobile {
+               display: inline-flex;
+               align-items: center;
+               gap: 4px;
+               color: #94a3b8;
+               font-size: 0.9rem;
+               font-weight: 700;
+               margin: 0 8px;
+           }
 
-            .decision-area {
-                position: fixed;
-                bottom: 70px;
-                left: 0;
-                width: 100%;
-                padding: 2px 12px calc(env(safe-area-inset-bottom) + 6px);
-                z-index: 50;
-                background: #ffffff;
-                border-top: none;
-                box-shadow: none;
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-            }
+           .user-info .stat-badge:first-child {
+               display: none;
+           }
 
-            .nav-buttons-row {
-                flex-direction: column;
-                gap: 8px;
-            }
+           .decision-area {
+               position: fixed;
+               bottom: 70px;
+               right: 0;
+               width: 100%;
+               padding: 2px 12px calc(env(safe-area-inset-bottom) + 6px);
+               z-index: 50;
+               background: #ffffff;
+               border-top: none;
+               box-shadow: none;
+               display: flex;
+               flex-direction: column;
+               gap: 8px;
+           }
 
-            .nav-btn {
-                width: 100%;
-            }
+           .nav-buttons-row {
+               display: flex;
+               gap: 12px;
+           }
 
-            .skip-btn {
-                display: block !important;
-                width: 100%;
-                text-align: center;
-                padding: 12px;
-                background: #f1f5f9;
-                border-radius: 12px;
-                font-weight: 600;
-                cursor: pointer;
-                color: #64748b;
-                transition: 0.2s;
-            }
+           /* زر السابقة - على اليمين */
+           .nav-btn.prev {
+               flex: 1;
+               height: 52px;
+               padding: 0 16px;
+               border-radius: 14px;
+               display: flex;
+               align-items: center;
+               justify-content: space-between; /* السهم على اليمين والكلمة في النص */
+               gap: 8px;
+               font-size: 0.95rem;
+               font-weight: 600;
+               background: #f8fafc;
+               color: #334155;
+               border: 1px solid #e2e8f0;
+               cursor: pointer;
+               transition: 0.2s;
+               order: 1; /* يروح على اليمين */
+           }
 
-            .skip-btn:hover {
-                background: #e5e7eb;
-                color: #374151;
-            }
+           .nav-btn.prev i {
+               font-size: 1.2rem;
+               transform: rotate(0deg); /* السهم لليمين ← */
+               order: 1; /* السهم على اليمين */
+           }
 
-            .buttons-grid {
-                gap: 12px;
-                margin-bottom: 0;
-            }
+           .nav-btn.prev span {
+               order: 0; /* النص في النص */
+               flex: 1;
+               text-align: center;
+           }
 
-            .decision-btn {
-                min-height: 80px;
-                padding: 16px;
-                font-size: 1.05rem;
-                border-radius: 16px;
-            }
+           /* زر التالي - في النص (لو موجود) */
+           .nav-btn.next {
+               flex: 1;
+               height: 52px;
+               padding: 0 16px;
+               border-radius: 14px;
+               display: flex;
+               align-items: center;
+               justify-content: center;
+               gap: 8px;
+               font-size: 0.95rem;
+               font-weight: 600;
+               color: #059669;
+               background: #ecfdf5;
+               border-color: #a7f3d0;
+               cursor: pointer;
+               transition: 0.2s;
+               order: 0;
+           }
 
-            .icon-lg {
-                font-size: 1.6rem;
-            }
+           .nav-btn.next::before {
+               content: "⏭";
+               font-size: 1.2rem;
+           }
 
-            .task-id {
-                display: none !important;
-            }
-        }
+           .nav-btn:active {
+               transform: scale(0.97);
+               background: #f1f5f9;
+           }
+
+           /* زر التخطي - على الشمال */
+           .skip-btn {
+               flex: 1;
+               display: flex !important;
+               justify-content: flex-start; /* السهم والنص من الشمال */
+               align-items: center;
+               gap: 8px;
+               height: 52px;
+               padding: 0 16px;
+               background: #f1f5f9;
+               border-radius: 12px;
+               font-weight: 600;
+               color: #64748b;
+               cursor: pointer;
+               transition: 0.2s;
+               order: 0; /* يروح على الشمال */
+           }
+
+           .skip-btn span {
+               order: 1; /* النص بعد السهم */
+           }
+
+           .skip-btn i {
+               order: 0; /* السهم قبل النص */
+               font-size: 1.2rem;
+               transform: rotate(0deg); /* السهم لليسار → */
+           }
+
+           .skip-btn:hover {
+               background: #e5e7eb;
+               color: #374151;
+           }
+
+           .buttons-grid {
+               gap: 12px;
+               margin-bottom: 0;
+           }
+
+           .decision-btn {
+               min-height: 80px;
+               padding: 16px;
+               font-size: 1.05rem;
+               border-radius: 16px;
+           }
+
+           .icon-lg {
+               font-size: 1.6rem;
+           }
+
+           .task-id {
+               display: none !important;
+           }
+       }
     </style>
 </head>
 
@@ -648,15 +719,19 @@
                     </button>
                 </div>
 
-                <div class="nav-buttons-row">
-                    <button class="nav-btn" id="prevBtn" onclick="loadPreviousTask()" title="المهمة السابقة">
-                        <i class="fa-solid fa-chevron-right"></i> السابقة
-                    </button>
-                    <button class="skip-btn" onclick="skipTask()" style="flex:1;">
-                        غير متأكد؟ <b>تخطي</b>
-                    </button>
-                </div>
-            </div>
+               <div class="nav-buttons-row">
+                  <!-- زر السابقة -->
+                     <button class="nav-btn prev" id="prevBtn">
+                        <i class="fa-solid fa-chevron-left"></i> <span>السابقة</span>
+                     </button>
+
+                     <!-- زر تخطي -->
+                     <button class="skip-btn">
+                        <span>غير متأكد؟ تخطي</span> <i class="fa-solid fa-chevron-right"></i>
+                     </button>
+               </div>
+
+            </div>`
 
             <div class="editor-area" id="editorStep">
                 <div class="editor-form-group">
