@@ -30,8 +30,8 @@ class DashboardController extends Controller
 
         // Statistics
         // 1. Team Count (Employees/Experts)
+        // 1. Team Count (All Employees/Experts + Admin)
         $teamCount = User::where('company_id', $companyId)
-                         ->where('role', 'expert')
                          ->count();
 
         // 2. Services Count

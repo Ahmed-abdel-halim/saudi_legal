@@ -58,7 +58,7 @@
                 <div class="w-12 h-12 bg-yellow-50 text-yellow-600 rounded-xl flex items-center justify-center text-2xl">⭐</div>
                 <div>
                     <p class="text-sm text-slate-400 font-bold">{{ __('dashboard.company_rating') }}</p>
-                    <p class="text-2xl font-black text-slate-800">4.9</p>
+                    <p class="text-2xl font-black text-slate-800">{{ isset($company->rating) ? $company->rating : '0.0' }}</p>
                 </div>
             </div>
         </div>

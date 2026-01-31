@@ -22,6 +22,7 @@ class Company extends Model
         'is_supplier',
         'status',
         'description',
+        'rating',
     ];
 
     // Disable timestamps if the legacy table doesn't have created_at/updated_at
