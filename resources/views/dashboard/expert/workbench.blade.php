@@ -221,8 +221,10 @@
         }
 
         .skip-btn {
-            display: inline-block;
-            padding: 15px 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
             text-align: center;
             background: transparent;
             border: none;
@@ -241,22 +243,42 @@
 
         .nav-buttons-row {
             display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
+            gap: 20px;
+            justify-content: space-between; /* Previous Right, Skip Left */
+            margin-top: 25px;
+            width: 100%;
         }
 
-        .nav-btn {
-            padding: 12px 20px;
-            background: #f1f5f9;
+        .nav-btn, .skip-btn {
+            padding: 12px 24px;
+            background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
             color: #64748b;
             font-family: 'Tajawal';
-            transition: 0.2s;
+            transition: all 0.2s ease;
             font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            height: 48px;
+        }
+
+        .nav-btn:hover, .skip-btn:hover {
+            background: #f1f5f9;
+            color: #475569;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .nav-btn:active, .skip-btn:active {
+            transform: scale(0.98);
+        }
+
+        .nav-btn i, .skip-btn i {
+            font-size: 1.1em;
         }
 
         .nav-btn:hover {
@@ -555,7 +577,7 @@
                border-radius: 14px;
                display: flex;
                align-items: center;
-               justify-content: space-between; /* السهم على اليمين والكلمة في النص */
+               justify-content: center;
                gap: 8px;
                font-size: 0.95rem;
                font-weight: 600;
@@ -564,18 +586,13 @@
                border: 1px solid #e2e8f0;
                cursor: pointer;
                transition: 0.2s;
-               order: 1; /* يروح على اليمين */
            }
 
            .nav-btn.prev i {
                font-size: 1.2rem;
-               transform: rotate(0deg); /* السهم لليمين ← */
-               order: 1; /* السهم على اليمين */
            }
 
            .nav-btn.prev span {
-               order: 0; /* النص في النص */
-               flex: 1;
                text-align: center;
            }
 
@@ -613,7 +630,7 @@
            .skip-btn {
                flex: 1;
                display: flex !important;
-               justify-content: flex-start; /* السهم والنص من الشمال */
+               justify-content: center;
                align-items: center;
                gap: 8px;
                height: 52px;
@@ -624,17 +641,14 @@
                color: #64748b;
                cursor: pointer;
                transition: 0.2s;
-               order: 0; /* يروح على الشمال */
            }
 
            .skip-btn span {
-               order: 1; /* النص بعد السهم */
+               /* default order */
            }
 
            .skip-btn i {
-               order: 0; /* السهم قبل النص */
                font-size: 1.2rem;
-               transform: rotate(0deg); /* السهم لليسار → */
            }
 
            .skip-btn:hover {
@@ -719,19 +733,19 @@
                     </button>
                 </div>
 
-               <div class="nav-buttons-row">
-                  <!-- زر السابقة -->
-                     <button class="nav-btn prev" id="prevBtn">
-                        <i class="fa-solid fa-chevron-left"></i> <span>السابقة</span>
+                <div class="nav-buttons-row">
+                     <!-- زر السابقة (Past/Right) -->
+                     <button class="nav-btn prev" id="prevBtn" onclick="loadPreviousTask()">
+                        <i class="fa-solid fa-chevron-right"></i> <span>السابقة</span>
                      </button>
 
-                     <!-- زر تخطي -->
-                     <button class="skip-btn">
-                        <span>غير متأكد؟ تخطي</span> <i class="fa-solid fa-chevron-right"></i>
+                     <!-- زر تخطي (Future/Left) -->
+                     <button class="skip-btn" onclick="skipTask()">
+                        <span>تخطي</span> <i class="fa-solid fa-chevron-left"></i>
                      </button>
-               </div>
+                </div>
 
-            </div>`
+            </div>
 
             <div class="editor-area" id="editorStep">
                 <div class="editor-form-group">
