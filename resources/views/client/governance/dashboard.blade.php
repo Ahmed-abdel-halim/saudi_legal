@@ -33,75 +33,156 @@
             </div>
         @endif
 
-        <!-- CSV Data Analysis Section -->
-        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
-            <h2 class="text-2xl font-bold text-slate-800 mb-2">{{ app()->getLocale() == 'ar' ? 'رفع ملف البيانات للتحليل' : 'Upload Data for Analysis' }}</h2>
-            <p class="text-slate-500 mb-6">{{ app()->getLocale() == 'ar' ? 'قم برفع ملف CSV يحتوي على بياناتك لتحليل الجودة، اكتشاف التلاعب، وقياس مستوى الإجماع بين الخبراء.' : 'Upload a CSV file containing your data to analyze quality, detect fraud, and measure consensus levels.' }}</p>
-
-            <form action="{{ route('client.governance.analyze') }}" method="POST" enctype="multipart/form-data" class="flex flex-col md:flex-row gap-4 items-end">
-                @csrf
-                <div class="w-full md:w-2/3">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">{{ app()->getLocale() == 'ar' ? 'ملف CSV' : 'CSV File' }}</label>
-                    <input type="file" name="csv_file" accept=".csv" class="block w-full text-sm text-slate-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-full file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-indigo-50 file:text-indigo-700
-                        hover:file:bg-indigo-100
-                    " required>
-                    <p class="text-xs text-slate-400 mt-1">{{ app()->getLocale() == 'ar' ? 'الأعمدة المطلوبة: task_id, expert_id, answer, is_gold_standard, gold_answer, submitted_at' : 'Required columns: task_id, expert_id, answer, is_gold_standard, gold_answer, submitted_at' }}</p>
-                </div>
-                <div class="w-full md:w-1/3">
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-lg shadow-md transition flex justify-center items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                        {{ app()->getLocale() == 'ar' ? 'رفع وتحليل الملف' : 'Upload & Analyze' }}
-                    </button>
-                </div>
-            </form>
-
-            <!-- Analysis Results -->
-            @if(session('analysis_results'))
-                <div class="mt-8 pt-8 border-t border-slate-100">
-                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        {{ app()->getLocale() == 'ar' ? 'نتائج التحليل' : 'Analysis Results' }}
-                    </h3>
-                    
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                        <div class="bg-indigo-50 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-indigo-700">{{ number_format(session('analysis_results')['total_rows']) }}</div>
-                            <div class="text-xs text-indigo-600 font-medium">{{ app()->getLocale() == 'ar' ? 'صفوف تمت معالجتها' : 'Rows Processed' }}</div>
+        <!-- Task Upload & Tracking Section -->
+        <div class="space-y-8 mb-8">
+            <!-- New Task Upload Section -->
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200">
+                <div class="max-w-xl">
+                     <h2 class="text-xl font-bold text-slate-800 mb-2">{{ app()->getLocale() == 'ar' ? 'رفع مهام جديدة' : 'Upload New Tasks' }}</h2>
+                     <p class="text-slate-500 mb-6 text-sm">
+                        {{ app()->getLocale() == 'ar' 
+                            ? 'قم برفع ملف CSV يحتوي على المهام الجديدة لتوزيعها على الخبراء.' 
+                            : 'Upload a CSV file containing new tasks to check quality, detect manipulation, and measure expert consensus.' }}
+                     </p>
+                     
+                     <form action="{{ route('client.governance.upload') }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row gap-3">
+                        @csrf
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-slate-700 mb-1 sr-only">CSV File</label>
+                            <input type="file" name="csv_file" accept=".csv,.txt" class="block w-full text-sm text-slate-500
+                                file:mr-4 file:py-2.5 file:px-4
+                                file:rounded-full file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-blue-50 file:text-blue-700
+                                hover:file:bg-blue-100
+                                border border-slate-300 rounded-lg cursor-pointer
+                            "/>
                         </div>
-                        <div class="bg-indigo-50 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-indigo-700">{{ session('analysis_results')['accuracy_rate'] }}%</div>
-                            <div class="text-xs text-indigo-600 font-medium">{{ app()->getLocale() == 'ar' ? 'معدل الدقة' : 'Accuracy Rate' }}</div>
-                        </div>
-                        <div class="bg-red-50 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-red-700">{{ session('analysis_results')['gold_failures'] }}</div>
-                            <div class="text-xs text-red-600 font-medium">{{ app()->getLocale() == 'ar' ? 'فشل سؤال ذهبي' : 'Gold Failures' }}</div>
-                        </div>
-                        <div class="bg-amber-50 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-amber-700">{{ session('analysis_results')['conflicts'] }}</div>
-                            <div class="text-xs text-amber-600 font-medium">{{ app()->getLocale() == 'ar' ? 'نزاعات' : 'Conflicts' }}</div>
-                        </div>
-                        <div class="bg-emerald-50 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-emerald-700">{{ session('analysis_results')['perfect_consensus'] }}</div>
-                            <div class="text-xs text-emerald-600 font-medium">{{ app()->getLocale() == 'ar' ? 'إجماع كامل' : 'Perfect Consensus' }}</div>
-                        </div>
+                        <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-sm flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            {{ app()->getLocale() == 'ar' ? 'رفع وتوزيع المهام' : 'Upload & Assign' }}
+                        </button>
+                    </form>
+                    <div class="mt-4 text-xs text-slate-400">
+                        {{ app()->getLocale() == 'ar' ? 'الأعمدة المطلوبة:' : 'Required columns:' }} {{ __('dashboard.original_data') ?? 'original_data' }} (Question/Text)
                     </div>
-
-                    @if(!empty(session('analysis_results')['flagged_experts']))
-                        <div class="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
-                            <h4 class="font-bold text-red-800 text-sm mb-2">{{ app()->getLocale() == 'ar' ? 'خبراء تم وضع علامة عليهم (انخفاض الثقة)' : 'Flagged Experts (Low Trust)' }}</h4>
-                            <ul class="list-disc list-inside text-sm text-red-700">
-                                @foreach(session('analysis_results')['flagged_experts'] as $expertId => $score)
-                                    <li>{{ app()->getLocale() == 'ar' ? 'خبير' : 'Expert' }} #{{ $expertId }} (Score: {{ $score }})</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
                 </div>
-            @endif
+            </div>
+
+            <!-- Task List / Tracking Table -->
+             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                    <h3 class="font-bold text-slate-800">{{ app()->getLocale() == 'ar' ? 'متابعة المهام' : 'Task Tracking' }}</h3>
+                    <span class="text-xs text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">{{ $tasks->total() }} {{ app()->getLocale() == 'ar' ? 'مهمة' : 'Tasks' }}</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-white border-b border-slate-100 text-xs uppercase tracking-wider text-slate-500">
+                                <th class="px-6 py-3 font-semibold">{{ __('dashboard.id') ?? 'ID' }}</th>
+                                <th class="px-6 py-3 font-semibold">{{ __('dashboard.original_data') ?? 'Full texts' }}</th>
+                                <th class="px-6 py-3 font-semibold">{{ __('dashboard.status') ?? 'Status' }}</th>
+                                <th class="px-6 py-3 font-semibold">{{ __('dashboard.consensus') ?? 'Consensus' }}</th>
+                               <th class="px-6 py-3 font-semibold">{{ __('dashboard.created_at') ?? 'Created At' }}</th>
+                                <th class="px-6 py-3 font-semibold text-right">{{ __('dashboard.actions') ?? 'Actions' }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @forelse($tasks as $task)
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-3 text-sm text-slate-600">#{{ $task->id }}</td>
+                                    <td class="px-6 py-3 text-sm text-slate-800 font-medium max-w-md truncate">
+                                        {{ Str::limit($task->original_data, 60) }}
+                                    </td>
+                                    <td class="px-6 py-3">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                            {{ $task->status === 'completed' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700' }}">
+                                            {{ ucfirst($task->status) }}
+                                        </span>
+                                    </td>
+                                     <td class="px-6 py-3">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                            @if($task->consensus_status === 'consensus_reached') bg-green-50 text-green-700
+                                            @elseif($task->consensus_status === 'conflict') bg-red-50 text-red-700
+                                            @elseif($task->consensus_status === 'in_progress') bg-blue-50 text-blue-700
+                                            @else bg-slate-50 text-slate-600
+                                            @endif">
+                                            {{ ucfirst(str_replace('_', ' ', $task->consensus_status)) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-slate-500">
+                                        {{ $task->created_at->format('Y-m-d H:i') }}
+                                    </td>
+                                    <td class="px-6 py-3 text-right">
+                                        <div class="flex items-center justify-end gap-3 text-xs font-medium">
+                                            @if($task->status === 'pending')
+                                                <button class="text-blue-600 hover:text-blue-800">{{ __('dashboard.edit') ?? 'Edit' }}</button>
+                                            @endif
+                                            <button class="text-slate-600 hover:text-slate-800">{{ __('dashboard.copy') ?? 'Copy' }}</button>
+                                             @if($task->status === 'pending')
+                                                <button class="text-red-600 hover:text-red-800">{{ __('dashboard.delete') ?? 'Delete' }}</button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-6 py-8 text-center text-slate-500">
+                                        <p class="text-sm">{{ __('dashboard.no_tasks') ?? 'No tasks found.' }}</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                @if($tasks->hasPages())
+                    <div class="px-6 py-3 border-t border-slate-100">
+                        {{ $tasks->links() }}
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Live Expert Tracking -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                {{ app()->getLocale() == 'ar' ? 'متابعة الخبراء المباشرة' : 'Live Expert Tracking' }}
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- Total Experts -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <div class="text-slate-500 text-sm font-medium mb-1">{{ app()->getLocale() == 'ar' ? 'إجمالي الخبراء' : 'Total Experts' }}</div>
+                    <div class="text-3xl font-bold text-slate-800">{{ number_format($liveTracking['total_experts']) }}</div>
+                </div>
+
+                <!-- Active Experts -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                     <div class="text-slate-500 text-sm font-medium mb-1">{{ app()->getLocale() == 'ar' ? 'نشط الآن' : 'Active Now' }}</div>
+                    <div class="text-3xl font-bold text-green-600 flex items-center gap-2">
+                        <span class="relative flex h-3 w-3">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                        </span>
+                        {{ number_format($liveTracking['active_experts']) }}
+                    </div>
+                </div>
+
+                <!-- Avg Trust Score -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <div class="text-slate-500 text-sm font-medium mb-1">{{ app()->getLocale() == 'ar' ? 'متوسط الثقة' : 'Avg. Trust Score' }}</div>
+                    <div class="text-3xl font-bold text-purple-700">{{ $liveTracking['avg_trust_score'] }}%</div>
+                </div>
+
+                <!-- Banned Experts -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <div class="text-slate-500 text-sm font-medium mb-1">{{ app()->getLocale() == 'ar' ? 'محظورين' : 'Banned Experts' }}</div>
+                    <div class="text-3xl font-bold text-red-600">{{ number_format($liveTracking['banned_experts']) }}</div>
+                </div>
+            </div>
         </div>
 
         <!-- Accuracy Metrics -->
@@ -277,7 +358,7 @@
                                                 {{ json_encode($answer['answer'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}
                                             </div>
                                             <div class="mt-2 text-xs text-slate-500">
-                                                {{ app()->getLocale() == 'ar' ? 'الثقة:' : 'Confidence:' }} {{ $answer['confidence'] }}%
+                                                {{ app()->getLocale() == 'ar' ? 'الثقة:' : 'Confidence:' }} {{ $answer['confidence'] ?? 'N/A' }}%
                                             </div>
                                         </div>
                                     @endforeach

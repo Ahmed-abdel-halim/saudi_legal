@@ -71,6 +71,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Company's Dashboard Routes
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/tasks', [DashboardController::class, 'tasks'])->name('dashboard.tasks'); // New Route
+    Route::post('/dashboard/tasks/upload', [DashboardController::class, 'uploadTasks'])->name('dashboard.tasks.upload'); // New Route
     Route::get('/dashboard/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
     Route::post('/dashboard/settings', [DashboardController::class, 'updateSettings'])->name('dashboard.settings.update');
     Route::get('/dashboard/projects', [DashboardController::class, 'projects'])->name('dashboard.projects');
@@ -80,6 +82,9 @@ Route::middleware(['auth'])->group(function () {
     // Client Governance Dashboard
     Route::get('/client/governance', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'index'])->name('client.governance.dashboard');
     Route::post('/client/governance/analyze', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'analyzeCsv'])->name('client.governance.analyze');
+    Route::post('/client/governance/upload', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'uploadTasks'])->name('client.governance.upload'); // New Route
+    
+    Route::get('/client/dashboard/metrics', [\App\Http\Controllers\ClientDashboardController::class, 'getMetrics'])->name('client.dashboard.metrics');
 });
 
 // Legal routes
@@ -124,4 +129,3 @@ Route::post('/activate/{id}', [ActivationController::class, 'activate'])->name('
 // Suppliers Routes
 Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');
 Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('suppliers.show');
-
