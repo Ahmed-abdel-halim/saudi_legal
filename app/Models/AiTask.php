@@ -24,6 +24,7 @@ class AiTask extends Model
         'required_responses',
         'current_responses',
         'consensus_status',
+        'client_id',
     ];
 
     protected $casts = [
@@ -35,5 +36,15 @@ class AiTask extends Model
     public function responses()
     {
         return $this->hasMany(AiResponse::class, 'task_id');
+    }
+
+    public function assignments()
+    {
+        return $this->hasMany(TaskAssignment::class, 'task_id');
+    }
+
+    public function consensus()
+    {
+        return $this->hasOne(TaskConsensus::class, 'task_id');
     }
 }

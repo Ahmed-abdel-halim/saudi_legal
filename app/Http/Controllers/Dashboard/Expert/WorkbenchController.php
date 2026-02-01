@@ -10,8 +10,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+use App\Services\TaskAssignmentService;
+
 class WorkbenchController extends Controller
 {
+    public function __construct(
+        protected TaskAssignmentService $assignmentService
+    ) {}
     /**
      * Display the workbench with current or selected task
      */
@@ -26,19 +31,18 @@ class WorkbenchController extends Controller
          * - Else → load next pending task
          */
         if ($taskId) {
-            $currentTask = AiTask::where('id', $taskId)
-                ->first();
+            $currentTask = AiTask::where('id', $taskId)->first();
+            // Optional: Add check to ensure expert can view this task
         } else {
-            $currentTask = AiTask::where('status', 'pending')
-                ->orderBy('id')
-                ->first();
+            // Use logical assignment with locking
+            $currentTask = $this->assignmentService->assignNextTask($expert);
         }
 
         /**
-         * 2️⃣ Determine if any previous completed task exists
+         * 2️⃣ Determine if any previous completed task exists (for this expert)
          * - Independent from current task (safe)
          */
-        $hasPreviousTask = AiTask::whereIn('status', ['completed', 'skipped'])
+        $hasPreviousTask = AiResponse::where('expert_id', $expert->id)
             ->exists();
 
         /**
@@ -85,9 +89,24 @@ class WorkbenchController extends Controller
                 default             => response()->json(['success' => false, 'message' => 'إجراء غير معروف']),
             };
         } catch (\Throwable $e) {
+            \Log::error('Workbench Action Error', [
+                'action' => $action,
+                'task_id' => $taskId,
+                'expert_id' => $expert->id,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ غير متوقع',
+                'message' => 'حدث خطأ غير متوقع: ' . $e->getMessage(),
+                'debug' => config('app.debug') ? [
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ] : null
             ]);
         }
     }
@@ -101,6 +120,19 @@ class WorkbenchController extends Controller
     private function markCorrect(AiTask $task)
     {
         $expert = Auth::user();
+
+        // Check if expert already has a response for this task
+        $existingResponse = AiResponse::where('task_id', $task->id)
+            ->where('expert_id', $expert->id)
+            ->first();
+
+        if ($existingResponse) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لقد قمت بالفعل بالإجابة على هذه المهمة. سيتم تحميل المهمة التالية.',
+                'redirect' => route('dashboard.expert.workbench')
+            ]);
+        }
 
         // Wrap in transaction to ensure response creation and task update happen together
         DB::transaction(function () use ($task, $expert) {
@@ -116,12 +148,9 @@ class WorkbenchController extends Controller
             ]);
 
             $task->update([
-                'status'       => 'completed',
+                // 'status' => 'completed', // Governance Listener handles status update via Consensus
                 'completed_at' => Carbon::now(),
             ]);
-
-            // Trigger Governance Event
-            event(new \App\Events\ExpertAnswerSubmitted($response));
         });
 
         return response()->json([
@@ -136,6 +165,19 @@ class WorkbenchController extends Controller
      */
     private function submitCorrection(AiTask $task, Request $request, $expert)
     {
+        // Check if expert already has a response for this task
+        $existingResponse = AiResponse::where('task_id', $task->id)
+            ->where('expert_id', $expert->id)
+            ->first();
+
+        if ($existingResponse) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لقد قمت بالفعل بالإجابة على هذه المهمة. سيتم تحميل المهمة التالية.',
+                'redirect' => route('dashboard.expert.workbench')
+            ]);
+        }
+
         $validated = $request->validate([
             'corrected_data'    => 'required|string',
             'correction_notes' => 'nullable|string|max:1000',
@@ -155,12 +197,9 @@ class WorkbenchController extends Controller
             ]);
 
             $task->update([
-                'status'       => 'completed',
+                // 'status' => 'completed', // Governance Listener handles status update via Consensus
                 'completed_at' => Carbon::now(),
             ]);
-
-            // Trigger Governance Event
-            event(new \App\Events\ExpertAnswerSubmitted($response));
         });
 
         return response()->json([
@@ -198,20 +237,38 @@ class WorkbenchController extends Controller
     }
 
     /**
-     * Load previous completed task
+     * Load previous task that this expert has responded to
      */
     private function loadPrevious(AiTask $currentTask, $expert)
     {
-        $query = AiTask::whereIn('status', ['completed', 'skipped'])
-            ->orderByDesc('updated_at');
+        // Get the current task's response timestamp (if it exists)
+        $currentResponse = AiResponse::where('task_id', $currentTask->id)
+            ->where('expert_id', $expert->id)
+            ->first();
 
-        // Only filter by time if we are navigating strictly within history (not from a new/pending task)
-        // If current task is pending, we just want the absolute latest completed/skipped task
-        if ($currentTask->exists && $currentTask->status !== 'pending' && $currentTask->updated_at) {
-             $query->where('updated_at', '<', $currentTask->updated_at);
+        // Build query to find previous tasks this expert has responded to
+        $query = AiTask::whereHas('responses', function ($q) use ($expert) {
+                $q->where('expert_id', $expert->id);
+            })
+            ->with(['responses' => function ($q) use ($expert) {
+                $q->where('expert_id', $expert->id);
+            }])
+            ->where('id', '!=', $currentTask->id); // Exclude current task
+
+        // If current task has a response, get tasks responded to before it
+        if ($currentResponse) {
+            $query->whereHas('responses', function ($q) use ($expert, $currentResponse) {
+                $q->where('expert_id', $expert->id)
+                  ->where('created_at', '<', $currentResponse->created_at);
+            });
         }
 
-        $previousTask = $query->first();
+        // Order by response timestamp (most recent first)
+        $previousTask = $query->get()
+            ->sortByDesc(function ($task) use ($expert) {
+                return $task->responses->first()->created_at;
+            })
+            ->first();
 
         if (!$previousTask) {
             return response()->json([

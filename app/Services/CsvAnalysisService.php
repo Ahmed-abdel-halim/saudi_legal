@@ -176,6 +176,9 @@ class CsvAnalysisService
             $data['answer'] = $this->decodeJson($data['answer']);
             $data['gold_answer'] = $this->decodeJson($data['gold_answer']);
             
+            // Ensure confidence key exists for consistency with DB-generated records
+            $data['confidence'] = $data['confidence'] ?? 0;
+
             $records[] = $data;
         }
         fclose($handle);

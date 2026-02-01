@@ -25,12 +25,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Register governance event listeners
         \Illuminate\Support\Facades\Event::listen(
-            \App\Events\ExpertAnswerSubmitted::class,
+            \App\Events\AnswerSubmitted::class,
             [\App\Listeners\ValidateGoldStandard::class, 'handle']
         );
 
         \Illuminate\Support\Facades\Event::listen(
-            \App\Events\ExpertAnswerSubmitted::class,
+            \App\Events\AnswerSubmitted::class,
             [\App\Listeners\EvaluateConsensus::class, 'handle']
         );
     }

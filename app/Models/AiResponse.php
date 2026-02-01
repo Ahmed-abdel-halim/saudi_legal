@@ -30,6 +30,10 @@ class AiResponse extends Model
         'updated_at' => 'datetime',
     ];
 
+    protected $dispatchesEvents = [
+        'created' => \App\Events\AnswerSubmitted::class,
+    ];
+
     public function task()
     {
         return $this->belongsTo(AiTask::class, 'task_id');

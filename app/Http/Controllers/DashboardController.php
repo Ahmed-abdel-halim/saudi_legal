@@ -183,4 +183,65 @@ class DashboardController extends Controller
 
         return back()->with('success', __('dashboard.invite_sent_success'));
     }
+    public function tasks()
+    {
+        $user = Auth::user();
+        
+        $tasks = \App\Models\AiTask::where('client_id', $user->id)
+            ->latest()
+            ->paginate(15);
+            
+        return view('dashboard.tasks', compact('user', 'tasks'));
+    }
+
+    public function uploadTasks(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:51200'
+        ]);
+
+        $user = Auth::user();
+        $file = $request->file('csv_file');
+        
+        try {
+            $handle = fopen($file->getRealPath(), 'r');
+            $header = fgetcsv($handle); // Assuming first row is header
+            
+            // Basic validation - check if we have data
+            if (!$header) {
+                throw new \Exception("Empty CSV file");
+            }
+
+            $count = 0;
+            while (($row = fgetcsv($handle)) !== false) {
+                // Determine column usage or assume simple format: [Original Data, Task Type (opt), Gold Answer (opt)]
+                // For this MVP, let's assume the user uses the format: Original Data (col 0)
+                // If the user's uploaded sample has specific columns, we should map them.
+                // Based on user request, they have "Full texts", "id", "task_type", etc. 
+                // But for creation, we likely just need the question.
+                // Let's assume a simpler upload for now: "Question" or "original_data"
+                
+                // If row has content
+                if (!empty($row[0])) {
+                     \App\Models\AiTask::create([
+                        'task_type' => 'text_correction', // Default or parse from CSV
+                        'original_data' => $row[0],
+                        'client_id' => $user->id,
+                        'status' => 'pending',
+                        'consensus_status' => 'pending',
+                        'required_responses' => 3
+                    ]);
+                    $count++;
+                }
+            }
+            
+            fclose($handle);
+            
+            return redirect()->route('dashboard.tasks')
+                ->with('success', "Successfully uploaded {$count} tasks.");
+                
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error uploading tasks: ' . $e->getMessage());
+        }
+    }
 }

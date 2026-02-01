@@ -16,9 +16,78 @@ class GovernanceDashboardController extends Controller
     {
         $metrics = $this->getAccuracyMetrics();
         $fraudLogs = $this->getFraudDetectionLogs();
+        $liveTracking = $this->getLiveTrackingStats();
         $conflicts = $this->getRecentConflicts();
 
-        return view('client.governance.dashboard', compact('metrics', 'fraudLogs', 'conflicts'));
+        // Fetch tasks for the authenticated user (Client)
+        $tasks = \App\Models\AiTask::where('client_id', auth()->id())
+            ->latest()
+            ->paginate(10);
+
+        return view('client.governance.dashboard', compact('metrics', 'fraudLogs', 'conflicts', 'liveTracking', 'tasks'));
+    }
+
+    /**
+     * Upload and create tasks from CSV
+     */
+    public function uploadTasks(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:51200'
+        ]);
+
+        $user = auth()->user();
+        $file = $request->file('csv_file');
+        
+        try {
+            $handle = fopen($file->getRealPath(), 'r');
+            $header = fgetcsv($handle); // Assuming first row is header
+            
+            if (!$header) {
+                throw new \Exception("Empty CSV file");
+            }
+
+            $count = 0;
+            while (($row = fgetcsv($handle)) !== false) {
+                if (!empty($row[0])) {
+                     \App\Models\AiTask::create([
+                        'task_type' => 'text_correction',
+                        'original_data' => $row[0],
+                        'client_id' => $user->id,
+                        'status' => 'Pending',
+                        'consensus_status' => 'pending',
+                        'required_responses' => 3
+                    ]);
+                    $count++;
+                }
+            }
+            
+            fclose($handle);
+            
+            return redirect()->route('client.governance.dashboard')
+                ->with('success', "Successfully uploaded {$count} tasks.");
+                
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error uploading tasks: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get live tracking stats (Active Experts, Trust Scores, etc.)
+     */
+    private function getLiveTrackingStats()
+    {
+        $experts = \App\Models\User::where('role', 'expert')->get();
+        
+        return [
+            'total_experts' => $experts->count(),
+            'active_experts' => \App\Models\TaskAssignment::active()->distinct('expert_id')->count('expert_id'),
+            'avg_trust_score' => round($experts->avg('trust_score') ?? 100, 1),
+            'banned_experts' => $experts->where('is_banned', true)->count(),
+            'gold_pass_rate' => $experts->sum('gold_tasks_completed') > 0 
+                ? round(($experts->sum('gold_tasks_completed') / ($experts->sum('gold_tasks_completed') + $experts->sum('gold_tasks_failed'))) * 100, 1)
+                : 100,
+        ];
     }
 
     /**

@@ -2,171 +2,107 @@
 
 namespace App\Listeners;
 
-use App\Events\ExpertAnswerSubmitted;
-use App\Models\TaskConsensus;
+use App\Events\AnswerSubmitted;
 use App\Models\GovernanceLog;
-use App\Models\AiResponse;
+use App\Models\TaskConsensus;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\DB;
 
-class EvaluateConsensus
+class EvaluateConsensus implements ShouldQueue
 {
+    use InteractsWithQueue;
+
     /**
      * Handle the event.
      */
-    public function handle(ExpertAnswerSubmitted $event): void
+    public function handle(AnswerSubmitted $event): void
     {
-        $response = $event->response;
-        $task = $response->task;
+        $task = $event->response->task;
 
-        // Skip gold standard tasks (already validated)
-        if ($task->is_gold_standard) {
-            return;
-        }
-
-        // Increment response count
-        $task->increment('current_responses');
+        // Atomic check to avoid race conditions via transaction lock could be better, 
+        // but here we rely on the event processing.
+        // Re-query task to ensure fresh data
         $task->refresh();
+        
+        $responseCount = $task->responses()->count();
+        $task->update(['current_responses' => $responseCount]);
 
-        // Wait until we have required responses
-        if ($task->current_responses < $task->required_responses) {
-            $task->update(['consensus_status' => 'in_progress']);
+        if ($responseCount < $task->required_responses) {
             return;
         }
 
-        // Collect all responses
-        $responses = $task->responses()
-            ->with('expert')
-            ->get()
-            ->map(fn($r) => [
-                'expert_id' => $r->expert_id,
-                'answer' => $r->corrected_data,
-                'confidence' => $r->confidence_level,
-                'notes' => $r->correction_notes
-            ])
-            ->toArray();
+        // Check if consensus already reached to avoid duplicates
+        if ($task->consensus) {
+            return;
+        }
 
-        DB::transaction(function () use ($task, $responses) {
-            $consensus = $this->calculateConsensus($responses);
+        // Start Consensus Logic
+        $responses = $task->responses;
+        $answers = $responses->pluck('corrected_data')->toArray();
+        
+        // Count frequency of each answer
+        // Note: This logic depends on exact string matching. For JSON/Complex objects, serialization is key.
+        $counts = array_count_values($answers);
+        arsort($counts);
+        
+        $mostCommonAnswer = array_key_first($counts);
+        $count = $counts[$mostCommonAnswer];
+        
+        $consensusType = 'conflict';
+        $finalAnswer = null;
+        $confidence = 0;
+        $status = 'Conflict';
 
+        if ($count === 3) {
+            $consensusType = 'perfect_match';
+            $finalAnswer = $mostCommonAnswer;
+            $confidence = 100;
+            $status = 'Consensus_Reached';
+        } elseif ($count === 2) {
+            $consensusType = 'majority_vote';
+            $finalAnswer = $mostCommonAnswer;
+            $confidence = 66; // Fixed per requirement
+            $status = 'Consensus_Reached'; // Or 'Review_Required' if majority is considered shaky
+        } else {
+            $consensusType = 'conflict';
+            $finalAnswer = null; // No consensus
+            $confidence = 0;
+            $status = 'Conflict';
+            
+            // Log conflict
+            GovernanceLog::create([
+                'task_id' => $task->id,
+                'expert_id' => $responses->first()->expert_id, // Logging against one expert or generic log?
+                // Better to just log the conflict event related to task
+                'expert_id' => $responses->first()->expert_id, // Placeholder, requires non-null expert_id in schema usually
+                'event_type' => 'consensus_conflict',
+                'event_data' => json_encode(['answers' => $answers]),
+                'trust_score_before' => null,
+                'trust_score_after' => null,
+            ]);
+        }
+
+        DB::transaction(function () use ($task, $responses, $finalAnswer, $confidence, $consensusType, $status) {
             TaskConsensus::create([
                 'task_id' => $task->id,
-                'expert_answers' => $responses,
-                'final_answer' => $consensus['final_answer'],
-                'confidence_level' => $consensus['confidence'],
-                'consensus_type' => $consensus['type'],
-                'conflict_notes' => $consensus['notes'] ?? null
+                'expert_answers' => json_encode($responses->map(function($r) {
+                    return [
+                        'expert_id' => $r->expert_id,
+                        'answer' => $r->corrected_data,
+                        'confidence' => $r->confidence_level
+                    ];
+                })),
+                'final_answer' => $finalAnswer ? json_encode($finalAnswer) : null,
+                'confidence_level' => $confidence,
+                'consensus_type' => $consensusType,
             ]);
 
             $task->update([
-                'consensus_status' => $consensus['type'] === 'conflict' ? 'conflict' : 'consensus_reached',
-                'status' => $consensus['type'] === 'conflict' ? 'pending_review' : 'completed'
+                'status' => $status,
+                'consensus_status' => strtolower($status), // 'Consensus_Reached' -> 'consensus_reached', 'Conflict' -> 'conflict'
+                'completed_at' => now(),
             ]);
-
-            // Distribute rewards based on consensus
-            $this->distributeRewards($task, $responses, $consensus);
-
-            if ($consensus['type'] === 'conflict') {
-                // Log conflict for admin review
-                foreach ($responses as $resp) {
-                    GovernanceLog::create([
-                        'expert_id' => $resp['expert_id'],
-                        'task_id' => $task->id,
-                        'event_type' => 'consensus_conflict',
-                        'event_data' => [
-                            'all_answers' => $responses,
-                            'conflict_reason' => 'total_disagreement'
-                        ]
-                    ]);
-                }
-
-                // TODO: Notify super admin
-            }
         });
-    }
-
-    /**
-     * Calculate consensus from expert responses
-     */
-    private function calculateConsensus(array $responses): array
-    {
-        $answers = array_column($responses, 'answer');
-        $answerCounts = [];
-
-        // Count identical answers
-        foreach ($answers as $answer) {
-            $key = json_encode($answer);
-            $answerCounts[$key] = ($answerCounts[$key] ?? 0) + 1;
-        }
-
-        arsort($answerCounts);
-        $maxCount = reset($answerCounts);
-        $mostCommonAnswer = json_decode(key($answerCounts), true);
-
-        // Perfect match (all 3 agree)
-        if ($maxCount === 3) {
-            return [
-                'type' => 'perfect_match',
-                'final_answer' => $mostCommonAnswer,
-                'confidence' => 100.00,
-                'notes' => 'All experts agreed'
-            ];
-        }
-
-        // Majority vote (2 agree)
-        if ($maxCount === 2) {
-            return [
-                'type' => 'majority_vote',
-                'final_answer' => $mostCommonAnswer,
-                'confidence' => 66.67,
-                'notes' => '2 out of 3 experts agreed'
-            ];
-        }
-
-        // Total conflict (all different)
-        return [
-            'type' => 'conflict',
-            'final_answer' => null,
-            'confidence' => 0.00,
-            'notes' => 'All experts provided different answers - requires admin review'
-        ];
-    }
-
-    /**
-     * Distribute rewards based on consensus results
-     */
-    private function distributeRewards($task, array $responses, array $consensus): void
-    {
-        $finalAnswer = $consensus['final_answer'];
-
-        foreach ($responses as $responseData) {
-            $response = AiResponse::where('task_id', $task->id)
-                ->where('expert_id', $responseData['expert_id'])
-                ->first();
-
-            if (!$response) continue;
-
-            // Check if answer matches consensus
-            $answerMatches = json_encode($responseData['answer']) === json_encode($finalAnswer);
-
-            if ($consensus['type'] === 'conflict') {
-                // No rewards for conflicted tasks until admin resolves
-                $response->update([
-                    'reward_status' => 'pending',
-                    'final_reward_amount' => null
-                ]);
-            } elseif ($answerMatches) {
-                // Full reward for matching consensus
-                $response->update([
-                    'reward_status' => 'full',
-                    'final_reward_amount' => $response->reward_amount
-                ]);
-            } else {
-                // Partial reward for non-matching answers
-                $response->update([
-                    'reward_status' => 'partial',
-                    'final_reward_amount' => $response->reward_amount * 0.5 // 50%
-                ]);
-            }
-        }
     }
 }
