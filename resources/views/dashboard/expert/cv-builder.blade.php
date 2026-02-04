@@ -101,7 +101,7 @@
                         <label class="block text-sm font-medium text-slate-700 mb-2">{{ __('expert_cv.avatar') }}</label>
                         <div class="flex items-center gap-4">
                             @if($user->avatar_path)
-                                <img src="{{ asset('storage/' . $user->avatar_path) }}" alt="Avatar" class="w-20 h-20 rounded-full object-cover border-2 border-green-500">
+                                <img src="{{ asset('uploads/' . $user->avatar_path) }}" alt="Avatar" class="w-20 h-20 rounded-full object-cover border-2 border-green-500">
                             @else
                                 <div class="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-slate-500">
                                     <i class="fa-solid fa-user text-2xl"></i>
