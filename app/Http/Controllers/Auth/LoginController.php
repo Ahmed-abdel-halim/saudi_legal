@@ -28,11 +28,7 @@ class LoginController extends Controller
                 return redirect()->intended(route('dashboard.expert'));
             }
 
-            if ($user->role === 'supplier') {
-                return redirect()->intended(route('dashboard'));
-            }
-
-            // Default fallback for other roles (e.g., requester)
+            // All other roles (supplier, requester, company) go to main dashboard
             return redirect()->intended(route('dashboard'));
         }
 

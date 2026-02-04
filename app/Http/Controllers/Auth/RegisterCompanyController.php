@@ -35,7 +35,7 @@ class RegisterCompanyController extends Controller
         $validator = Validator::make($request->all(), [
             'full-name' => 'required|string|max:255',
             'work-email' => 'required|email|max:255',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', \Illuminate\Validation\Rules\Password::defaults(), 'confirmed'],
             'company-name' => 'required|string|max:255',
             'cr-number' => 'required|string|max:50',
             'industry' => 'required|string',

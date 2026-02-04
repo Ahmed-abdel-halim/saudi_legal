@@ -33,7 +33,7 @@ class RegisterStudentController extends Controller
         $validator = Validator::make($request->all(), [
             'full-name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', \Illuminate\Validation\Rules\Password::defaults(), 'confirmed'],
             'national-id' => 'required|string|max:20', // Adjust max length as needed
             'school-name' => 'required|string|max:255',
             'terms' => 'required|accepted',
@@ -64,7 +64,7 @@ class RegisterStudentController extends Controller
             $user->name = $request->input('full-name');
             $user->email = $request->input('email');
             $user->password = Hash::make($request->input('password'));
-            $user->role = 'student'; // Explicitly set role
+            $user->role = 'expert'; // Explicitly set role to expert as per requirement
             $user->national_id = $request->input('national-id');
             $user->school_name = $request->input('school-name');
             $user->is_active = true;
