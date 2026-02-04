@@ -31,7 +31,7 @@
                 </div>
                 <div class="h-10 w-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm">
                     @if($user->avatar_path)
-                        <img src="{{ asset('storage/' . $user->avatar_path) }}" class="w-full h-full object-cover" alt="Avatar">
+                        <img src="{{ asset('uploads/' . $user->avatar_path) }}" class="w-full h-full object-cover" alt="Avatar">
                     @else
                         @php
                             $initials = '';
@@ -167,7 +167,7 @@
                         <div class="flex flex-col items-center">
                             <div class="w-24 h-24 bg-gradient-to-br from-green-600 to-green-700 rounded-full p-1 shadow-lg">
                                 @if($user->avatar_path)
-                                    <img src="{{ asset('storage/' . $user->avatar_path) }}" class="w-full h-full rounded-full object-cover bg-white" alt="{{ $user->full_name ?? $user->name }}">
+                                    <img src="{{ asset('uploads/' . $user->avatar_path) }}" class="w-full h-full rounded-full object-cover bg-white" alt="{{ $user->full_name ?? $user->name }}">
                                 @else
                                     @php
                                         $initials = '';

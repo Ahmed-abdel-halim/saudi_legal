@@ -698,6 +698,8 @@
                 </div>
                 <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); background: #e2e8f0;">
                     @if(Auth::user()->avatar_path)
+                        <!-- DEBUG URL: {{ asset('uploads/' . Auth::user()->avatar_path) }} -->
+                        <span style="font-size:10px; color:red; display:none;">{{ asset('uploads/' . Auth::user()->avatar_path) }}</span>
                         <img src="{{ asset('uploads/' . Auth::user()->avatar_path) }}" 
                              style="width: 100%; height: 100%; object-fit: cover;" 
                              alt="Avatar"
