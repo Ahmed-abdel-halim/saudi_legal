@@ -690,6 +690,47 @@
         <a href="{{ route('dashboard.expert') }}" class="back-btn" title="خروج"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
 
         <div class="user-info">
+            <!-- User Avatar & Info -->
+            <div style="display: flex; align-items: center; gap: 12px; margin-left: 15px; padding-left: 15px; border-left: 1px solid #e5e7eb;">
+                <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                    <span style="font-size: 0.9rem; font-weight: 700; color: #1f2937;">{{ Auth::user()->full_name ?? Auth::user()->name }}</span>
+                    <span style="font-size: 0.75rem; color: #10b981; font-weight: 600;">خبير معتمد</span>
+                </div>
+                <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); background: #e2e8f0;">
+                    @if(Auth::user()->avatar_path)
+                        <img src="{{ asset('storage/' . Auth::user()->avatar_path) }}" 
+                             style="width: 100%; height: 100%; object-fit: cover;" 
+                             alt="Avatar"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div style="display: none; width: 100%; height: 100%; background: linear-gradient(135deg, #006C35 0%, #10b981 100%); align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1rem;">
+                            @php
+                                $name = Auth::user()->full_name ?? Auth::user()->name ?? 'User';
+                                $nameParts = explode(' ', $name);
+                                $initials = '';
+                                foreach($nameParts as $part) {
+                                    $initials .= mb_substr($part, 0, 1);
+                                }
+                                $initials = mb_substr($initials, 0, 2);
+                            @endphp
+                            {{ strtoupper($initials) }}
+                        </div>
+                    @else
+                        @php
+                            $name = Auth::user()->full_name ?? Auth::user()->name ?? 'User';
+                            $nameParts = explode(' ', $name);
+                            $initials = '';
+                            foreach($nameParts as $part) {
+                                $initials .= mb_substr($part, 0, 1);
+                            }
+                            $initials = mb_substr($initials, 0, 2);
+                        @endphp
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #006C35 0%, #10b981 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1rem;">
+                            {{ strtoupper($initials) }}
+                        </div>
+                    @endif
+                </div>
+            </div>
+
             <div class="stat-badge">
                 <i class="fa-solid fa-list-check" style="color:#64748b"></i>
                 <span>اليوم:</span>
