@@ -109,7 +109,7 @@ class GovernanceDashboardController extends Controller
             }
 
             $normalizedHeader = array_map(fn($h) => strtolower(trim((string) $h)), $firstRow);
-            $knownHeaders = ['original_data', 'content', 'text', 'question', 'task', 'task_id', 'id', 'task_type', 'full_text', 'fulltext'];
+            $knownHeaders = ['original_data', 'content', 'text', 'question', 'task', 'task_id', 'id', 'task_type', 'full_text', 'fulltext', 'domain', 'task_domain', 'roles', 'allowed_roles', 'المجال', 'تخصص', 'النطاق', 'الأدوار', 'المسميات_الوظيفية'];
             $hasKnownHeaders = count(array_intersect($knownHeaders, $normalizedHeader)) > 0;
 
             $pickContentFromAssoc = function (array $assoc): ?string {
@@ -163,8 +163,40 @@ class GovernanceDashboardController extends Controller
                         continue;
                     }
                     $assoc = array_combine($headers, $row);
+                    
                     $content = $pickContentFromAssoc($assoc);
-                    if ($content === null) {
+
+                    // Domain support (English & Arabic)
+                    $domain = $assoc['domain'] ?? $assoc['task_domain'] ?? 
+                              $assoc['المجال'] ?? $assoc['تخصص'] ?? $assoc['النطاق'] ?? null;
+                    
+                    // Parse allowed roles (JSON or comma-separated) - Support English & Arabic headers
+                    $rolesRaw = $assoc['roles'] ?? $assoc['allowed_roles'] ?? 
+                                $assoc['الأدوار'] ?? $assoc['المسميات_الوظيفية'] ?? null;
+                    
+                    $allowedRoles = [];
+                    if ($rolesRaw) {
+                        // Try standard decoding
+                        $json = json_decode($rolesRaw, true);
+                        
+                        // If failed, try converting single quotes to double quotes (common CSV issue)
+                        if (json_last_error() !== JSON_ERROR_NONE) {
+                            $fixedJson = str_replace("'", '"', $rolesRaw);
+                            $json = json_decode($fixedJson, true);
+                        }
+
+                        if (json_last_error() === JSON_ERROR_NONE && is_array($json)) {
+                            $allowedRoles = $json;
+                        } else {
+                            // Support Arabic comma if used (،)
+                            $cleanRolesRaw = str_replace(['،', '[', ']', '"', "'"], [',', '', '', '', ''], $rolesRaw);
+                            $allowedRoles = array_map('trim', explode(',', $cleanRolesRaw));
+                        }
+                    }
+
+                    $allowAll = filter_var($assoc['all_roles'] ?? $assoc['allow_all_roles'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+                    if ($content === null || !$domain) {
                         continue;
                     }
 
@@ -174,7 +206,10 @@ class GovernanceDashboardController extends Controller
                         'client_id' => $user->id,
                         'status' => 'pending',
                         'consensus_status' => 'pending',
-                        'required_responses' => 3
+                        'required_responses' => 3,
+                        'task_domain' => $domain,
+                        'allowed_roles' => $allowedRoles,
+                        'allow_all_roles' => $allowAll
                     ]);
                     $count++;
                 }
@@ -335,5 +370,60 @@ class GovernanceDashboardController extends Controller
             return redirect()->route('client.governance.dashboard')
                 ->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Update a task's content
+     */
+    public function updateTask(\Illuminate\Http\Request $request, $id)
+    {
+        $task = \App\Models\AiTask::where('client_id', auth()->id())->findOrFail($id);
+        
+        if ($task->status !== 'pending') {
+            return back()->with('error', app()->getLocale() == 'ar' ? 'لا يمكن تعديل مهمة قيد العمل أو مكتملة' : 'Cannot edit a task that is in progress or completed.');
+        }
+
+        $request->validate([
+            'original_data' => 'required|string|max:5000'
+        ]);
+
+        $task->update([
+            'original_data' => $request->original_data
+        ]);
+
+        return back()->with('success', app()->getLocale() == 'ar' ? 'تم تحديث المهمة بنجاح' : 'Task updated successfully.');
+    }
+
+    /**
+     * Delete a task
+     */
+    public function deleteTask($id)
+    {
+        $task = \App\Models\AiTask::where('client_id', auth()->id())->findOrFail($id);
+
+        if ($task->status !== 'pending') {
+            return back()->with('error', app()->getLocale() == 'ar' ? 'لا يمكن حذف مهمة قيد العمل أو مكتملة' : 'Cannot delete a task that is in progress or completed.');
+        }
+
+        $task->delete();
+
+        return back()->with('success', app()->getLocale() == 'ar' ? 'تم حذف المهمة بنجاح' : 'Task deleted successfully.');
+    }
+
+    /**
+     * Duplicate a task
+     */
+    public function duplicateTask($id)
+    {
+        $task = \App\Models\AiTask::where('client_id', auth()->id())->findOrFail($id);
+
+        $newTask = $task->replicate();
+        $newTask->status = 'pending';
+        $newTask->consensus_status = 'pending';
+        $newTask->created_at = now();
+        $newTask->updated_at = now();
+        $newTask->save();
+
+        return back()->with('success', app()->getLocale() == 'ar' ? 'تم نسخ المهمة بنجاح' : 'Task duplicated successfully.');
     }
 }

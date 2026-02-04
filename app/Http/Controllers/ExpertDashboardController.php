@@ -39,26 +39,40 @@ class ExpertDashboardController extends Controller
         $today_balance = $tasks_today * $price_per_task;
 
         // 4. Level Logic
-        $expert_level = 'مساهم جديد';
+        $expert_level = __('expert_dashboard.level_new');
         $badge_color = 'bg-gray-100 text-gray-600';
         $badge_icon = 'fa-user';
 
         if ($total_tasks > 500) {
-            $expert_level = 'خبير سيادي (Elite)';
+            $expert_level = __('expert_dashboard.level_elite');
             $badge_color = 'bg-purple-100 text-purple-700 border-purple-200';
             $badge_icon = 'fa-crown';
         } elseif ($total_tasks > 100) {
-            $expert_level = 'مدقق معتمد (Certified)';
+            $expert_level = __('expert_dashboard.level_certified');
             $badge_color = 'bg-blue-100 text-blue-700 border-blue-200';
             $badge_icon = 'fa-certificate';
         } elseif ($total_tasks > 20) {
-            $expert_level = 'مساهم نشط';
+            $expert_level = __('expert_dashboard.level_active');
             $badge_color = 'bg-green-100 text-green-700 border-green-200';
             $badge_icon = 'fa-star';
         }
 
-        // 5. Pending Tasks Count
-        $pending_count = AiTask::where('status', 'pending')->count();
+        // 5. Pending Tasks Count (Strict Assignment Logic)
+        $pending_count = 0;
+        if ($user->expert_domain && $user->expert_specialization) {
+            $pending_count = AiTask::where('status', 'pending')
+                ->where('task_domain', $user->expert_domain)
+                ->where(function($q) use ($user) {
+                    $role = trim($user->expert_specialization);
+                    $q->where('allow_all_roles', true)
+                      ->orWhere('allowed_roles', 'LIKE', '%"' . $role . '"%')
+                      ->orWhere('allowed_roles', 'LIKE', '%' . str_replace('\\', '\\\\', substr(json_encode($role), 1, -1)) . '%');
+                })
+                ->whereDoesntHave('responses', function($q) use ($user) {
+                    $q->where('expert_id', $user->id);
+                })
+                ->count();
+        }
 
         // 6. History
         $history = collect([]);
@@ -125,9 +139,97 @@ class ExpertDashboardController extends Controller
         return view('dashboard.expert.availability', compact('user', 'settings', 'active_days', 'msg'));
     }
 
-    public function cvBuilder()
+    public function cvBuilder(Request $request)
     {
         $user = Auth::user();
+        
+        if ($request->isMethod('post')) {
+            try {
+                $validated = $request->validate([
+                    'full_name' => 'nullable|string|max:255',
+                    'job_title' => 'nullable|string|max:255',
+                    'expert_domain' => 'nullable|string|in:medicine,law,engineering,saudi_dialects',
+                    'email' => 'nullable|email|max:255',
+                    'phone' => 'nullable|string|max:20',
+                    'bio' => 'nullable|string|max:2000',
+                    'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+                ]);
+
+                $updateData = ['updated_at' => now()];
+
+                // Handle avatar upload
+                if ($request->hasFile('avatar')) {
+                    try {
+                        // Delete old avatar if exists
+                        if ($user->avatar_path && \Storage::disk('public')->exists($user->avatar_path)) {
+                            \Storage::disk('public')->delete($user->avatar_path);
+                        }
+                        
+                        $avatarPath = $request->file('avatar')->store('avatars', 'public');
+                        $updateData['avatar_path'] = $avatarPath;
+                    } catch (\Exception $e) {
+                        \Log::error('Avatar upload failed: ' . $e->getMessage());
+                    }
+                }
+
+                // Update basic fields
+                if ($request->filled('full_name')) {
+                    $updateData['name'] = $validated['full_name'];
+                }
+                
+                if ($request->filled('email')) {
+                    $updateData['email'] = $validated['email'];
+                }
+                
+                if ($request->filled('phone')) {
+                    $updateData['phone'] = $validated['phone'];
+                }
+                
+                if ($request->filled('bio')) {
+                    $updateData['bio'] = $validated['bio'];
+                }
+
+                // CRITICAL: Handle domain and specialization for strict assignment
+                if ($request->filled('expert_domain')) {
+                    $updateData['expert_domain'] = $validated['expert_domain'];
+                }
+                
+                if ($request->filled('job_title')) {
+                    $updateData['job_title'] = $validated['job_title'];
+                    // Sync job_title to expert_specialization for task assignment
+                    $updateData['expert_specialization'] = $validated['job_title'];
+                }
+
+                // Update user
+                DB::table('users')->where('id', $user->id)->update($updateData);
+
+                // Refresh user data
+                $user = \App\Models\User::find($user->id);
+                
+                $successMessage = app()->getLocale() === 'ar' 
+                    ? '✅ تم تحديث السيرة الذاتية بنجاح!' 
+                    : '✅ CV updated successfully!';
+                
+                if ($request->filled('job_title') && $request->filled('expert_domain')) {
+                    $successMessage .= app()->getLocale() === 'ar'
+                        ? ' سيتم تعيين المهام بناءً على تخصصك.'
+                        : ' Tasks will be assigned based on your specialization.';
+                }
+                
+                return redirect()->route('dashboard.expert.cv-builder')
+                    ->with('success', $successMessage);
+                    
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                return back()->withErrors($e->errors())->withInput();
+            } catch (\Exception $e) {
+                \Log::error('CV Builder error: ' . $e->getMessage());
+                $errorMessage = app()->getLocale() === 'ar'
+                    ? 'حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى.'
+                    : 'An error occurred while saving. Please try again.';
+                return back()->with('error', $errorMessage)->withInput();
+            }
+        }
+
         return view('dashboard.expert.cv-builder', compact('user'));
     }
 
