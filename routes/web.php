@@ -102,6 +102,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/client/governance', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'index'])->name('client.governance.dashboard');
         Route::post('/client/governance/analyze', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'analyzeCsv'])->name('client.governance.analyze');
         Route::post('/client/governance/upload', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'uploadTasks'])->name('client.governance.upload');
+        Route::put('/client/governance/tasks/{id}', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'updateTask'])->name('client.governance.task.update');
+        Route::delete('/client/governance/tasks/{id}', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'deleteTask'])->name('client.governance.task.delete');
+        Route::post('/client/governance/tasks/{id}/duplicate', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'duplicateTask'])->name('client.governance.task.duplicate');
         
         Route::get('/client/dashboard/metrics', [\App\Http\Controllers\ClientDashboardController::class, 'getMetrics'])->name('client.dashboard.metrics');
     });
