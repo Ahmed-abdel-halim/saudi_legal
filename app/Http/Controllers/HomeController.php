@@ -8,36 +8,37 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // Mock services data - Replace with actual database query when models are ready
-        $services = [
-            (object)[
-                'service_id' => 1,
-                'title' => 'Full Stack Developer',
-                'expert_name' => 'أحمد محمد',
-                'expert_image' => null,
-                'company_name' => 'Tech Solutions',
-                'hourly_rate' => 150,
-                'image' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80',
-            ],
-            (object)[
-                'service_id' => 2,
-                'title' => 'UI/UX Designer',
-                'expert_name' => 'سارة علي',
-                'expert_image' => null,
-                'company_name' => 'Design Studio',
-                'hourly_rate' => 120,
-                'image' => 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&q=80',
-            ],
-            (object)[
-                'service_id' => 3,
-                'title' => 'DevOps Engineer',
-                'expert_name' => 'خالد أحمد',
-                'expert_image' => null,
-                'company_name' => 'Cloud Services',
-                'hourly_rate' => 180,
-                'image' => 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&q=80',
-            ],
-        ];
+        // Fetch latest expert services from database
+        $services = \DB::table('expert_services as es')
+            ->join('users as u', 'es.expert_id', '=', 'u.id')
+            ->leftJoin('companies as c', 'u.company_id', '=', 'c.company_id')
+            ->where('es.is_active', 1)
+            ->select([
+                'es.service_id',
+                'es.title',
+                'es.price as hourly_rate',
+                'u.name as expert_name',
+                'u.avatar_path as expert_image',
+                'c.name as company_name'
+            ])
+            ->orderByDesc('es.created_at')
+            ->limit(6)
+            ->get()
+            ->map(function ($service) {
+                // Fix avatar path if it exists
+                if ($service->expert_image) {
+                    // Convert storage/uploads to uploads for direct public access
+                    if (str_starts_with($service->expert_image, 'storage/uploads/')) {
+                        $service->expert_image = str_replace('storage/uploads/', 'uploads/', $service->expert_image);
+                    }
+                    $service->expert_image = asset($service->expert_image);
+                }
+                
+                // Set default image to null (view can handle fallback)
+                $service->image = null;
+                
+                return $service;
+            });
 
         $isLoggedIn = auth()->check();
         $exploreUrl = route('services.browse');
