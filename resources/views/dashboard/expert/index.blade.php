@@ -184,6 +184,7 @@
 
                 <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
                     <h4 class="font-bold text-sm text-slate-700 mb-3">إجراءات سريعة</h4>
+                    @if($user->role !== 'student')
                     <div class="grid grid-cols-2 gap-3">
                         <a href="{{ route('dashboard.expert.services') }}" class="flex flex-col items-center justify-center p-3 bg-slate-50 rounded-lg hover:bg-green-50 hover:text-green-700 transition cursor-pointer">
                             <i class="fa-solid fa-box-open mb-2 text-lg"></i>
@@ -194,6 +195,12 @@
                             <span class="text-xs font-bold">التوفر</span>
                         </a>
                     </div>
+                    @else
+                    <div class="p-4 bg-slate-50 rounded-lg text-center text-slate-500 text-sm">
+                        <i class="fa-solid fa-user-graduate mb-2 text-lg block"></i>
+                        حساب طالب: الخدمات والتوفر غير متاحة
+                    </div>
+                    @endif
                 </div>
 
             </div>

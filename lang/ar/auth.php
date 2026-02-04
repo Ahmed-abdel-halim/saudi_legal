@@ -96,4 +96,23 @@ return [
     'NEED_HELP' => 'تحتاج مساعدة؟',
     'CONTACT_SUPPORT' => 'تواصل مع الدعم',
     'PASSWORD_RESET_SENT' => 'لقد أرسلنا لك رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.',
+    'ARE_YOU_STUDENT' => 'هل أنت طالب؟ سجل هنا',
+    'NOT_STUDENT' => 'لست طالباً؟ سجل كشركة/خبير',
+
+    // Student Registration
+    'STUDENT_REGISTRATION' => 'تسجيل الطلاب',
+    'STUDENT_REGISTER_DESC' => 'ابدأ رحلتك المهنية وساهم في بناء مستقبل الذكاء الاصطناعي',
+    'DEVELOP_SKILLS' => 'تطوير مهاراتك',
+    'CERTIFIED_CERTIFICATES' => 'شهادات معتمدة',
+    'NEW_STUDENT_ACCOUNT' => 'حساب طالب جديد',
+    'FILL_TO_CREATE_STUDENT' => 'قم بملء البيانات التالية لإنشاء حساب طالب',
+    'UNIVERSITY_EMAIL' => 'البريد الإلكتروني الجامعي',
+    'NATIONAL_ID' => 'رقم الهوية الوطنية',
+    'SCHOOL_NAME' => 'اسم المدرسة أو الجامعة',
+    'OTHER_OPTIONS' => 'خيارات أخرى',
+    'REGISTER_AS_COMPANY' => 'تسجيل كشركة / خبير',
+    'UNIVERSITY_EMAIL_PLACEHOLDER' => 'student@university.edu.sa',
+    'NATIONAL_ID_PLACEHOLDER' => '10xxxxxxxx',
+    'SCHOOL_NAME_PLACEHOLDER' => 'جامعة الملك سعود',
+    'FULL_NAME_PLACEHOLDER' => 'الاسم الثلاثي',
 ];

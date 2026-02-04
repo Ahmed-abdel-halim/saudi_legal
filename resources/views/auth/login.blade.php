@@ -291,6 +291,12 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                     {{ __('auth.AUTH_CREATE_COMPANY', [], $currentLang) }}
                 </a>
 
+                <div class="mt-4 text-center">
+                    <a href="{{ route('register.student') }}" class="text-brand-teal hover:underline font-medium text-sm">
+                        {{ __('auth.ARE_YOU_STUDENT', [], $currentLang) }}
+                    </a>
+                </div>
+
                 {{-- Back to Home --}}
                 <p class="text-center text-sm text-gray-500 mt-6">
                     <a href="{{ route('home') }}" class="text-brand-teal hover:underline font-medium">

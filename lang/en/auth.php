@@ -96,4 +96,23 @@ return [
     'NEED_HELP' => 'Need help?',
     'CONTACT_SUPPORT' => 'Contact Support',
     'PASSWORD_RESET_SENT' => 'We have sent you a password reset link to your email address.',
+    'ARE_YOU_STUDENT' => 'Are you a student? Register here',
+    'NOT_STUDENT' => 'Not a student? Register as Company/Expert',
+    
+    // Student Registration
+    'STUDENT_REGISTRATION' => 'Student Registration',
+    'STUDENT_REGISTER_DESC' => 'Start your career and contribute to building the future of AI',
+    'DEVELOP_SKILLS' => 'Develop Your Skills',
+    'CERTIFIED_CERTIFICATES' => 'Certified Certificates',
+    'NEW_STUDENT_ACCOUNT' => 'New Student Account',
+    'FILL_TO_CREATE_STUDENT' => 'Fill in the details below to create a student account',
+    'UNIVERSITY_EMAIL' => 'University Email',
+    'NATIONAL_ID' => 'National ID',
+    'SCHOOL_NAME' => 'School or University Name',
+    'OTHER_OPTIONS' => 'Other Options',
+    'REGISTER_AS_COMPANY' => 'Register as Company / Expert',
+    'UNIVERSITY_EMAIL_PLACEHOLDER' => 'student@university.edu.sa',
+    'NATIONAL_ID_PLACEHOLDER' => '10xxxxxxxx',
+    'SCHOOL_NAME_PLACEHOLDER' => 'King Saud University',
+    'FULL_NAME_PLACEHOLDER' => 'Full Name',
 ];
