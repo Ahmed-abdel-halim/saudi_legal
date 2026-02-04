@@ -24,6 +24,9 @@ Route::get('/blog', [App\Http\Controllers\BlogController::class, 'index'])->name
 // Authentication Routes
 Route::get('/register/company', [RegisterCompanyController::class, 'showRegistrationForm'])->name('register.company');
 Route::post('/register/company', [RegisterCompanyController::class, 'handleRegistration'])->name('register.company.handle');
+Route::get('/register/student', [App\Http\Controllers\Auth\RegisterStudentController::class, 'showRegistrationForm'])->name('register.student');
+Route::post('/register/student', [App\Http\Controllers\Auth\RegisterStudentController::class, 'handleRegistration'])->name('register.student.handle');
+
 
 // About Us Route
 Route::get('/about', function () { return view('about'); })->name('about');
