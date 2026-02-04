@@ -23,6 +23,11 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useTailwind();
 
+        \Illuminate\Validation\Rules\Password::defaults(function () {
+            // Flexible password: just min 8 chars
+            return \Illuminate\Validation\Rules\Password::min(8);
+        });
+
         // Register governance event listeners
         \Illuminate\Support\Facades\Event::listen(
             \App\Events\AnswerSubmitted::class,
