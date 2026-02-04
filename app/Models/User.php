@@ -41,6 +41,8 @@ class User extends Authenticatable
         'ban_reason',
         'is_active',
         'is_active_for_hire',
+        'national_id',
+        'school_name',
     ];
 
     /**
