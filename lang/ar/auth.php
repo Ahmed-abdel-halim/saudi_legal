@@ -110,7 +110,7 @@ return [
     'NATIONAL_ID' => 'رقم الهوية الوطنية',
     'SCHOOL_NAME' => 'اسم المدرسة أو الجامعة',
     'OTHER_OPTIONS' => 'خيارات أخرى',
-    'REGISTER_AS_COMPANY' => 'تسجيل كشركة / خبير',
+    'REGISTER_AS_COMPANY' => 'سجل شركتك',
     'UNIVERSITY_EMAIL_PLACEHOLDER' => 'student@university.edu.sa',
     'NATIONAL_ID_PLACEHOLDER' => '10xxxxxxxx',
     'SCHOOL_NAME_PLACEHOLDER' => 'جامعة الملك سعود',

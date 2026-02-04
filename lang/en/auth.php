@@ -110,7 +110,7 @@ return [
     'NATIONAL_ID' => 'National ID',
     'SCHOOL_NAME' => 'School or University Name',
     'OTHER_OPTIONS' => 'Other Options',
-    'REGISTER_AS_COMPANY' => 'Register as Company / Expert',
+    'REGISTER_AS_COMPANY' => 'Register as Company',
     'UNIVERSITY_EMAIL_PLACEHOLDER' => 'student@university.edu.sa',
     'NATIONAL_ID_PLACEHOLDER' => '10xxxxxxxx',
     'SCHOOL_NAME_PLACEHOLDER' => 'King Saud University',
