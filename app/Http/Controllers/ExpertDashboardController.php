@@ -165,7 +165,7 @@ class ExpertDashboardController extends Controller
                             \Storage::disk('public')->delete($user->avatar_path);
                         }
                         
-                        $avatarPath = $request->file('avatar')->store('avatars', 'public');
+                        $avatarPath = $request->file('avatar')->store('avatars', 'public_uploads');
                         $updateData['avatar_path'] = $avatarPath;
                     } catch (\Exception $e) {
                         \Log::error('Avatar upload failed: ' . $e->getMessage());

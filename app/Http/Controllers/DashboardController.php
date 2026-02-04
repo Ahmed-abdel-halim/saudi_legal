@@ -85,9 +85,9 @@ class DashboardController extends Controller
         $company->is_supplier = $request->has('is_supplier');
 
         if ($request->hasFile('logo')) {
-            $path = $request->file('logo')->store('uploads/companies', 'public');
-            // Store relative path for asset() to use with storage/ prefix or symbolic link
-            $company->company_logo = 'storage/' . $path;
+            $path = $request->file('logo')->store('companies', 'public_uploads');
+            // Store path for asset() including uploads/ prefix since this field stores full relative path
+            $company->company_logo = 'uploads/' . $path; // Result: uploads/companies/filename.png
         }
 
         $company->save();
