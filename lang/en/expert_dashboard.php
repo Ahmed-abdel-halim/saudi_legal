@@ -1,0 +1,42 @@
+<?php
+
+return [
+    'page_title' => 'Expert Dashboard | Radiif',
+    'total_balance' => 'Total Balance',
+    'currency' => 'SAR',
+    'today_earnings' => 'Today\'s Earnings',
+    'completed_tasks' => 'Completed Tasks',
+    'task_unit' => 'Task',
+    'live_badge' => 'LIVE',
+    'pending_tasks_msg' => '● :count tasks pending',
+    'no_tasks_msg' => 'No tasks currently',
+    'workbench_title' => 'Sovereign Audit Workbench',
+    'workbench_desc' => 'Review and correct data to improve national models quality.',
+    'start_audit' => 'Start Audit',
+    'recent_activity' => 'Recent Activity Log',
+    'last_5_ops' => 'Last 5 Operations',
+    'tbl_task_id' => 'Task ID',
+    'tbl_action' => 'Action',
+    'tbl_time' => 'Time',
+    'tbl_value' => 'Value',
+    'status_corrected' => 'Corrected',
+    'no_activity' => 'No activity yet. Start working now!',
+    'expert_number' => 'Expert ID',
+    'join_date' => 'Join Date',
+    'account_status' => 'Account Status',
+    'active' => 'Active',
+    'update_profile' => 'Update Profile',
+    'quick_actions' => 'Quick Actions',
+    'services' => 'Services',
+    'availability' => 'Availability',
+    'student_account' => 'Student Account: Services and Availability unavailable',
+    'copyright' => 'All rights reserved to National Data Experts.',
+    'job_title_default' => 'Data Expert',
+    
+    // Expert Levels
+    'level_new' => 'New Contributor',
+    'level_active' => 'Active Contributor',
+    'level_certified' => 'Certified Auditor',
+    'level_elite' => 'Elite Expert',
+    
+];
