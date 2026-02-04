@@ -25,12 +25,17 @@ class AiTask extends Model
         'current_responses',
         'consensus_status',
         'client_id',
+        'task_domain',
+        'allowed_roles',
+        'allow_all_roles'
     ];
 
     protected $casts = [
         'assigned_at' => 'datetime',
         'completed_at' => 'datetime',
-        'gold_answer' => 'array', // Assuming gold answer is stored as JSON/array
+        'gold_answer' => 'array',
+        'allowed_roles' => 'array',
+        'allow_all_roles' => 'boolean',
     ];
 
     public function responses()
