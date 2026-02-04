@@ -84,7 +84,7 @@
                                 <th class="px-6 py-3 font-semibold">{{ __('dashboard.status') ?? 'Status' }}</th>
                                 <th class="px-6 py-3 font-semibold">{{ __('dashboard.consensus') ?? 'Consensus' }}</th>
                                <th class="px-6 py-3 font-semibold">{{ __('dashboard.created_at') ?? 'Created At' }}</th>
-                                <th class="px-6 py-3 font-semibold text-right">{{ __('dashboard.actions') ?? 'Actions' }}</th>
+                                <th class="px-6 py-3 font-semibold text-center">{{ __('dashboard.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-50">
@@ -113,14 +113,29 @@
                                     <td class="px-6 py-3 text-sm text-slate-500">
                                         {{ $task->created_at->format('Y-m-d H:i') }}
                                     </td>
-                                    <td class="px-6 py-3 text-right">
-                                        <div class="flex items-center justify-end gap-3 text-xs font-medium">
+                                    <td class="px-6 py-3 text-center">
+                                        <div class="flex items-center justify-center gap-2">
                                             @if($task->status === 'pending')
-                                                <button class="text-blue-600 hover:text-blue-800">{{ __('dashboard.edit') ?? 'Edit' }}</button>
+                                                <button onclick="openEditModal({{ $task->id }}, '{{ addslashes($task->original_data) }}')" class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-all" title="{{ __('dashboard.edit') }}">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                </button>
                                             @endif
-                                            <button class="text-slate-600 hover:text-slate-800">{{ __('dashboard.copy') ?? 'Copy' }}</button>
-                                             @if($task->status === 'pending')
-                                                <button class="text-red-600 hover:text-red-800">{{ __('dashboard.delete') ?? 'Delete' }}</button>
+                                            
+                                            <form action="{{ route('client.governance.task.duplicate', $task->id) }}" method="POST" class="inline" onsubmit="return confirm('{{ app()->getLocale() == 'ar' ? 'هل أنت متأكد من نسخ هذه المهمة؟' : 'Are you sure you want to duplicate this task?' }}')">
+                                                @csrf
+                                                <button type="submit" class="p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-all" title="{{ __('dashboard.copy') }}">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                                </button>
+                                            </form>
+
+                                            @if($task->status === 'pending')
+                                                <form action="{{ route('client.governance.task.delete', $task->id) }}" method="POST" class="inline" onsubmit="return confirm('{{ app()->getLocale() == 'ar' ? 'هل أنت متأكد من حذف هذه المهمة؟' : 'Are you sure you want to delete this task?' }}')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-all" title="{{ __('dashboard.delete') }}">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                    </button>
+                                                </form>
                                             @endif
                                         </div>
                                     </td>
@@ -390,6 +405,60 @@
         </div>
 
     </div>
+
+    <!-- Edit Task Modal -->
+    <div id="editTaskModal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeEditModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <form id="editTaskForm" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <h3 class="text-lg leading-6 font-medium text-slate-900 mb-4" id="modal-title">
+                            {{ app()->getLocale() == 'ar' ? 'تعديل المهمة' : 'Edit Task' }}
+                        </h3>
+                        <div class="mb-4">
+                            <label for="taskOriginalData" class="block text-sm font-medium text-slate-700 mb-2">
+                                {{ app()->getLocale() == 'ar' ? 'محتوى المهمة' : 'Task Content' }}
+                            </label>
+                            <textarea name="original_data" id="taskOriginalData" rows="6" class="w-full px-3 py-2 text-slate-700 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required></textarea>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            {{ app()->getLocale() == 'ar' ? 'حفظ التعديلات' : 'Save Changes' }}
+                        </button>
+                        <button type="button" onclick="closeEditModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            {{ app()->getLocale() == 'ar' ? 'إلغاء' : 'Cancel' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(taskId, content) {
+            const modal = document.getElementById('editTaskModal');
+            const form = document.getElementById('editTaskForm');
+            const textarea = document.getElementById('taskOriginalData');
+            
+            // Set form action
+            form.action = `/client/governance/tasks/${taskId}`;
+            
+            // Set content (unescape characters if needed)
+            textarea.value = content;
+            
+            // Show modal
+            modal.classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editTaskModal').classList.add('hidden');
+        }
+    </script>
 
 </div>
 @endsection

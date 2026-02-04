@@ -16,10 +16,11 @@
                     <p class="text-indigo-200">{{ __('dashboard.overview_text') }}</p>
                 </div>
                 <div class="flex gap-3">
-                    {{-- Assuming post_project.php corresponds to 'requests.create' or similar route. 
-                         For now, keeping legacy link or checking if route exists. 
-                         The legacy link was post_project.php. I'll leave a placeholder or guess a route if typical. --}}
-                    <a href="{{ route('requests.browse') }}" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold transition flex items-center gap-2">
+                    <a href="{{ route('client.governance.dashboard') }}" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3 rounded-xl font-bold transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"></path></svg>
+                        {{ app()->getLocale() == 'ar' ? 'تنقيح البيانات' : 'Data Annotation' }}
+                    </a>
+                    <a href="{{ route('requests.browse') }}" class="bg-white text-indigo-900 hover:bg-indigo-50 px-6 py-3 rounded-xl font-bold transition flex items-center gap-2 shadow-lg">
                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         {{ __('dashboard.new_expert_request') }}
                     </a>

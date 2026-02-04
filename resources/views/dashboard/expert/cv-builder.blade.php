@@ -54,6 +54,23 @@
             </div>
         @endif
 
+        @if(session('error'))
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                <i class="fa-solid fa-circle-exclamation ml-2"></i> {{ session('error') }}
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                <i class="fa-solid fa-circle-exclamation ml-2"></i>
+                <ul class="list-disc list-inside mt-2">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('dashboard.expert.cv-builder') }}" enctype="multipart/form-data">
             @csrf
 
@@ -79,6 +96,30 @@
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-2">{{ __('expert_cv.phone') }}</label>
                         <input type="tel" name="phone" value="{{ $user->phone ?? '' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">{{ __('expert_cv.avatar') }}</label>
+                        <div class="flex items-center gap-4">
+                            @if($user->avatar_path)
+                                <img src="{{ asset('storage/' . $user->avatar_path) }}" alt="Avatar" class="w-20 h-20 rounded-full object-cover border-2 border-green-500">
+                            @else
+                                <div class="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-slate-500">
+                                    <i class="fa-solid fa-user text-2xl"></i>
+                                </div>
+                            @endif
+                            <input type="file" name="avatar" accept="image/*" class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">{{ __('expert_cv.domain') }}</label>
+                        <select name="expert_domain" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="">{{ __('expert_cv.select_domain') }}</option>
+                            <option value="medicine" {{ ($user->expert_domain ?? '') === 'medicine' ? 'selected' : '' }}>{{ __('expert_cv.domains.medicine') }}</option>
+                            <option value="law" {{ ($user->expert_domain ?? '') === 'law' ? 'selected' : '' }}>{{ __('expert_cv.domains.law') }}</option>
+                            <option value="engineering" {{ ($user->expert_domain ?? '') === 'engineering' ? 'selected' : '' }}>{{ __('expert_cv.domains.engineering') }}</option>
+                            <option value="saudi_dialects" {{ ($user->expert_domain ?? '') === 'saudi_dialects' ? 'selected' : '' }}>{{ __('expert_cv.domains.saudi_dialects') }}</option>
+                        </select>
+                        <p class="text-xs text-slate-500 mt-1">{{ app()->getLocale() === 'ar' ? 'مطلوب لتعيين المهام' : 'Required for task assignment' }}</p>
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-700 mb-2">{{ __('expert_cv.bio') }}</label>
