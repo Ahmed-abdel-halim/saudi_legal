@@ -38,35 +38,173 @@ class GovernanceDashboardController extends Controller
 
         $user = auth()->user();
         $file = $request->file('csv_file');
-        
+
         try {
-            $handle = fopen($file->getRealPath(), 'r');
-            $header = fgetcsv($handle); // Assuming first row is header
+            // Read file content
+            $content = file_get_contents($file->getRealPath());
+
+            // Try to detect and convert encoding
+            $targetEncoding = 'UTF-8';
             
-            if (!$header) {
+            // First, strict check for UTF-8
+            if (!mb_check_encoding($content, $targetEncoding)) {
+                $converted = false;
+
+                // 1. Try iconv with CP1256 (Windows standard for Arabic) - most likely to work
+                if (function_exists('iconv')) {
+                    try {
+                        // CP1256 is the standard name on Windows, Windows-1256 on some *nix
+                        $encodingsToCheck = ['CP1256', 'WINDOWS-1256'];
+                        foreach ($encodingsToCheck as $enc) {
+                            $convertedContent = @iconv($enc, 'UTF-8//IGNORE', $content);
+                            if ($convertedContent && mb_check_encoding($convertedContent, $targetEncoding)) {
+                                $content = $convertedContent;
+                                $converted = true;
+                                break;
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                         // ignore
+                    }
+                }
+
+                // 2. Fallback to mb_convert_encoding if iconv failed or missing
+                if (!$converted) {
+                    $encodingsToCheck = ['Windows-1256', 'ISO-8859-6'];
+                    foreach ($encodingsToCheck as $enc) {
+                        try {
+                            $convertedContent = @mb_convert_encoding($content, $targetEncoding, $enc);
+                            if ($convertedContent && mb_check_encoding($convertedContent, $targetEncoding)) {
+                                $content = $convertedContent;
+                                $converted = true;
+                                break;
+                            }
+                        } catch (\Throwable $e) {
+                            // ignore
+                        }
+                    }
+                }
+                
+                // 3. Final Fallback: Treat as ISO-8859-1 (Latin1) and convert to UTF-8
+                // This prevents "Incorrect string value" SQL errors but might show wrong chars if it was actually Arabic
+                if (!$converted) {
+                     $content = mb_convert_encoding($content, 'UTF-8', 'ISO-8859-1'); 
+                }
+            }
+
+            // Create a temporary file stream in memory
+            $handle = fopen('php://memory', 'r+');
+            fwrite($handle, $content);
+            rewind($handle);
+
+            // Remove BOM if present
+            $bom = fread($handle, 3);
+            if ($bom !== "\xEF\xBB\xBF") {
+                rewind($handle);
+            }
+            $firstRow = fgetcsv($handle);
+
+            if (!$firstRow) {
                 throw new \Exception("Empty CSV file");
             }
 
+            $normalizedHeader = array_map(fn($h) => strtolower(trim((string) $h)), $firstRow);
+            $knownHeaders = ['original_data', 'content', 'text', 'question', 'task', 'task_id', 'id', 'task_type', 'full_text', 'fulltext'];
+            $hasKnownHeaders = count(array_intersect($knownHeaders, $normalizedHeader)) > 0;
+
+            $pickContentFromAssoc = function (array $assoc): ?string {
+                $candidates = ['original_data', 'content', 'task_content', 'text', 'question', 'prompt', 'description', 'full_text', 'fulltext'];
+                foreach ($candidates as $key) {
+                    if (array_key_exists($key, $assoc) && trim((string) $assoc[$key]) !== '') {
+                        return (string) $assoc[$key];
+                    }
+                }
+
+                $exclude = ['task_id', 'id', 'expert_id', 'is_gold_standard', 'gold_answer', 'answer', 'submitted_at', 'task_type', 'confidence', 'confidence_level'];
+                foreach ($assoc as $key => $value) {
+                    if (in_array($key, $exclude, true)) {
+                        continue;
+                    }
+                    $value = trim((string) $value);
+                    if ($value !== '') {
+                        return $value;
+                    }
+                }
+
+                return null;
+            };
+
+            $pickContentFromRow = function (array $row): ?string {
+                foreach ($row as $value) {
+                    $value = trim((string) $value);
+                    if ($value === '') {
+                        continue;
+                    }
+                    if (preg_match('/\\p{L}/u', $value)) {
+                        return $value;
+                    }
+                }
+
+                foreach ($row as $value) {
+                    $value = trim((string) $value);
+                    if ($value !== '') {
+                        return $value;
+                    }
+                }
+
+                return null;
+            };
+
             $count = 0;
-            while (($row = fgetcsv($handle)) !== false) {
-                if (!empty($row[0])) {
-                     \App\Models\AiTask::create([
-                        'task_type' => 'text_correction',
-                        'original_data' => $row[0],
+            if ($hasKnownHeaders) {
+                $headers = $normalizedHeader;
+                while (($row = fgetcsv($handle)) !== false) {
+                    if (count($row) !== count($headers)) {
+                        continue;
+                    }
+                    $assoc = array_combine($headers, $row);
+                    $content = $pickContentFromAssoc($assoc);
+                    if ($content === null) {
+                        continue;
+                    }
+
+                    \App\Models\AiTask::create([
+                        'task_type' => $assoc['task_type'] ?? 'text_correction',
+                        'original_data' => $content,
                         'client_id' => $user->id,
-                        'status' => 'Pending',
+                        'status' => 'pending',
                         'consensus_status' => 'pending',
                         'required_responses' => 3
                     ]);
                     $count++;
                 }
+            } else {
+                $processRow = function (array $row) use (&$count, $pickContentFromRow, $user) {
+                    $content = $pickContentFromRow($row);
+                    if ($content === null) {
+                        return;
+                    }
+                    \App\Models\AiTask::create([
+                        'task_type' => 'text_correction',
+                        'original_data' => $content,
+                        'client_id' => $user->id,
+                        'status' => 'pending',
+                        'consensus_status' => 'pending',
+                        'required_responses' => 3
+                    ]);
+                    $count++;
+                };
+
+                $processRow($firstRow);
+                while (($row = fgetcsv($handle)) !== false) {
+                    $processRow($row);
+                }
             }
-            
+
             fclose($handle);
-            
+
             return redirect()->route('client.governance.dashboard')
                 ->with('success', "Successfully uploaded {$count} tasks.");
-                
         } catch (\Exception $e) {
             return back()->with('error', 'Error uploading tasks: ' . $e->getMessage());
         }
@@ -78,13 +216,13 @@ class GovernanceDashboardController extends Controller
     private function getLiveTrackingStats()
     {
         $experts = \App\Models\User::where('role', 'expert')->get();
-        
+
         return [
             'total_experts' => $experts->count(),
             'active_experts' => \App\Models\TaskAssignment::active()->distinct('expert_id')->count('expert_id'),
             'avg_trust_score' => round($experts->avg('trust_score') ?? 100, 1),
             'banned_experts' => $experts->where('is_banned', true)->count(),
-            'gold_pass_rate' => $experts->sum('gold_tasks_completed') > 0 
+            'gold_pass_rate' => $experts->sum('gold_tasks_completed') > 0
                 ? round(($experts->sum('gold_tasks_completed') / ($experts->sum('gold_tasks_completed') + $experts->sum('gold_tasks_failed'))) * 100, 1)
                 : 100,
         ];
@@ -171,7 +309,7 @@ class GovernanceDashboardController extends Controller
      */
     private function formatLogDescription(GovernanceLog $log): string
     {
-        return match($log->event_type) {
+        return match ($log->event_type) {
             'gold_task_failed' => "Expert #{$log->expert_id} failed Gold Question #{$log->task_id}",
             'trust_score_warning' => "Expert #{$log->expert_id} trust score warning (Score: {$log->trust_score_after}%)",
             'expert_banned' => "Expert #{$log->expert_id} auto-banned (Trust score: {$log->trust_score_after}%)",
@@ -189,11 +327,10 @@ class GovernanceDashboardController extends Controller
 
         try {
             $results = $analysisService->analyze($request->file('csv_file'));
-            
+
             return redirect()->route('client.governance.dashboard')
                 ->with('analysis_results', $results)
                 ->with('success', app()->getLocale() == 'ar' ? 'تم تحليل الملف بنجاح' : 'File analyzed successfully');
-                
         } catch (\Exception $e) {
             return redirect()->route('client.governance.dashboard')
                 ->with('error', $e->getMessage());

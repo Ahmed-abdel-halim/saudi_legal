@@ -17,13 +17,13 @@ class DashboardController extends Controller
         // For now, consistent with legacy, we assume they might not if they are just a user, but legacy 
         // code did a left join. If no company, we might show a "Create Company" view or empty state.
         // The legacy code redirects if not logged in.
-        
+
         $company = $user->company;
-        
+
         if (!$company) {
-             // Fallback or redirect to company creation if that's the flow
-             // For this task, we'll assume the company exists as per the legacy "Business" dashboard context
-             // or pass null and handle in view.
+            // Fallback or redirect to company creation if that's the flow
+            // For this task, we'll assume the company exists as per the legacy "Business" dashboard context
+            // or pass null and handle in view.
         }
 
         $companyId = $user->company_id;
@@ -32,17 +32,17 @@ class DashboardController extends Controller
         // 1. Team Count (Employees/Experts)
         // 1. Team Count (All Employees/Experts + Admin)
         $teamCount = User::where('company_id', $companyId)
-                         ->count();
+            ->count();
 
         // 2. Services Count
         // Using DB facade if ExpertService model doesn't exist yet, or to keep it simple as per legacy query
         $servicesCount = DB::table('expert_services')
-                           ->whereIn('expert_id', function($query) use ($companyId) {
-                               $query->select('id')
-                                     ->from('users')
-                                     ->where('company_id', $companyId);
-                           })
-                           ->count();
+            ->whereIn('expert_id', function ($query) use ($companyId) {
+                $query->select('id')
+                    ->from('users')
+                    ->where('company_id', $companyId);
+            })
+            ->count();
 
         return view('dashboard.index', compact('user', 'company', 'teamCount', 'servicesCount'));
     }
@@ -58,15 +58,15 @@ class DashboardController extends Controller
             'company' => $company
         ]);
     }
-    
-    public function updateSettings(Request $request) 
+
+    public function updateSettings(Request $request)
     {
         $user = Auth::user();
         $company = $user->company;
-        
+
         // If no company exists, create a new one
         if (!$company) {
-             $company = new \App\Models\Company();
+            $company = new \App\Models\Company();
         }
 
         $validated = $request->validate([
@@ -105,15 +105,15 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $company = $user->company;
-        
+
         // If no company, we can redirect or show empty state. 
         // For consistency with settings, we might want to ensure they have a company first,
         // or just show empty list if no company_id.
-        
+
         $projects = [];
         if ($company) {
             $companyId = $company->company_id;
-            
+
             // Fetch projects where company is requester or supplier
             $projects = DB::table('projects')
                 ->leftJoin('companies as c_req', 'projects.requester_company_id', '=', 'c_req.company_id')
@@ -140,8 +140,8 @@ class DashboardController extends Controller
         $members = collect([]);
         if ($company) {
             $members = User::where('company_id', $company->company_id)
-                           ->orderBy('created_at', 'desc')
-                           ->get();
+                ->orderBy('created_at', 'desc')
+                ->get();
         }
 
         return view('dashboard.team', compact('user', 'company', 'members'));
@@ -175,7 +175,9 @@ class DashboardController extends Controller
 
         // Generate signed activation URL
         $activationUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
-            'activation.show', now()->addDays(7), ['id' => $member->id]
+            'activation.show',
+            now()->addDays(7),
+            ['id' => $member->id]
         );
 
         // Send invitation email
@@ -186,11 +188,11 @@ class DashboardController extends Controller
     public function tasks()
     {
         $user = Auth::user();
-        
+
         $tasks = \App\Models\AiTask::where('client_id', $user->id)
             ->latest()
             ->paginate(15);
-            
+
         return view('dashboard.tasks', compact('user', 'tasks'));
     }
 
@@ -202,30 +204,81 @@ class DashboardController extends Controller
 
         $user = Auth::user();
         $file = $request->file('csv_file');
-        
+
         try {
             $handle = fopen($file->getRealPath(), 'r');
-            $header = fgetcsv($handle); // Assuming first row is header
-            
+            $firstRow = fgetcsv($handle);
+
             // Basic validation - check if we have data
-            if (!$header) {
+            if (!$firstRow) {
                 throw new \Exception("Empty CSV file");
             }
 
+            $normalizedHeader = array_map(fn($h) => strtolower(trim((string) $h)), $firstRow);
+            $knownHeaders = ['original_data', 'content', 'text', 'question', 'task', 'task_id', 'id', 'task_type', 'full_text', 'fulltext'];
+            $hasKnownHeaders = count(array_intersect($knownHeaders, $normalizedHeader)) > 0;
+
+            $pickContentFromAssoc = function (array $assoc): ?string {
+                $candidates = ['original_data', 'content', 'task_content', 'text', 'question', 'prompt', 'description', 'full_text', 'fulltext'];
+                foreach ($candidates as $key) {
+                    if (array_key_exists($key, $assoc) && trim((string) $assoc[$key]) !== '') {
+                        return (string) $assoc[$key];
+                    }
+                }
+
+                $exclude = ['task_id', 'id', 'expert_id', 'is_gold_standard', 'gold_answer', 'answer', 'submitted_at', 'task_type', 'confidence', 'confidence_level'];
+                foreach ($assoc as $key => $value) {
+                    if (in_array($key, $exclude, true)) {
+                        continue;
+                    }
+                    $value = trim((string) $value);
+                    if ($value !== '') {
+                        return $value;
+                    }
+                }
+
+                return null;
+            };
+
+            $pickContentFromRow = function (array $row): ?string {
+                // Prefer a value that looks like real text (letters in any language)
+                foreach ($row as $value) {
+                    $value = trim((string) $value);
+                    if ($value === '') {
+                        continue;
+                    }
+                    if (preg_match('/\\p{L}/u', $value)) {
+                        return $value;
+                    }
+                }
+
+                // Fallback: first non-empty cell
+                foreach ($row as $value) {
+                    $value = trim((string) $value);
+                    if ($value !== '') {
+                        return $value;
+                    }
+                }
+
+                return null;
+            };
+
             $count = 0;
-            while (($row = fgetcsv($handle)) !== false) {
-                // Determine column usage or assume simple format: [Original Data, Task Type (opt), Gold Answer (opt)]
-                // For this MVP, let's assume the user uses the format: Original Data (col 0)
-                // If the user's uploaded sample has specific columns, we should map them.
-                // Based on user request, they have "Full texts", "id", "task_type", etc. 
-                // But for creation, we likely just need the question.
-                // Let's assume a simpler upload for now: "Question" or "original_data"
-                
-                // If row has content
-                if (!empty($row[0])) {
-                     \App\Models\AiTask::create([
-                        'task_type' => 'text_correction', // Default or parse from CSV
-                        'original_data' => $row[0],
+            if ($hasKnownHeaders) {
+                $headers = $normalizedHeader;
+                while (($row = fgetcsv($handle)) !== false) {
+                    if (count($row) !== count($headers)) {
+                        continue;
+                    }
+                    $assoc = array_combine($headers, $row);
+                    $content = $pickContentFromAssoc($assoc);
+                    if ($content === null) {
+                        continue;
+                    }
+
+                    \App\Models\AiTask::create([
+                        'task_type' => $assoc['task_type'] ?? 'text_correction',
+                        'original_data' => $content,
                         'client_id' => $user->id,
                         'status' => 'pending',
                         'consensus_status' => 'pending',
@@ -233,13 +286,35 @@ class DashboardController extends Controller
                     ]);
                     $count++;
                 }
+            } else {
+                $processRow = function (array $row) use (&$count, $pickContentFromRow, $user) {
+                    $content = $pickContentFromRow($row);
+                    if ($content === null) {
+                        return;
+                    }
+
+                    \App\Models\AiTask::create([
+                        'task_type' => 'text_correction',
+                        'original_data' => $content,
+                        'client_id' => $user->id,
+                        'status' => 'pending',
+                        'consensus_status' => 'pending',
+                        'required_responses' => 3
+                    ]);
+                    $count++;
+                };
+
+                // Treat the first row we read as data (no header)
+                $processRow($firstRow);
+                while (($row = fgetcsv($handle)) !== false) {
+                    $processRow($row);
+                }
             }
-            
+
             fclose($handle);
-            
+
             return redirect()->route('dashboard.tasks')
                 ->with('success', "Successfully uploaded {$count} tasks.");
-                
         } catch (\Exception $e) {
             return back()->with('error', 'Error uploading tasks: ' . $e->getMessage());
         }

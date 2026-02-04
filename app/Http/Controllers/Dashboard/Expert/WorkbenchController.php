@@ -36,6 +36,14 @@ class WorkbenchController extends Controller
         } else {
             // Use logical assignment with locking
             $currentTask = $this->assignmentService->assignNextTask($expert);
+            
+            // Debug logging
+            \Log::info('Workbench Task Assignment', [
+                'expert_id' => $expert->id,
+                'expert_role' => $expert->role,
+                'task_found' => $currentTask ? 'Yes' : 'No',
+                'task_id' => $currentTask ? $currentTask->id : null
+            ]);
         }
 
         /**

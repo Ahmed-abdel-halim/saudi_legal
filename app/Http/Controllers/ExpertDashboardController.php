@@ -90,6 +90,10 @@ class ExpertDashboardController extends Controller
     public function availability(Request $request)
     {
         $user = Auth::user();
+
+        if ($user->role === 'student') {
+            abort(403, 'غير مصرح للطلاب الوصول لهذه الصفحة');
+        }
         $msg = '';
 
         if ($request->isMethod('post')) {
@@ -130,6 +134,11 @@ class ExpertDashboardController extends Controller
     public function services(Request $request)
     {
         $user = Auth::user();
+        
+        if ($user->role === 'student') {
+            abort(403, 'غير مصرح للطلاب الوصول لهذه الصفحة');
+        }
+
         $msg = '';
 
         // 1. Add Service
