@@ -59,35 +59,53 @@ Route::get('/dashboard/expert', [ExpertDashboardController::class, 'index'])->na
 
 Route::middleware(['auth'])->group(function () {
 
-    Route::get('/dashboard/expert', [ExpertDashboardController::class, 'index'])->name('dashboard.expert');
-    Route::get('/dashboard/expert/availability', [ExpertDashboardController::class, 'availability'])->name('dashboard.expert.availability');
-    Route::post('/dashboard/expert/availability', [ExpertDashboardController::class, 'availability'])->name('dashboard.expert.availability');
-    Route::get('/dashboard/expert/cv-builder', [ExpertDashboardController::class, 'cvBuilder'])->name('dashboard.expert.cv-builder');
-    Route::post('/dashboard/expert/cv-builder', [ExpertDashboardController::class, 'cvBuilder'])->name('dashboard.expert.cv-builder');
-    Route::get('/dashboard/expert/services', [ExpertDashboardController::class, 'services'])->name('dashboard.expert.services');
-    Route::post('/dashboard/expert/services', [ExpertDashboardController::class, 'services']);
-    Route::delete('/dashboard/expert/services/{id}', [ExpertDashboardController::class, 'deleteService'])->name('dashboard.expert.services.delete');
-    Route::get('/dashboard/expert/workbench', [\App\Http\Controllers\Dashboard\Expert\WorkbenchController::class, 'index'])->name('dashboard.expert.workbench');
-    Route::post('/dashboard/expert/workbench/action', [\App\Http\Controllers\Dashboard\Expert\WorkbenchController::class, 'action'])->name('dashboard.expert.workbench.action');
-    Route::get('/dashboard/expert/settings', [ExpertDashboardController::class, 'settings'])->name('dashboard.expert.settings');
-    Route::post('/dashboard/expert/settings', [ExpertDashboardController::class, 'settings'])->name('dashboard.expert.settings');
+    // E X P E R T   A R E A
+    Route::middleware(['expert'])->prefix('dashboard/expert')->name('dashboard.expert')->group(function () {
+        Route::get('/', [ExpertDashboardController::class, 'index']); // name is dashboard.expert (from prefix/name)
+        
+        // Fix: Explicitly naming sub-routes to match existing names if needed, or rely on prefix
+        // Existing names were: dashboard.expert.availability, etc.
+        // Using name() on group adds prefix, so 'availability' becomes 'dashboard.expert.availability'
+        
+        Route::get('/availability', [ExpertDashboardController::class, 'availability'])->name('.availability');
+        Route::post('/availability', [ExpertDashboardController::class, 'availability']);
+        
+        Route::get('/cv-builder', [ExpertDashboardController::class, 'cvBuilder'])->name('.cv-builder');
+        Route::post('/cv-builder', [ExpertDashboardController::class, 'cvBuilder']);
+        
+        Route::get('/services', [ExpertDashboardController::class, 'services'])->name('.services');
+        Route::post('/services', [ExpertDashboardController::class, 'services']);
+        Route::delete('/services/{id}', [ExpertDashboardController::class, 'deleteService'])->name('.services.delete');
+        
+        Route::get('/workbench', [\App\Http\Controllers\Dashboard\Expert\WorkbenchController::class, 'index'])->name('.workbench');
+        Route::post('/workbench/action', [\App\Http\Controllers\Dashboard\Expert\WorkbenchController::class, 'action'])->name('.workbench.action');
+        
+        Route::get('/settings', [ExpertDashboardController::class, 'settings'])->name('.settings');
+        Route::post('/settings', [ExpertDashboardController::class, 'settings']);
+    });
 
-    // Company's Dashboard Routes
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard/tasks', [DashboardController::class, 'tasks'])->name('dashboard.tasks'); // New Route
-    Route::post('/dashboard/tasks/upload', [DashboardController::class, 'uploadTasks'])->name('dashboard.tasks.upload'); // New Route
-    Route::get('/dashboard/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
-    Route::post('/dashboard/settings', [DashboardController::class, 'updateSettings'])->name('dashboard.settings.update');
-    Route::get('/dashboard/projects', [DashboardController::class, 'projects'])->name('dashboard.projects');
-    Route::get('/dashboard/team', [DashboardController::class, 'team'])->name('dashboard.team');
-    Route::post('/dashboard/team/invite', [DashboardController::class, 'inviteMember'])->name('dashboard.team.invite');
 
-    // Client Governance Dashboard
-    Route::get('/client/governance', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'index'])->name('client.governance.dashboard');
-    Route::post('/client/governance/analyze', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'analyzeCsv'])->name('client.governance.analyze');
-    Route::post('/client/governance/upload', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'uploadTasks'])->name('client.governance.upload'); // New Route
-    
-    Route::get('/client/dashboard/metrics', [\App\Http\Controllers\ClientDashboardController::class, 'getMetrics'])->name('client.dashboard.metrics');
+    // C O M P A N Y   &   C L I E N T   A R E A
+    Route::middleware(['company'])->group(function () {
+        
+        // Company's Dashboard Routes
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/tasks', [DashboardController::class, 'tasks'])->name('dashboard.tasks');
+        Route::post('/dashboard/tasks/upload', [DashboardController::class, 'uploadTasks'])->name('dashboard.tasks.upload');
+        Route::get('/dashboard/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
+        Route::post('/dashboard/settings', [DashboardController::class, 'updateSettings'])->name('dashboard.settings.update');
+        Route::get('/dashboard/projects', [DashboardController::class, 'projects'])->name('dashboard.projects');
+        Route::get('/dashboard/team', [DashboardController::class, 'team'])->name('dashboard.team');
+        Route::post('/dashboard/team/invite', [DashboardController::class, 'inviteMember'])->name('dashboard.team.invite');
+
+        // Client Governance Dashboard
+        Route::get('/client/governance', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'index'])->name('client.governance.dashboard');
+        Route::post('/client/governance/analyze', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'analyzeCsv'])->name('client.governance.analyze');
+        Route::post('/client/governance/upload', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'uploadTasks'])->name('client.governance.upload');
+        
+        Route::get('/client/dashboard/metrics', [\App\Http\Controllers\ClientDashboardController::class, 'getMetrics'])->name('client.dashboard.metrics');
+    });
+
 });
 
 // Legal routes
