@@ -7,6 +7,10 @@ return [
     'AUTH_STEP_COMPANY' => 'Your Company',
     'AUTH_STEP_AGREEMENT' => 'Agreement',
     
+    // Navbar / General
+    'Register' => 'Register',
+    'Login' => 'Login',
+    
     // Form Labels
     'AUTH_FULL_NAME' => 'Full Name',
     'AUTH_EMAIL_LABEL' => 'Email Address',

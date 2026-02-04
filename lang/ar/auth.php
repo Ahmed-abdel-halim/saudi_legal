@@ -6,6 +6,10 @@ return [
     'AUTH_STEP_ACCOUNT' => 'حسابك',
     'AUTH_STEP_COMPANY' => 'شركتك',
     'AUTH_STEP_AGREEMENT' => 'الموافقة',
+
+    // Navbar / General
+    'Register' => 'تسجيل جديد',
+    'Login' => 'تسجيل الدخول',
     
     // Form Labels
     'AUTH_FULL_NAME' => 'الاسم الكامل',
