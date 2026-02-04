@@ -12,6 +12,17 @@ return [
     'delete' => 'حذف',
     'no_tasks' => 'لا توجد مهام.',
 
+    // Header & Common
+    'home' => 'الرئيسية',
+    'rate_label' => 'السعر بالساعة',
+    'per_hour' => '/ساعة',
+    'btn_request_expert' => 'طلب خبير',
+    'btn_contact_company' => 'تواصل مع الشركة',
+    'provided_by' => 'مقدمة من',
+    'expert_label' => 'خبير الخدمة',
+    'about_service' => 'عن الخدمة',
+    'service' => 'الخدمة',
+
     // Main Dashboard
     'welcome_back' => 'مرحباً بعودتك، :name!',
     'overview_text' => 'إليك نظرة عامة على أداء شركتك ووصول سريع لأدوات الإدارة.',

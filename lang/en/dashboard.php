@@ -12,6 +12,17 @@ return [
     'delete' => 'Delete',
     'no_tasks' => 'No tasks found.',
     
+    // Header & Common
+    'home' => 'Home',
+    'rate_label' => 'Hourly Rate',
+    'per_hour' => '/hr',
+    'btn_request_expert' => 'Request Expert',
+    'btn_contact_company' => 'Contact Company',
+    'provided_by' => 'Provided by',
+    'expert_label' => 'Service Expert',
+    'about_service' => 'About Service',
+    'service' => 'Service',
+    
     // Main Dashboard
     'welcome_back' => 'Welcome back, :name!',
     'overview_text' => 'Here is an overview of your company performance and quick access to management tools.',
