@@ -97,4 +97,28 @@ return [
     'role_supplier_desc' => 'Can offer services and bid on projects.',
     'save_changes' => 'Save Changes',
     'title' => 'Dashboard', // Ensure title exists as used in view
+    'success_update' => 'Company details updated successfully.',
+    'btn_save_project' => 'Post Project',
+    'btn_cancel' => 'Cancel',
+    'btn_cancel' => 'Cancel',
+
+    // Team Management
+    'team_management_title' => 'Team Management',
+    'btn_add_member' => 'Add Member',
+    'tbl_name' => 'Name',
+    'tbl_role' => 'Role',
+    'tbl_status' => 'Status',
+    'tbl_action' => 'Actions',
+    'status_active' => 'Active',
+    'status_pending' => 'Pending',
+    'btn_edit' => 'Edit',
+    'no_members' => 'No team members found.',
+    
+    // Invite Modal
+    'modal_title' => 'Invite New Member',
+    'modal_email' => 'Email Address',
+    'modal_name' => 'Full Name',
+    'modal_phone' => 'Phone Number (Optional)',
+    'modal_send' => 'Send Invitation',
+    'invite_sent_success' => 'Invitation sent successfully.',
 ];

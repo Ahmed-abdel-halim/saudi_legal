@@ -97,4 +97,28 @@ return [
     'role_supplier_desc' => 'يمكنه تقديم الخدمات والمناقصة على المشاريع.',
     'save_changes' => 'حفظ التغييرات',
     'title' => 'لوحة التحكم', // Ensure title exists
+    'success_update' => 'تم تحديث تفاصيل الشركة بنجاح.',
+    'btn_save_project' => 'نشر المشروع',
+    'btn_cancel' => 'إلغاء',
+    'btn_cancel' => 'إلغاء',
+
+    // Team Management
+    'team_management_title' => 'إدارة الفريق',
+    'btn_add_member' => 'إضافة عضو',
+    'tbl_name' => 'الاسم',
+    'tbl_role' => 'الدور',
+    'tbl_status' => 'الحالة',
+    'tbl_action' => 'الإجراءات',
+    'status_active' => 'نشط',
+    'status_pending' => 'معلق',
+    'btn_edit' => 'تعديل',
+    'no_members' => 'لم يتم العثور على أعضاء في الفريق.',
+
+    // Invite Modal
+    'modal_title' => 'دعوة عضو جديد',
+    'modal_email' => 'البريد الإلكتروني',
+    'modal_name' => 'الاسم الكامل',
+    'modal_phone' => 'رقم الهاتف (اختياري)',
+    'modal_send' => 'إرسال الدعوة',
+    'invite_sent_success' => 'تم إرسال الدعوة بنجاح.',
 ];
