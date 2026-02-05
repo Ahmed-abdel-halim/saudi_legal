@@ -65,4 +65,36 @@ return [
     'full_protection_desc' => 'مدفوعاتك محفوظة بأمان حتى اكتمال العمل.',
     'verified_experts' => 'خبراء موثوقين',
     'verified_experts_desc' => 'اعمل مع محترفين تم التحقق من هويتهم.',
+
+    // Settings Dropdowns
+    'industries' => [
+        'tech' => 'تقنية المعلومات',
+        'marketing' => 'التسويق والإعلام',
+        'finance' => 'المالية والأعمال',
+        'healthcare' => 'الرعاية الصحية',
+        'education' => 'التعليم',
+        'other' => 'أخرى',
+    ],
+    'sizes' => [
+        'micro' => '1-10 موظفين',
+        'small' => '11-50 موظف',
+        'medium' => '51-200 موظف',
+        'large' => '201-500 موظف',
+        'enterprise' => 'أكثر من 500 موظف',
+    ],
+
+    // Additional Settings Fields
+    'section_identity' => 'هوية الشركة',
+    'change_logo' => 'تغيير الشعار',
+    'company_name' => 'اسم الشركة',
+    'cr_number' => 'رقم السجل التجاري',
+    'verified' => 'موثق',
+    'section_details' => 'القطاع والحجم',
+    'industry' => 'القطاع',
+    'company_size' => 'حجم الشركة',
+    'section_roles' => 'الأدوار والصلاحيات',
+    'role_requester_desc' => 'يمكنه نشر المشاريع وتوظيف الخبراء.',
+    'role_supplier_desc' => 'يمكنه تقديم الخدمات والمناقصة على المشاريع.',
+    'save_changes' => 'حفظ التغييرات',
+    'title' => 'لوحة التحكم', // Ensure title exists
 ];

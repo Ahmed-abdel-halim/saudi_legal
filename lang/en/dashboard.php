@@ -65,4 +65,36 @@ return [
     'full_protection_desc' => 'Your payments are held securely until work is done.',
     'verified_experts' => 'Verified Experts',
     'verified_experts_desc' => 'Work with trusted professionals checked by us.',
+
+    // Settings Dropdowns
+    'industries' => [
+        'tech' => 'Technology & IT',
+        'marketing' => 'Marketing & Media',
+        'finance' => 'Finance & Business',
+        'healthcare' => 'Healthcare',
+        'education' => 'Education',
+        'other' => 'Other',
+    ],
+    'sizes' => [
+        'micro' => '1-10 Employees',
+        'small' => '11-50 Employees',
+        'medium' => '51-200 Employees',
+        'large' => '201-500 Employees',
+        'enterprise' => '500+ Employees',
+    ],
+    
+    // Additional Settings Fields
+    'section_identity' => 'Company Identity',
+    'change_logo' => 'Change Logo',
+    'company_name' => 'Company Name',
+    'cr_number' => 'Commercial Registration (CR)',
+    'verified' => 'Verified',
+    'section_details' => 'Industry & Size',
+    'industry' => 'Industry',
+    'company_size' => 'Company Size',
+    'section_roles' => 'Roles & Capabilities',
+    'role_requester_desc' => 'Can post projects and hire experts.',
+    'role_supplier_desc' => 'Can offer services and bid on projects.',
+    'save_changes' => 'Save Changes',
+    'title' => 'Dashboard', // Ensure title exists as used in view
 ];
