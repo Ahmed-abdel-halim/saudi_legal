@@ -95,6 +95,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
         Route::post('/dashboard/settings', [DashboardController::class, 'updateSettings'])->name('dashboard.settings.update');
         Route::get('/dashboard/projects', [DashboardController::class, 'projects'])->name('dashboard.projects');
+        Route::get('/dashboard/projects/create', [App\Http\Controllers\ProjectController::class, 'create'])->name('dashboard.projects.create');
+        Route::post('/dashboard/projects', [App\Http\Controllers\ProjectController::class, 'store'])->name('dashboard.projects.store');
         Route::get('/dashboard/team', [DashboardController::class, 'team'])->name('dashboard.team');
         Route::post('/dashboard/team/invite', [DashboardController::class, 'inviteMember'])->name('dashboard.team.invite');
 
