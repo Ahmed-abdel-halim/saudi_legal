@@ -29,7 +29,7 @@
       </a>
 
       {{-- New Project Button --}}
-      <a href="{{ route('requests.browse') }}"
+      <a href="{{ route('dashboard.projects.create') }}"
          class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md transition flex items-center gap-2">
 
          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +110,7 @@
                                     <td class="px-6 py-4 text-center">
                                         {{-- Link to view detail --}}
                                         <div class="flex items-center justify-center">
-                                            <a href="#" class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-all" title="{{ __('dashboard.btn_view') }}">
+                                            <a href="{{ route('requests.show', $proj->project_id) }}" class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-all" title="{{ __('dashboard.btn_view') }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                             </a>
                                         </div>
@@ -136,7 +136,7 @@
                     </p>
                     
                     <div class="flex flex-col sm:flex-row justify-center gap-4">
-                        <a href="{{ route('requests.browse') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-indigo-200 transition transform hover:-translate-y-1">
+                        <a href="{{ route('dashboard.projects.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-indigo-200 transition transform hover:-translate-y-1">
                             {{ __('dashboard.btn_new_project') }}
                         </a>
                         {{-- Assuming search.php is general search or services browse --}}
