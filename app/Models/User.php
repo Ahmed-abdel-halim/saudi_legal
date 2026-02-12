@@ -48,7 +48,42 @@ class User extends Authenticatable
         'avatar_path',
         'job_title',
         'bio',
+        // Reputation metrics
+        'rating_average',
+        'rating_count',
+        'completion_rate',
+        // Contract tracking
+        'total_contracts',
+        'completed_contracts',
+        'cancelled_contracts',
+        'disputed_contracts',
     ];
+
+    public function conversations()
+    {
+        return Conversation::where('participant_1', $this->id)
+            ->orWhere('participant_2', $this->id);
+    }
+    
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'expert_id');
+    }
+
+    public function freelancerProfile()
+    {
+        return $this->hasOne(FreelancerProfile::class);
+    }
+
+    public function isFreelancer()
+    {
+        return $this->role === 'freelancer';
+    }
 
     /**
      * The attributes that should be hidden for serialization.

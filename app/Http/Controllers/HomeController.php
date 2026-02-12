@@ -22,9 +22,9 @@ class HomeController extends Controller
                 'c.name as company_name'
             ])
             ->orderByDesc('es.created_at')
-            ->limit(6)
-            ->get()
-            ->map(function ($service) {
+            ->orderByDesc('es.created_at')
+            ->paginate(3)
+            ->through(function ($service) {
                 // Fix avatar path if it exists
                 if ($service->expert_image) {
                     // Convert storage/uploads to uploads for direct public access
