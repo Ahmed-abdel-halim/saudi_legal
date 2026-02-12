@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('expert_dashboard.page_title') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style> 
         body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
         .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
 <body class="text-slate-800">
@@ -30,23 +36,143 @@
                     <span class="text-xs text-green-600 font-medium">{{ $expert_level }}</span>
                 </div>
                 <div class="h-10 w-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm">
-                    @if($user->avatar_path)
-                        <img src="{{ asset('uploads/' . $user->avatar_path) }}" class="w-full h-full object-cover" alt="Avatar">
-                    @else
-                        @php
-                            $initials = '';
-                            $name = $user->full_name ?? $user->name ?? 'User';
-                            $nameParts = explode(' ', $name);
-                            foreach($nameParts as $part) {
-                                $initials .= mb_substr($part, 0, 1);
-                            }
-                            $initials = mb_substr($initials, 0, 2);
-                        @endphp
-                        <div class="w-full h-full bg-green-700 flex items-center justify-center text-white font-bold text-sm">
-                            {{ strtoupper($initials) }}
-                        </div>
-                    @endif
+                    <img src="{{ $user->avatar_path ? asset('uploads/' . $user->avatar_path) : 'https://ui-avatars.com/api/?name='.urlencode($user->full_name ?? $user->name).'&background=random&color=fff' }}" 
+                         class="w-full h-full object-cover" 
+                         alt="Avatar"
+                         onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($user->full_name ?? $user->name) }}&background=random&color=fff'">
                 </div>
+
+                {{-- Notifications Dropdown --}}
+                <div x-data="notificationDropdown()" class="relative" x-cloak>
+                    <button @click="toggleDropdown()" 
+                            class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition relative" 
+                            aria-label="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span x-show="unreadCount > 0" 
+                              x-text="unreadCount > 99 ? '99+' : unreadCount"
+                              class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-white animate-pulse">
+                        </span>
+                    </button>
+
+                    <div x-show="open" 
+                         @click.away="open = false"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 transform scale-95"
+                         x-transition:enter-end="opacity-100 transform scale-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 transform scale-100"
+                         x-transition:leave-end="opacity-0 transform scale-95"
+                        <div class="absolute {{ app()->getLocale() == 'ar' ? 'left-0' : 'right-0' }} mt-2 w-[450px] bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl shadow-2xl overflow-hidden z-50 p-6 border-4 border-white/20">
+                        
+                            {{-- Header --}}
+                            <div class="flex justify-between items-center mb-6 text-white">
+                                <span class="bg-white text-indigo-600 px-3 py-1 rounded-full text-xs font-black shadow-sm flex items-center gap-1">
+                                    <span x-text="unreadCount"></span>
+                                    <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                </span>
+                                <h3 class="font-bold text-xl flex items-center gap-2">
+                                    {{ __('expert_dashboard.new_requests') }}
+                                    <span class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                                        <i class="fa-solid fa-bell text-yellow-300"></i>
+                                    </span>
+                                </h3>
+                            </div>
+    
+                            {{-- List --}}
+                            <div class="max-h-[400px] overflow-y-auto custom-scrollbar space-y-4">
+                                <template x-if="loading">
+                                    <div class="flex justify-center py-8 text-white/50">
+                                        <i class="fa-solid fa-circle-notch fa-spin text-xl"></i>
+                                    </div>
+                                </template>
+                                
+                                <template x-if="!loading && notifications.length === 0">
+                                    <div class="text-center py-8 text-white/50">
+                                        <i class="fa-regular fa-bell-slash text-2xl mb-2 opacity-50 block"></i>
+                                        <span class="text-xs">{{ __('header.NO_NOTIFICATIONS') }}</span>
+                                    </div>
+                                </template>
+    
+                                <template x-for="notification in notifications" :key="notification.id">
+                                    <div class="bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-2xl hover:bg-white/20 transition duration-300 group/item text-white">
+                                        
+                                        {{-- Request Notification Layout --}}
+                                        <template x-if="notification.type.includes('ServiceRequest') || notification.type === 'NewServiceRequestNotification'">
+                                            <div>
+                                                <div class="flex justify-between items-start mb-3">
+                                                    {{-- Hours Badge --}}
+                                                    <div class="text-center bg-indigo-900/50 rounded-lg px-2 py-1 border border-white/10 h-fit">
+                                                        <p class="text-lg font-black leading-none" x-text="notification.data.hours"></p>
+                                                        <p class="text-[9px] uppercase tracking-wider opacity-75">{{ __('expert_dashboard.hours') }}</p>
+                                                    </div>
+
+                                                    {{-- Client Info --}}
+                                                    <div class="flex items-center gap-3 text-end flex-row-reverse">
+                                                        <div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white/20 shadow-sm relative">
+                                                            <template x-if="notification.data.client_avatar">
+                                                                <img :src="'/uploads/' + notification.data.client_avatar" class="w-full h-full object-cover">
+                                                            </template>
+                                                            <template x-if="!notification.data.client_avatar">
+                                                                <div class="w-full h-full bg-gradient-to-br from-white to-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                                                                    <span x-text="(notification.data.client_name || 'C').charAt(0)"></span>
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                        <div>
+                                                            <p class="font-bold text-base leading-tight" x-text="notification.data.client_name"></p>
+                                                            <p class="text-xs text-indigo-100 opacity-80 mt-1 flex items-center gap-1 justify-end">
+                                                                <span x-text="notification.data.service_title"></span>
+                                                                <i class="fa-solid fa-layer-group text-[10px]"></i>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-white/10">
+                                                    {{-- Accept Button --}}
+                                                    <form :action="'/dashboard/expert/purchase/' + notification.data.request_id + '/accept'" method="POST" class="flex-1 max-w-[120px]">
+                                                        <input type="hidden" name="_token" :value="document.querySelector('meta[name=&quot;csrf-token&quot;]').content">
+                                                        <button type="submit" class="w-full bg-white text-indigo-700 hover:bg-indigo-50 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-900/10 flex items-center justify-center gap-2">
+                                                            <span>{{ __('expert_dashboard.btn_accept') }}</span>
+                                                            <i class="fa-solid fa-check circle-check rtl:rotate-0"></i>
+                                                        </button>
+                                                    </form>
+
+                                                    {{-- Time --}}
+                                                    <span class="text-xs font-medium opacity-70 flex items-center gap-1">
+                                                        <span x-text="notification.created_at_human || notification.created_at"></span>
+                                                        <i class="fa-regular fa-clock"></i> 
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        {{-- Fallback for other notifications --}}
+                                        <template x-if="!notification.type.includes('ServiceRequest') && notification.type !== 'NewServiceRequestNotification'">
+                                            <div @click="markAsRead(notification.id, notification.data.url)" class="cursor-pointer">
+                                                <div class="flex gap-3 items-center">
+                                                    <div class="flex-1">
+                                                        <p class="text-sm font-bold" x-text="notification.data.title"></p>
+                                                        <p class="text-xs opacity-80" x-text="notification.data.message"></p>
+                                                    </div>
+                                                    <div x-show="!notification.read_at" class="w-2 h-2 bg-red-400 rounded-full"></div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                </div>
+
+                <!-- Chat Icon -->
+                <a href="{{ route('dashboard.expert.chat.index') }}" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition relative">
+                    <i class="fa-regular fa-comment-dots"></i>
+                    @if(\App\Models\Message::where('is_read', false)->where('sender_id', '!=', $user->id)->whereIn('conversation_id', \App\Models\Conversation::where('participant_1', $user->id)->orWhere('participant_2', $user->id)->pluck('id'))->count() > 0)
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+                    @endif
+                </a>
+
                 <!-- Language Toggle -->
                 <a href="{{ request()->fullUrlWithQuery(['lang' => app()->getLocale() == 'ar' ? 'en' : 'ar']) }}" 
                    class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition font-bold text-sm">
@@ -98,90 +224,16 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <div class="lg:col-span-2 space-y-6">
-                
-                <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden group">
-                    <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
-                    
-                    <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div>
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded">{{ __('expert_dashboard.live_badge') }}</span>
-                                @if($pending_count > 0)
-                                    <span class="text-green-300 text-sm font-bold animate-pulse">{{ __('expert_dashboard.pending_tasks_msg', ['count' => $pending_count]) }}</span>
-                                @else
-                                    <span class="text-slate-400 text-sm">{{ __('expert_dashboard.no_tasks_msg') }}</span>
-                                @endif
-                            </div>
-                            <h2 class="text-3xl font-bold mb-2">{{ __('expert_dashboard.workbench_title') }}</h2>
-                            <p class="text-slate-300 text-sm max-w-md">{{ __('expert_dashboard.workbench_desc') }}</p>
-                        </div>
-                        
-                        <a href="{{ route('dashboard.expert.workbench') }}" class="bg-green-600 hover:bg-green-500 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-green-900/50 transition transform hover:-translate-y-1 flex items-center gap-3">
-                            <i class="fa-solid fa-play"></i> {{ __('expert_dashboard.start_audit') }}
-                        </a>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-5 border-b border-slate-100 flex justify-between items-center">
-                        <h3 class="font-bold text-slate-700">{{ __('expert_dashboard.recent_activity') }}</h3>
-                        <span class="text-xs text-slate-400">{{ __('expert_dashboard.last_5_ops') }}</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm {{ app()->getLocale() == 'ar' ? 'text-right' : 'text-left' }}">
-                            <thead class="bg-slate-50 text-slate-500">
-                                <tr>
-                                    <th class="p-4 font-semibold">{{ __('expert_dashboard.tbl_task_id') }}</th>
-                                    <th class="p-4 font-semibold">{{ __('expert_dashboard.tbl_action') }}</th>
-                                    <th class="p-4 font-semibold">{{ __('expert_dashboard.tbl_time') }}</th>
-                                    <th class="p-4 font-semibold">{{ __('expert_dashboard.tbl_value') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                @forelse($history as $row)
-                                <tr class="hover:bg-slate-50 transition">
-                                    <td class="p-4 font-mono text-slate-600">#{{ $row->task_id ?? $row->id ?? 'unknown' }}</td> <!-- Ensuring fallback if needed -->
-                                    <td class="p-4">
-                                        <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">{{ __('expert_dashboard.status_corrected') }}</span>
-                                    </td>
-                                    <td class="p-4 text-slate-500">{{ date('H:i A', strtotime($row->created_at)) }}</td>
-                                    <td class="p-4 font-bold text-slate-700">+{{ number_format($price_per_task, 2) }} {{ __('expert_dashboard.currency') }}</td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="4" class="p-8 text-center text-slate-400">{{ __('expert_dashboard.no_activity') }}</td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-
             <div class="space-y-6">
-                
+
                 <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
                     <div class="px-6 py-6">
                         <div class="flex flex-col items-center">
                             <div class="w-24 h-24 bg-gradient-to-br from-green-600 to-green-700 rounded-full p-1 shadow-lg">
-                                @if($user->avatar_path)
-                                    <img src="{{ asset('uploads/' . $user->avatar_path) }}" class="w-full h-full rounded-full object-cover bg-white" alt="{{ $user->full_name ?? $user->name }}">
-                                @else
-                                    @php
-                                        $initials = '';
-                                        $name = $user->full_name ?? $user->name ?? 'User';
-                                        $nameParts = explode(' ', $name);
-                                        foreach($nameParts as $part) {
-                                            $initials .= mb_substr($part, 0, 1);
-                                        }
-                                        $initials = mb_substr($initials, 0, 2);
-                                    @endphp
-                                    <div class="w-full h-full rounded-full bg-white flex items-center justify-center text-green-700 font-bold text-3xl">
-                                        {{ strtoupper($initials) }}
-                                    </div>
-                                @endif
+                                <img src="{{ $user->avatar_path ? asset('uploads/' . $user->avatar_path) : 'https://ui-avatars.com/api/?name='.urlencode($user->full_name ?? $user->name).'&background=16a34a&color=fff&size=128' }}" 
+                                     class="w-full h-full rounded-full object-cover bg-white" 
+                                     alt="{{ $user->full_name ?? $user->name }}"
+                                     onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($user->full_name ?? $user->name) }}&background=16a34a&color=fff&size=128'">
                             </div>
                             
                             <div class="mt-4 text-center">
@@ -238,6 +290,82 @@
                 </div>
 
             </div>
+
+            <div class="lg:col-span-2 space-y-6">
+
+                
+                <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
+                    
+                    <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded">{{ __('expert_dashboard.live_badge') }}</span>
+                                @if($pending_count > 0)
+                                    <span class="text-green-300 text-sm font-bold animate-pulse">{{ __('expert_dashboard.pending_tasks_msg', ['count' => $pending_count]) }}</span>
+                                @else
+                                    <span class="text-slate-400 text-sm">{{ __('expert_dashboard.no_tasks_msg') }}</span>
+                                @endif
+                            </div>
+                            <h2 class="text-3xl font-bold mb-2">{{ __('expert_dashboard.workbench_title') }}</h2>
+                            <p class="text-slate-300 text-sm max-w-md">{{ __('expert_dashboard.workbench_desc') }}</p>
+                        </div>
+                        
+                        <a href="{{ route('dashboard.expert.workbench') }}" class="bg-green-600 hover:bg-green-500 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-green-900/50 transition transform hover:-translate-y-1 flex items-center gap-3">
+                            <i class="fa-solid fa-play rtl:rotate-180"></i> {{ __('expert_dashboard.start_audit') }}
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                             <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                             {{ __('expert_dashboard.recent_activity') }}
+                        </h3>
+                        <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">{{ __('expert_dashboard.last_5_ops') }}</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm {{ app()->getLocale() == 'ar' ? 'text-right' : 'text-left' }}">
+                            <thead class="bg-slate-50/50 text-slate-400 uppercase text-xs tracking-wider">
+                                <tr>
+                                    <th class="p-5 font-bold">{{ __('expert_dashboard.tbl_task_id') }}</th>
+                                    <th class="p-5 font-bold">{{ __('expert_dashboard.tbl_action') }}</th>
+                                    <th class="p-5 font-bold">{{ __('expert_dashboard.tbl_time') }}</th>
+                                    <th class="p-5 font-bold">{{ __('expert_dashboard.tbl_value') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                @forelse($history as $row)
+                                <tr class="hover:bg-slate-50/80 transition duration-200 group">
+                                    <td class="p-5">
+                                        <span class="font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded text-xs group-hover:bg-white group-hover:shadow-sm transition">#{{ $row->task_id ?? $row->id ?? 'unknown' }}</span>
+                                    </td> 
+                                    <td class="p-5">
+                                        <span class="inline-flex items-center gap-1.5 bg-green-50 text-green-700 px-2.5 py-1 rounded-full text-xs font-bold border border-green-100">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                            {{ __('expert_dashboard.status_corrected') }}
+                                        </span>
+                                    </td>
+                                    <td class="p-5 text-slate-500 font-medium text-xs">{{ date('h:i A', strtotime($row->created_at)) }}</td>
+                                    <td class="p-5 font-bold text-indigo-600">+{{ number_format($price_per_task, 2) }} <span class="text-[10px] text-slate-400">{{ __('expert_dashboard.currency') }}</span></td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="4" class="p-12 text-center">
+                                        <div class="flex flex-col items-center justify-center text-slate-300 gap-3">
+                                            <i class="fa-regular fa-folder-open text-4xl"></i>
+                                            <span class="text-sm font-medium">{{ __('expert_dashboard.no_activity') }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
         </div>
         
         <div class="mt-12 text-center text-slate-400 text-xs">
@@ -245,5 +373,158 @@
         </div>
 
     </div>
+
+    <script>
+    function notificationDropdown() {
+        return {
+            open: false,
+            loading: false,
+            notifications: [],
+            unreadCount: 0,
+            
+            init() {
+                // Fetch unread count on load
+                this.fetchUnreadCount();
+                
+                // Poll for new notifications every 30 seconds (fallback)
+                setInterval(() => {
+                    this.fetchUnreadCount();
+                }, 30000);
+
+                // Listen for real-time notifications via Pusher
+                if (window.Echo) {
+                    window.Echo.private('App.Models.User.{{ auth()->id() }}')
+                        .notification((notification) => {
+                            console.log('Real-time notification received (Expert):', notification);
+                            
+                            // Add notification to the list
+                            this.notifications.unshift(notification);
+                            
+                            // Increment unread count
+                            this.unreadCount++;
+                            
+                            // Show browser notification if permitted
+                            if ('Notification' in window && Notification.permission === 'granted') {
+                                new Notification(notification.data.title || 'New Notification', {
+                                    body: notification.data.message || '',
+                                    icon: '/images/icon.png',
+                                    badge: '/images/icon.png'
+                                });
+                            }
+                        });
+                }
+            },
+            
+            toggleDropdown() {
+                this.open = !this.open;
+                if (this.open && this.notifications.length === 0) {
+                    this.fetchNotifications();
+                }
+            },
+            
+            async fetchUnreadCount() {
+                try {
+                    const response = await fetch('/notifications/unread-count', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        credentials: 'same-origin'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.unreadCount = data.count;
+                    }
+                } catch (error) {
+                    console.error('Error fetching unread count:', error);
+                }
+            },
+            
+            async fetchNotifications() {
+                this.loading = true;
+                try {
+                    const response = await fetch('/notifications', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        credentials: 'same-origin'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.notifications = data.notifications;
+                        this.unreadCount = data.unread_count; // sync
+                    }
+                } catch (error) {
+                    console.error('Error fetching notifications:', error);
+                } finally {
+                    this.loading = false;
+                }
+            },
+            
+            async markAsRead(id, url) {
+                try {
+                    await fetch(`/notifications/${id}/read`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        credentials: 'same-origin'
+                    });
+                    
+                    // Update local state
+                    const notif = this.notifications.find(n => n.id === id);
+                    if (notif && !notif.read_at) {
+                        notif.read_at = new Date().toISOString();
+                        this.unreadCount = Math.max(0, this.unreadCount - 1);
+                    }
+                    
+                    if (url && url !== '#') {
+                        window.location.href = url;
+                    }
+                } catch (error) {
+                    console.error('Error marking as read:', error);
+                }
+            },
+            
+            async markAllAsRead() {
+                try {
+                    await fetch('/notifications/read-all', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        credentials: 'same-origin'
+                    });
+                    
+                    this.notifications.forEach(n => n.read_at = new Date().toISOString());
+                    this.unreadCount = 0;
+                } catch (error) {
+                    console.error('Error marking all as read:', error);
+                }
+            },
+
+            getNotificationIcon(type) {
+                if(type.includes('Message')) return 'fa-solid fa-envelope';
+                if(type.includes('Service')) return 'fa-solid fa-briefcase';
+                if(type.includes('Review')) return 'fa-solid fa-star';
+                if(type.includes('Dispute')) return 'fa-solid fa-triangle-exclamation';
+                return 'fa-regular fa-bell';
+            },
+
+            getNotificationIconClass(type) {
+                if(type.includes('Message')) return 'bg-blue-500';
+                if(type.includes('Service')) return 'bg-green-500';
+                if(type.includes('Review')) return 'bg-yellow-500';
+                if(type.includes('Dispute')) return 'bg-red-500';
+                return 'bg-gray-400';
+            }
+        }
+    }
+    </script>
 </body>
 </html>

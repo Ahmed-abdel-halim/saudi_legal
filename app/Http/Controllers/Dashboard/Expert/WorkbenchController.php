@@ -23,38 +23,64 @@ class WorkbenchController extends Controller
     public function index(Request $request)
     {
         $expert = Auth::user();
-        $taskId = $request->query('task_id');
+        
+        // --- 1. Check for active/pending Sentiment Task (LinguisticTask) ---
+        // A. Check if expert has an in-progress sentiment task
+        $sentimentTask = \App\Models\LinguisticTask::where('expert_id', $expert->id)
+            ->where('status', 'in_progress')
+            ->first();
 
-        /**
-         * 1️⃣ Load current task
-         * - If task_id exists → load that task (Previous / Review)
-         * - Else → load next pending task
-         */
-        if ($taskId) {
-            $currentTask = AiTask::where('id', $taskId)->first();
-            // Optional: Add check to ensure expert can view this task
-        } else {
-            // Use logical assignment with locking
-            $currentTask = $this->assignmentService->assignNextTask($expert);
+        // B. If no active task, try to assign a new one matching domain
+        if (!$sentimentTask) {
+            $sentimentTask = \App\Models\LinguisticTask::where('task_type', 'sentiment')
+                ->where('status', 'pending')
+                ->whereNull('expert_id')
+                ->where('domain', $expert->expert_domain) // Domain match
+                ->lockForUpdate()
+                ->first();
             
-            // Debug logging
-            \Log::info('Workbench Task Assignment', [
-                'expert_id' => $expert->id,
-                'expert_role' => $expert->role,
-                'task_found' => $currentTask ? 'Yes' : 'No',
-                'task_id' => $currentTask ? $currentTask->id : null
+            if ($sentimentTask) {
+                $sentimentTask->update([
+                    'expert_id' => $expert->id,
+                    'status' => 'in_progress',
+                    'assigned_at' => now(),
+                ]);
+            }
+        }
+
+        // C. If found, show sentiment workbench
+        if ($sentimentTask) {
+            $completedToday = \App\Models\LinguisticTask::where('expert_id', $expert->id)
+                ->where('task_type', 'sentiment')
+                ->whereDate('completed_at', Carbon::today())
+                ->count();
+
+            return view('dashboard.expert.sentiment_workbench', [
+                'task' => $sentimentTask,
+                'completed_today' => $completedToday
             ]);
         }
 
+        // --- 2. Fallback to existing Governance/AiTask Logic ---
+        $taskId = $request->query('task_id');
+
         /**
-         * 2️⃣ Determine if any previous completed task exists (for this expert)
-         * - Independent from current task (safe)
+         * Load current task (AiTask)
+         */
+        if ($taskId) {
+            $currentTask = AiTask::where('id', $taskId)->first();
+        } else {
+            $currentTask = $this->assignmentService->assignNextTask($expert);
+        }
+
+        /**
+         * Determine if any previous completed task exists
          */
         $hasPreviousTask = AiResponse::where('expert_id', $expert->id)
             ->exists();
 
         /**
-         * 3️⃣ Stats
+         * Stats
          */
         $tasksToday = AiResponse::where('expert_id', $expert->id)
             ->whereDate('created_at', Carbon::today())
@@ -65,7 +91,7 @@ class WorkbenchController extends Controller
             ->sum('reward_amount') ?? 0;
 
         /**
-         * 4️⃣ Return view
+         * Return view
          */
         return view('dashboard.expert.workbench', [
             'currentTask'     => $currentTask,
@@ -118,6 +144,36 @@ class WorkbenchController extends Controller
             ]);
         }
     }
+
+    /**
+     * Submit Sentiment Analysis Task
+     */
+    public function submitSentiment(Request $request)
+    {
+        $request->validate([
+            'task_id' => 'required|exists:linguistic_tasks,id',
+            'is_correct' => 'required|boolean',
+            'correct_classification' => 'required_if:is_correct,false|nullable|string|in:إيجابي,سلبي,محايد'
+        ]);
+
+        $task = \App\Models\LinguisticTask::where('id', $request->task_id)
+            ->where('expert_id', Auth::id())
+            ->firstOrFail();
+
+        $task->update([
+            'is_correct' => $request->is_correct,
+            'correct_classification' => $request->is_correct ? $task->proposed_classification : $request->correct_classification,
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم حفظ الإجابة بنجاح',
+            'redirect' => route('dashboard.expert.workbench') // Will load next task
+        ]);
+    }
+
 
     /**
      * Mark task as correct (no edits)

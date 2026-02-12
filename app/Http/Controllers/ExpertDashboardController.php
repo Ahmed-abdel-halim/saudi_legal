@@ -83,8 +83,16 @@ class ExpertDashboardController extends Controller
                 ->limit(5)
                 ->get();
         } catch (\Exception $e) {
+        } catch (\Exception $e) {
             $history = collect([]);
         }
+
+        // 7. Received Service Requests
+        $received_requests = \App\Models\ServicePurchase::where('expert_id', $user->id)
+            ->where('status', 'pending')
+            ->with(['client', 'service'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return view('dashboard.expert.index', compact(
             'user',
@@ -97,8 +105,33 @@ class ExpertDashboardController extends Controller
             'badge_icon',
             'pending_count',
             'history',
-            'price_per_task'
+            'pending_count',
+            'history',
+            'price_per_task',
+            'received_requests'
         ));
+    }
+
+    public function acceptPurchase(\App\Services\ChatService $chatService, $id)
+    {
+        $purchase = \App\Models\ServicePurchase::findOrFail($id);
+        
+        // Authorization check
+        if ($purchase->expert_id != Auth::id()) {
+            abort(403);
+        }
+
+        // Update status
+        $purchase->update([
+            'status' => 'accepted',
+            'service_status' => 'awaiting_start',
+            'accepted_at' => now()
+        ]);
+
+        // Create Conversation
+        $conversation = $chatService->createChatForPurchase($purchase);
+
+        return redirect()->route('dashboard.expert.chat.show', $conversation->id);
     }
 
     public function availability(Request $request)

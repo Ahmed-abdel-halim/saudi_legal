@@ -19,7 +19,7 @@ class EnsureUserIsExpert
             return redirect()->route('login');
         }
 
-        if (auth()->user()->role !== 'expert') {
+        if (auth()->user()->role !== 'expert' && auth()->user()->role !== 'freelancer') {
             return redirect()->route('dashboard')->with('error', 'Access denied. This area is for experts only.');
         }
 
