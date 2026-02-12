@@ -11,6 +11,10 @@ return [
     'copy' => 'نسخ',
     'delete' => 'حذف',
     'no_tasks' => 'لا توجد مهام.',
+    'messages' => 'الرسائل',
+    'recent_activity' => 'النشاط الأخير',
+    'no_conversations_title' => 'لا توجد محادثات حتى الآن',
+    'no_conversations_desc' => 'ستظهر الرسائل هنا بمجرد التفاعل مع المشاريع أو الخدمات.',
 
     // Header & Common
     'home' => 'الرئيسية',

@@ -38,4 +38,9 @@ return [
     'level_active' => 'مساهم نشط',
     'level_certified' => 'مدقق معتمد',
     'level_elite' => 'خبير سيادي',
+
+    // Requests
+    'new_requests' => 'طلبات خدمة جديدة',
+    'hours' => 'ساعات',
+    'btn_accept' => 'قبول الطلب',
 ];

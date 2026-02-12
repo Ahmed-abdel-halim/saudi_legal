@@ -306,7 +306,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                     </a>
                 </div>
 
-                <h2 class="text-2xl md:text-3xl font-bold text-dark-navy mb-2">
+                <h2 class="text-2xl md:text-3xl font-bold text-brand-teal mb-2">
                     {{ __('auth.AUTH_CREATE_COMPANY', [], $currentLang) }}
                 </h2>
                 <p class="text-gray-600 mb-6">
@@ -580,24 +580,35 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                 </form>
 
                 {{-- Divider --}}
-                <div class="flex items-center my-6">
-                    <div class="flex-grow h-[2px] bg-gradient-to-r from-transparent via-gray-300 to-gray-300"></div>
-                    <span class="flex-shrink mx-4 text-gray-500 text-sm font-medium">
-                        {{ __('auth.AUTH_ALREADY_HAVE_ACCOUNT', [], $currentLang) }}
-                    </span>
-                    <div class="flex-grow h-[2px] bg-gradient-to-l from-transparent via-gray-300 to-gray-300"></div>
+                <div class="grid grid-cols-2 gap-4 mt-10 mb-6">
+                    <a href="{{ route('register.student') }}" class="flex flex-col items-center justify-center p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md hover:border-brand-teal/50 transition-all duration-300 group transform hover:-translate-y-1">
+                        <div class="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center mb-3 group-hover:bg-brand-teal/10 transition-colors">
+                            <svg class="w-6 h-6 text-teal-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm font-bold text-gray-700 group-hover:text-brand-teal transition-colors">{{ __('auth.REGISTER_AS_STUDENT', [], $currentLang) }}</span>
+                    </a>
+                    
+                    <a href="{{ route('freelancer.register.form') }}" class="flex flex-col items-center justify-center p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md hover:border-brand-magenta/50 transition-all duration-300 group transform hover:-translate-y-1">
+                        <div class="w-12 h-12 rounded-full bg-fuchsia-50 flex items-center justify-center mb-3 group-hover:bg-brand-magenta/10 transition-colors">
+                            <svg class="w-6 h-6 text-brand-magenta group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm font-bold text-gray-700 group-hover:text-brand-magenta transition-colors">{{ __('auth.REGISTER_AS_FREELANCER', [], $currentLang) }}</span>
+                    </a>
                 </div>
 
-                {{-- Login Link --}}
-                <a href="{{ route('login') }}"
-                    class="block w-full text-center bg-gradient-to-r from-brand-magenta to-purple-500 text-white py-3 px-6 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]">
-                    {{ __('auth.BTN_LOGIN', [], $currentLang) }}
-                </a>
-
-                <div class="mt-4 text-center">
-                    <a href="{{ route('register.student') }}" class="text-brand-teal hover:underline font-medium text-sm">
-                        {{ __('auth.ARE_YOU_STUDENT', [], $currentLang) }}
-                    </a>
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-gray-600">
+                        {{ __('auth.AUTH_ALREADY_HAVE_ACCOUNT', [], $currentLang) }}
+                        <a href="{{ route('login') }}" class="font-bold text-brand-teal hover:underline">
+                            {{ __('auth.BTN_LOGIN', [], $currentLang) }}
+                        </a>
+                    </p>
                 </div>
 
                 {{-- Back to Home --}}

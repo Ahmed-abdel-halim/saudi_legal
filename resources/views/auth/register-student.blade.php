@@ -193,7 +193,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                     </a>
                 </div>
 
-                <h2 class="text-2xl md:text-3xl font-bold text-dark-navy mb-2">
+                <h2 class="text-2xl md:text-3xl font-bold text-brand-teal mb-2">
                     {{ __('auth.NEW_STUDENT_ACCOUNT', [], $currentLang) }}
                 </h2>
                 <p class="text-gray-600 mb-6">
@@ -311,24 +311,38 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                 </div>
 
                 {{-- Other Links --}}
-                <div class="space-y-3">
-                    <a href="{{ route('register.company') }}" class="block w-full text-center bg-gray-50 text-gray-700 py-3 px-6 rounded-lg font-bold hover:bg-gray-100 transition border border-gray-200">
-                        {{ __('auth.REGISTER_AS_COMPANY', [], $currentLang) }}
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <a href="{{ route('register.company') }}" class="flex flex-col items-center justify-center p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md hover:border-brand-teal/50 transition-all duration-300 group transform hover:-translate-y-1">
+                        <div class="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center mb-3 group-hover:bg-brand-teal/10 transition-colors">
+                            <svg class="w-6 h-6 text-teal-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm font-bold text-gray-700 group-hover:text-brand-teal transition-colors">{{ __('auth.REGISTER_AS_COMPANY', [], $currentLang) }}</span>
                     </a>
                     
-                    <a href="{{ route('login') }}" class="block w-full text-center bg-gradient-to-r from-brand-teal to-teal-600 text-white py-3 px-6 rounded-lg font-bold hover:shadow-lg transition transform hover:scale-[1.02]">
-                        {{ __('auth.BTN_LOGIN', [], $currentLang) }}
+                    <a href="{{ route('freelancer.register.form') }}" class="flex flex-col items-center justify-center p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md hover:border-brand-magenta/50 transition-all duration-300 group transform hover:-translate-y-1">
+                        <div class="w-12 h-12 rounded-full bg-fuchsia-50 flex items-center justify-center mb-3 group-hover:bg-brand-magenta/10 transition-colors">
+                            <svg class="w-6 h-6 text-brand-magenta group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-sm font-bold text-gray-700 group-hover:text-brand-magenta transition-colors">{{ __('auth.REGISTER_AS_FREELANCER', [], $currentLang) }}</span>
                     </a>
                 </div>
 
-                <div class="text-center text-sm text-slate-500 mt-4">
-                 {{ __('auth.NOT_STUDENT', [], $currentLang) }}
-            </div>            
+                <div class="space-y-3">
+                    <a href="{{ route('login') }}" class="block w-full text-center bg-gradient-to-r from-brand-teal to-teal-600 text-white py-3 px-6 rounded-lg font-bold hover:shadow-lg transition transform hover:scale-[1.02]">
+                        {{ __('auth.BTN_LOGIN', [], $currentLang) }}
+                    </a>
+                </div>            
                 <p class="text-center text-sm text-gray-500 mt-6">
                     <a href="{{ route('home') }}" class="text-brand-teal hover:underline font-medium">
                         ← {{ __('auth.BACK_TO_HOME', [], $currentLang) }}
                     </a>
                 </p>
+
+                </div>
 
             </div>
         </div>

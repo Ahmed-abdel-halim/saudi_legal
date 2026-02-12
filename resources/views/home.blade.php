@@ -576,11 +576,13 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                                 class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700"
                                 onerror="{{ $onError }}">
 
+                            @if(!empty($service->company_name))
                             <div class="absolute bottom-4 {{ $direction === 'rtl' ? 'right-4' : 'left-4' }} z-20">
                                 <span class="bg-white/20 backdrop-blur-md border border-white/30 text-white px-3 py-1 rounded-full text-xs font-bold">
                                     {{ $service->company_name }}
                                 </span>
                             </div>
+                            @endif
                         </div>
                         <div class="p-6">
                             <h3 class="text-xl font-bold text-dark-navy mb-2 line-clamp-1 group-hover:text-brand-primary transition-colors">{{ $service->title }}</h3>
@@ -609,6 +611,10 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                     </a>
                 </div>
                 @endforeach
+            </div>
+            
+            <div class="mt-12 flex justify-center">
+                {{ $services->links() }}
             </div>
         </div>
 </section>

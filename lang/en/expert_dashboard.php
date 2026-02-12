@@ -39,4 +39,8 @@ return [
     'level_certified' => 'Certified Auditor',
     'level_elite' => 'Elite Expert',
     
+    // Requests
+    'new_requests' => 'New Service Requests',
+    'hours' => 'Hours',
+    'btn_accept' => 'Accept Request',
 ];

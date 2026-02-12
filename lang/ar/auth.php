@@ -101,6 +101,7 @@ return [
     'CONTACT_SUPPORT' => 'تواصل مع الدعم',
     'PASSWORD_RESET_SENT' => 'لقد أرسلنا لك رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.',
     'ARE_YOU_STUDENT' => 'هل أنت طالب؟ سجل هنا',
+    'ARE_YOU_FREELANCER' => 'هل أنت مستقل؟ سجل هنا',
     'NOT_STUDENT' => 'لست طالباً؟ سجل كشركة/خبير',
 
     // Student Registration
@@ -115,6 +116,8 @@ return [
     'SCHOOL_NAME' => 'اسم المدرسة أو الجامعة',
     'OTHER_OPTIONS' => 'خيارات أخرى',
     'REGISTER_AS_COMPANY' => 'سجل شركتك',
+    'REGISTER_AS_STUDENT' => 'سجل كطالب',
+    'REGISTER_AS_FREELANCER' => 'سجل كمستقل',
     'UNIVERSITY_EMAIL_PLACEHOLDER' => 'student@university.edu.sa',
     'NATIONAL_ID_PLACEHOLDER' => '10xxxxxxxx',
     'SCHOOL_NAME_PLACEHOLDER' => 'جامعة الملك سعود',

@@ -11,6 +11,10 @@ return [
     'copy' => 'Copy',
     'delete' => 'Delete',
     'no_tasks' => 'No tasks found.',
+    'messages' => 'Messages',
+    'recent_activity' => 'Recent Activity',
+    'no_conversations_title' => 'No conversations yet',
+    'no_conversations_desc' => 'Messages will appear here once you interact with projects or services.',
     
     // Header & Common
     'home' => 'Home',
