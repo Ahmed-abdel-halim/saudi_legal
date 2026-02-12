@@ -20,4 +20,9 @@ class Skill extends Model
     {
         return $this->belongsToMany(Project::class, 'project_required_skills', 'skill_id', 'project_id');
     }
+
+    public function freelancers()
+    {
+        return $this->belongsToMany(FreelancerProfile::class, 'freelancer_skills', 'skill_id', 'freelancer_profile_id');
+    }
 }
