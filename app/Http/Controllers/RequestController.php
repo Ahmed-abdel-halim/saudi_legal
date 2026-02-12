@@ -129,7 +129,49 @@ class RequestController extends Controller
             }
         }
 
-        return view('requests.show', compact('request', 'currentLang'));
+        // Load offers if current user is the requester
+        $offers = [];
+        $user = auth()->user();
+        if ($user && $project->requester_company_id && $user->company_id == $project->requester_company_id) {
+            $offers = \App\Models\ProjectOffer::with('expert')->where('project_id', $id)->get();
+        }
+
+        return view('requests.show', compact('request', 'currentLang', 'offers'));
+    }
+
+    /**
+     * Accept a project offer.
+     */
+    /**
+     * Accept a project offer.
+     */
+    public function acceptOffer(\App\Services\ChatService $chatService, $offerId)
+    {
+        $offer = \App\Models\ProjectOffer::with('project')->findOrFail($offerId);
+        $project = $offer->project;
+
+        // active user must be the project owner
+        if (auth()->user()->company_id != $project->requester_company_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Update offer status
+        $offer->update([
+            'status' => 'accepted',
+            'service_status' => 'awaiting_start', // Set lifecycle status
+            'accepted_at' => now(),
+        ]);
+
+        // Update project status
+        $project->update([
+            'status' => 'in_progress',
+            'supplier_company_id' => $offer->expert->company_id ?? null 
+        ]);
+
+        // Create Conversation via Service
+        $chatService->createChatForOffer($offer);
+
+        return back()->with('success', 'Offer accepted! Chat channel created.');
     }
 
     /**
@@ -251,4 +293,43 @@ class RequestController extends Controller
     }
 
 
+    public function submitOffer(Request $request, $id)
+    {
+        $request->validate([
+            'price' => 'required|numeric|min:0',
+            'delivery_time_days' => 'required|integer|min:1',
+            'message' => 'nullable|string',
+        ]);
+
+        $project = Project::findOrFail($id);
+        
+        // Prevent owner from offering
+        // Assuming Auth user has a company, checking if it matches requester
+        $user = auth()->user();
+        if ($user->company_id && $user->company_id == $project->requester_company_id) {
+             return back()->with('error', 'You cannot submit an offer to your own project.');
+        }
+
+        // Check if offer already exists
+        $existingOffer = \App\Models\ProjectOffer::where('project_id', $project->project_id)
+            ->where('expert_id', $user->id)
+            ->first();
+
+        if ($existingOffer) {
+            return back()->with('error', 'You have already submitted an offer for this project.');
+        }
+
+        \App\Models\ProjectOffer::create([
+            'project_id' => $project->project_id,
+            'expert_id' => $user->id,
+            'price' => $request->price,
+            'delivery_time_days' => $request->delivery_time_days,
+            'message' => $request->message,
+            'status' => 'pending'
+        ]);
+
+        // TODO: Notification to requester
+
+        return redirect()->route('requests.show', $id)->with('success', 'Offer submitted successfully!');
+    }
 }

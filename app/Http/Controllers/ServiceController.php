@@ -204,144 +204,7 @@ class ServiceController extends Controller
             ->values();
     }
     
-    /**
-     * Get mock services data for display when database is not ready
-     */
-    private function getMockServices()
-    {
-        $currentLang = app()->getLocale();
-        
-        $mockData = [
-            [
-                'service_id' => 1,
-                'title' => $currentLang === 'ar' ? 'تطوير تطبيقات Laravel' : 'Laravel Application Development',
-                'description' => $currentLang === 'ar'
-                    ? 'مطور Laravel محترف مع خبرة 5+ سنوات في تطوير تطبيقات الويب المعقدة. متخصص في APIs، Real-time applications، و Microservices.'
-                    : 'Professional Laravel developer with 5+ years of experience in complex web applications. Specialized in APIs, Real-time applications, and Microservices.',
-                'hourly_rate' => 120.00,
-                'service_image' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80',
-                'expert_name' => $currentLang === 'ar' ? 'أحمد محمد' : 'Ahmed Mohammed',
-                'expert_image' => 'https://ui-avatars.com/api/?name=Ahmed&background=4F46E5&color=fff',
-                'company_name' => $currentLang === 'ar' ? 'شركة التقنية المتقدمة' : 'Advanced Tech Company',
-                'company_id' => 1,
-                'industry' => $currentLang === 'ar' ? 'تطوير البرمجيات' : 'Software Development',
-                'company_logo' => 'https://ui-avatars.com/api/?name=ATC&background=8B5CF6&color=fff',
-                'avg_rating' => 4.8,
-                'skills_list' => 'Laravel, PHP, MySQL, REST API, Vue.js',
-            ],
-            [
-                'service_id' => 2,
-                'title' => $currentLang === 'ar' ? 'تصميم واجهات المستخدم' : 'UI/UX Design',
-                'description' => $currentLang === 'ar'
-                    ? 'مصمم UI/UX محترف متخصص في تصميم واجهات مستخدم حديثة وجذابة. خبرة في Figma، Adobe XD، و Prototyping.'
-                    : 'Professional UI/UX designer specialized in modern and attractive user interfaces. Experience in Figma, Adobe XD, and Prototyping.',
-                'hourly_rate' => 80.00,
-                'service_image' => 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&q=80',
-                'expert_name' => $currentLang === 'ar' ? 'سارة أحمد' : 'Sara Ahmed',
-                'expert_image' => 'https://ui-avatars.com/api/?name=Sara&background=d946ef&color=fff',
-                'company_name' => $currentLang === 'ar' ? 'شركة التصميم الإبداعي' : 'Creative Design Company',
-                'company_id' => 2,
-                'industry' => $currentLang === 'ar' ? 'التصميم' : 'Design',
-                'company_logo' => 'https://ui-avatars.com/api/?name=CDC&background=d946ef&color=fff',
-                'avg_rating' => 4.9,
-                'skills_list' => 'Figma, Adobe XD, UI/UX Design, Prototyping',
-            ],
-            [
-                'service_id' => 3,
-                'title' => $currentLang === 'ar' ? 'تطوير تطبيقات React Native' : 'React Native Development',
-                'description' => $currentLang === 'ar'
-                    ? 'مطور React Native محترف لبناء تطبيقات جوال عالية الجودة لنظامي iOS و Android. خبرة في State Management و API Integration.'
-                    : 'Professional React Native developer for building high-quality mobile apps for both iOS and Android. Experience in State Management and API Integration.',
-                'hourly_rate' => 150.00,
-                'service_image' => 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&q=80',
-                'expert_name' => $currentLang === 'ar' ? 'خالد علي' : 'Khaled Ali',
-                'expert_image' => 'https://ui-avatars.com/api/?name=Khaled&background=0d9488&color=fff',
-                'company_name' => $currentLang === 'ar' ? 'شركة التطبيقات الذكية' : 'Smart Apps Company',
-                'company_id' => 3,
-                'industry' => $currentLang === 'ar' ? 'تطوير البرمجيات' : 'Software Development',
-                'company_logo' => 'https://ui-avatars.com/api/?name=SAC&background=0d9488&color=fff',
-                'avg_rating' => 4.7,
-                'skills_list' => 'React Native, JavaScript, Redux, Firebase',
-            ],
-            [
-                'service_id' => 4,
-                'title' => $currentLang === 'ar' ? 'استشارات قاعدة البيانات' : 'Database Consulting',
-                'description' => $currentLang === 'ar'
-                    ? 'خبير في قواعد البيانات متخصص في MySQL، PostgreSQL، و MongoDB. خدمات التحسين، التصميم، و Migration.'
-                    : 'Database expert specialized in MySQL, PostgreSQL, and MongoDB. Optimization, design, and migration services.',
-                'hourly_rate' => 200.00,
-                'service_image' => 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=600&q=80',
-                'expert_name' => $currentLang === 'ar' ? 'محمد حسن' : 'Mohammed Hassan',
-                'expert_image' => 'https://ui-avatars.com/api/?name=Mohammed&background=2980b9&color=fff',
-                'company_name' => $currentLang === 'ar' ? 'شركة البيانات الكبيرة' : 'Big Data Company',
-                'company_id' => 4,
-                'industry' => $currentLang === 'ar' ? 'قواعد البيانات' : 'Database',
-                'company_logo' => 'https://ui-avatars.com/api/?name=BDC&background=2980b9&color=fff',
-                'avg_rating' => 4.6,
-                'skills_list' => 'MySQL, PostgreSQL, MongoDB, Database Optimization',
-            ],
-            [
-                'service_id' => 5,
-                'title' => $currentLang === 'ar' ? 'تطوير واجهات Vue.js' : 'Vue.js Frontend Development',
-                'description' => $currentLang === 'ar'
-                    ? 'مطور Vue.js محترف لبناء واجهات مستخدم تفاعلية وسريعة. خبرة في Vue 3، Composition API، و Pinia.'
-                    : 'Professional Vue.js developer for building interactive and fast user interfaces. Experience in Vue 3, Composition API, and Pinia.',
-                'hourly_rate' => 100.00,
-                'service_image' => 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=600&q=80',
-                'expert_name' => $currentLang === 'ar' ? 'فاطمة إبراهيم' : 'Fatima Ibrahim',
-                'expert_image' => 'https://ui-avatars.com/api/?name=Fatima&background=8e44ad&color=fff',
-                'company_name' => $currentLang === 'ar' ? 'شركة الواجهات الحديثة' : 'Modern Frontend Company',
-                'company_id' => 5,
-                'industry' => $currentLang === 'ar' ? 'تطوير البرمجيات' : 'Software Development',
-                'company_logo' => 'https://ui-avatars.com/api/?name=MFC&background=8e44ad&color=fff',
-                'avg_rating' => 4.5,
-                'skills_list' => 'Vue.js, JavaScript, TypeScript, Pinia',
-            ],
-            [
-                'service_id' => 6,
-                'title' => $currentLang === 'ar' ? 'اختبار البرمجيات' : 'Software Testing',
-                'description' => $currentLang === 'ar'
-                    ? 'مختبر برمجيات محترف متخصص في Automated Testing، Manual Testing، و Performance Testing. خبرة في Jest، Cypress، و Selenium.'
-                    : 'Professional software tester specialized in Automated Testing, Manual Testing, and Performance Testing. Experience in Jest, Cypress, and Selenium.',
-                'hourly_rate' => 70.00,
-                'service_image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80',
-                'expert_name' => $currentLang === 'ar' ? 'نورا سعيد' : 'Nora Saeed',
-                'expert_image' => 'https://ui-avatars.com/api/?name=Nora&background=f39c12&color=fff',
-                'company_name' => $currentLang === 'ar' ? 'شركة الجودة البرمجية' : 'Software Quality Company',
-                'company_id' => 6,
-                'industry' => $currentLang === 'ar' ? 'الاختبار' : 'Testing',
-                'company_logo' => 'https://ui-avatars.com/api/?name=SQC&background=f39c12&color=fff',
-                'avg_rating' => 4.4,
-                'skills_list' => 'QA Testing, Jest, Cypress, Selenium',
-            ],
-        ];
-        
-        // Convert to collection and format skills
-        $services = collect($mockData)->map(function($item) {
-            $item = (object) $item;
-            $item->skills_array = !empty($item->skills_list) 
-                ? explode(', ', $item->skills_list) 
-                : [];
-            return $item;
-        });
-        
-        return $services;
-    }
-    
-    /**
-     * Get mock industries data
-     */
-    private function getMockIndustries()
-    {
-        $currentLang = app()->getLocale();
-        
-        return collect([
-            $currentLang === 'ar' ? 'تطوير البرمجيات' : 'Software Development',
-            $currentLang === 'ar' ? 'التصميم' : 'Design',
-            $currentLang === 'ar' ? 'قواعد البيانات' : 'Database',
-            $currentLang === 'ar' ? 'الاختبار' : 'Testing',
-        ])->sort()->values();
-    }
+
 
     /**
      * Display the specified service detail.
@@ -525,5 +388,48 @@ class ServiceController extends Controller
         }
 
         return view('services.request', compact('service', 'currentLang'));
+    }
+    public function purchaseHours(Request $request, $id)
+    {
+        $request->validate([
+            'hours' => 'required|integer|min:1',
+            'message' => 'nullable|string',
+        ]);
+
+        $service = null;
+        // Logic to find service (copied from show/request methods temporarily, should be refactored to a helper or model)
+        // For now, assuming expert service for simplicity of this flow as per plan
+        $service = DB::table('expert_services')->where('service_id', $id)->first();
+        
+        // If not expert service, maybe company service?
+        if (!$service) {
+             // Handle company service or 404
+             // For now abort if not found
+             // Note: In real app, we should standardise Service model access
+             $service = DB::table('services')->where('service_id', $id)->first();
+        }
+        
+        if (!$service) abort(404);
+
+        $expertId = $service->expert_id ?? $service->user_id; 
+        $hourlyRate = $service->price ?? $service->hourly_rate;
+
+        $purchase = \App\Models\ServicePurchase::create([
+            'expert_id' => $expertId,
+            'client_id' => auth()->id(),
+            'service_id' => $id,
+            'hours_purchased' => $request->input('hours'),
+            'hourly_rate' => $hourlyRate,
+            'total_price' => $request->input('hours') * $hourlyRate,
+            'status' => 'pending',
+        ]);
+
+        // Notify Expert
+        $expert = \App\Models\User::find($expertId);
+        if ($expert) {
+            $expert->notify(new \App\Notifications\NewServiceRequestNotification($purchase));
+        }
+
+        return redirect()->route('services.show', $id)->with('success', 'Service purchase request sent successfully!');
     }
 }

@@ -75,6 +75,49 @@
 
             </div>
 
+            @if(isset($offers) && count($offers) > 0)
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Received Offers ({{ count($offers) }})</h2>
+                    <div class="space-y-4">
+                        @foreach($offers as $offer)
+                        <div class="flex items-center justify-between p-4 border border-slate-200 rounded-xl hover:bg-slate-50 transition">
+                            <div class="flex items-center gap-4">
+                                <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
+                                    {{ substr($offer->expert->name ?? 'E', 0, 1) }}
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900">{{ $offer->expert->name ?? 'Expert' }}</h4>
+                                    <p class="text-sm text-slate-600">
+                                        <span class="font-bold text-indigo-600">${{ $offer->price }}</span> 
+                                        in {{ $offer->delivery_time_days }} days
+                                    </p>
+                                    @if($offer->message)
+                                        <p class="text-xs text-slate-500 mt-1 italic">"{{ Str::limit($offer->message, 80) }}"</p>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold 
+                                    {{ $offer->status == 'accepted' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' }}">
+                                    {{ ucfirst($offer->status) }}
+                                </span>
+                                @if($offer->status == 'pending')
+                                <form action="{{ route('requests.offer.accept', $offer->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition">
+                                        Accept
+                                    </button>
+                                </form>
+                                @endif
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- Sidebar -->
             <div class="lg:col-span-1 space-y-6">
                 

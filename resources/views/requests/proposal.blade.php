@@ -33,53 +33,24 @@
             @endif
 
             <!-- Proposal Form -->
-            <form action="{{ route('requests.proposal.send', $request->project_id) }}" method="POST" class="space-y-6">
+            <form action="{{ route('requests.proposal.submit', $request->project_id) }}" method="POST" class="space-y-6">
                 @csrf
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('requests.FORM_NAME') }} <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('requests.FORM_PROPOSED_PRICE') ?? 'Total Price' }} <span class="text-red-500">*</span></label>
+                        <input type="number" name="price" step="0.01" required placeholder="0.00" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('requests.FORM_EMAIL') }} <span class="text-red-500">*</span></label>
-                        <input type="email" name="email" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('requests.FORM_COMPANY') }}</label>
-                        <input type="text" name="company" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('requests.FORM_PHONE') }}</label>
-                        <input type="tel" name="phone" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('requests.FORM_PROPOSED_RATE') }} <span class="text-red-500">*</span></label>
-                        <input type="number" name="proposed_rate" step="0.01" required placeholder="{{ __('requests.RATE_PLACEHOLDER') }}" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('requests.FORM_ESTIMATED_HOURS') }} <span class="text-red-500">*</span></label>
-                        <input type="number" name="estimated_hours" required placeholder="{{ __('requests.HOURS_PLACEHOLDER') }}" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('requests.FORM_DELIVERY_DAYS') ?? 'Delivery Time (Days)' }} <span class="text-red-500">*</span></label>
+                        <input type="number" name="delivery_time_days" required placeholder="Ex: 7" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('requests.FORM_COVER_LETTER') }} <span class="text-red-500">*</span></label>
-                    <textarea name="cover_letter" rows="6" required placeholder="{{ __('requests.COVER_LETTER_PLACEHOLDER') }}" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('requests.FORM_PORTFOLIO_LINK') }}</label>
-                    <input type="url" name="portfolio_link" placeholder="https://" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('requests.FORM_MESSAGE') ?? 'Message / Cover Letter' }} <span class="text-red-500">*</span></label>
+                    <textarea name="message" rows="6" required placeholder="Write your proposal here..." class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition"></textarea>
                 </div>
 
                 <div class="flex gap-4">
