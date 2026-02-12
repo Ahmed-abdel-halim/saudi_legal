@@ -614,7 +614,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
             </div>
             
             <div class="mt-12 flex justify-center">
-                {{ $services->links() }}
+                {{-- Pagination removed as per request --}}
             </div>
         </div>
 </section>

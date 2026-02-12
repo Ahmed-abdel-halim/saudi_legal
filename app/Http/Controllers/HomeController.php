@@ -23,8 +23,9 @@ class HomeController extends Controller
             ])
             ->orderByDesc('es.created_at')
             ->orderByDesc('es.created_at')
-            ->paginate(3)
-            ->through(function ($service) {
+            ->take(3)
+            ->get()
+            ->map(function ($service) {
                 // Fix avatar path if it exists
                 if ($service->expert_image) {
                     // Convert storage/uploads to uploads for direct public access

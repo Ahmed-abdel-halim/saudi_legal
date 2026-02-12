@@ -64,6 +64,7 @@
                          x-transition:leave-end="opacity-0 transform scale-95"
                         <div class="absolute {{ app()->getLocale() == 'ar' ? 'left-0' : 'right-0' }} mt-2 w-[450px] bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl shadow-2xl overflow-hidden z-50 p-6 border-4 border-white/20">
                         
+                            
                             {{-- Header --}}
                             <div class="flex justify-between items-center mb-6 text-white">
                                 <span class="bg-white text-indigo-600 px-3 py-1 rounded-full text-xs font-black shadow-sm flex items-center gap-1">
@@ -71,7 +72,7 @@
                                     <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                                 </span>
                                 <h3 class="font-bold text-xl flex items-center gap-2">
-                                    {{ __('expert_dashboard.new_requests') }}
+                                    {{ __('header.NOTIFICATIONS') }}
                                     <span class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
                                         <i class="fa-solid fa-bell text-yellow-300"></i>
                                     </span>
