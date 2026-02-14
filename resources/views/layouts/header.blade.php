@@ -255,7 +255,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
                         <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white hidden"></span>
                     </a>
-                    <a href="{{ Auth::user() && Auth::user()->role === 'expert' ? route('dashboard.expert') : route('dashboard') }}"
+                    <a href="{{ Auth::user() && in_array(Auth::user()->role, ['expert', 'freelancer']) ? route('dashboard.expert') : route('dashboard') }}"
                         class="bg-brand-primary text-white px-6 py-2.5 rounded-full font-bold shadow-lg hover:bg-opacity-90 transition-all">
                         {{ __('header.BTN_DASHBOARD', [], $currentLang) }}
                     </a>
@@ -331,7 +331,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         class="text-gray-600 font-bold">
                         {{ __('header.NAV_MESSAGES', [], $currentLang) }}
                     </a>
-                    <a href="{{ Auth::user() && Auth::user()->role === 'expert' ? route('dashboard.expert') : route('dashboard') }}"
+                    <a href="{{ Auth::user() && in_array(Auth::user()->role, ['expert', 'freelancer']) ? route('dashboard.expert') : route('dashboard') }}"
                         class="bg-brand-primary text-white px-6 py-2.5 rounded-full font-bold text-center">
                         {{ __('header.BTN_DASHBOARD', [], $currentLang) }}
                     </a>

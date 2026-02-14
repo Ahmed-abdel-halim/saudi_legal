@@ -14,6 +14,10 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>تسجيل حساب مستقل - {{ __('auth.PLATFORM_NAME', [], $currentLang) }}</title>
 
+    {{-- Favicons --}}
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon-32x32.png') }}">
+    <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">
+
     {{-- Tailwind CSS --}}
     <script src="https://cdn.tailwindcss.com"></script>
 

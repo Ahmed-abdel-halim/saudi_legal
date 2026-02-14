@@ -62,11 +62,7 @@ Route::middleware(['auth'])->group(function () {
 
     // E X P E R T   A R E A
     Route::middleware(['expert'])->prefix('dashboard/expert')->name('dashboard.expert')->group(function () {
-        Route::get('/', [ExpertDashboardController::class, 'index']); // name is dashboard.expert (from prefix/name)
-        
-        // Fix: Explicitly naming sub-routes to match existing names if needed, or rely on prefix
-        // Existing names were: dashboard.expert.availability, etc.
-        // Using name() on group adds prefix, so 'availability' becomes 'dashboard.expert.availability'
+        Route::get('/', [ExpertDashboardController::class, 'index']); 
         
         Route::get('/availability', [ExpertDashboardController::class, 'availability'])->name('.availability');
         Route::post('/availability', [ExpertDashboardController::class, 'availability']);
@@ -83,7 +79,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/workbench/sentiment', [\App\Http\Controllers\Dashboard\Expert\WorkbenchController::class, 'submitSentiment'])->name('.workbench.sentiment');
         
         Route::get('/settings', [ExpertDashboardController::class, 'settings'])->name('.settings');
-    Route::post('/purchase/{id}/accept', [ExpertDashboardController::class, 'acceptPurchase'])->name('.purchase.accept');
+        Route::post('/purchase/{id}/accept', [ExpertDashboardController::class, 'acceptPurchase'])->name('.purchase.accept');
         Route::post('/settings', [ExpertDashboardController::class, 'settings']);
 
         // EXPERT CHAT routes (Prefix: dashboard.expert)
