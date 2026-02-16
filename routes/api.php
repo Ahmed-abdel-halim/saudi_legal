@@ -36,4 +36,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/{id}/read', [App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
     Route::delete('/notifications/{id}', [App\Http\Controllers\Api\NotificationController::class, 'destroy']);
+
+    // Intelligent Routing System - Expert Tasks
+    Route::prefix('expert/tasks')->group(function () {
+        Route::get('/next', [App\Http\Controllers\Api\ExpertTaskController::class, 'nextTask']);
+        Route::post('/{taskId}/answer', [App\Http\Controllers\Api\ExpertTaskController::class, 'submitAnswer']);
+        Route::get('/statistics', [App\Http\Controllers\Api\ExpertTaskController::class, 'statistics']);
+    });
+
+    // Intelligent Routing System - User Submissions
+    Route::post('/submissions', [App\Http\Controllers\Api\SubmissionController::class, 'submit']);
 });

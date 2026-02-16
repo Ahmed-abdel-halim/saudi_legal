@@ -59,19 +59,25 @@ class TaskAssignmentService
 
         if ($existing) return $existing->task;
 
+        // STRICT FILTERING: Require domain and specialization
+        if (!$expert->expert_domain || !$expert->expert_specialization) {
+            \Log::info('Expert missing domain or specialization', [
+                'expert_id' => $expert->id,
+                'expert_domain' => $expert->expert_domain,
+                'expert_specialization' => $expert->expert_specialization,
+            ]);
+            return null;
+        }
+
         $task = AiTask::whereIn('status',['pending','in_progress'])
             ->whereColumn('current_responses','<','required_responses')
-            // Rule 1: Domain Match (MANDATORY)
+            // STRICT: Only tasks matching expert's exact domain
             ->where('task_domain', $expert->expert_domain)
-            // Rule 2: Role Validation
+            // Role Validation
             ->where(function($query) use ($expert) {
-                // Use LIKE for robust matching of Arabic/Unicode roles within JSON array
                 $role = trim($expert->expert_specialization);
-                // We match strict quoted string to avoid substring matches
                 $query->where('allow_all_roles', true)
                       ->orWhere('allowed_roles', 'LIKE', '%"' . $role . '"%')
-                      // Match the json_encoded (escaped) version of the string, stripped of quotes
-                      // We must escape the backslash for MySQL LIKE operator ( \u becomes \\u )
                       ->orWhere('allowed_roles', 'LIKE', '%' . str_replace('\\', '\\\\', substr(json_encode($role), 1, -1)) . '%');
             })
             ->whereDoesntHave('assignments',fn($q)=>$q->where('expert_id',$expert->id))
@@ -82,9 +88,11 @@ class TaskAssignmentService
         if (!$task) {
             \Log::info('No task found for expert', [
                 'expert_id' => $expert->id,
+                'expert_domain' => $expert->expert_domain,
+                'expert_specialization' => $expert->expert_specialization,
                 'total_pending' => AiTask::whereIn('status',['pending','in_progress'])->count(),
-                'with_space' => AiTask::whereIn('status',['pending','in_progress'])
-                    ->whereColumn('current_responses','<','required_responses')->count()
+                'domain_specific' => AiTask::whereIn('status',['pending','in_progress'])
+                    ->where('task_domain', $expert->expert_domain)->count(),
             ]);
             return null;
         }
