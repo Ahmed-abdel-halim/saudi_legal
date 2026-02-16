@@ -108,6 +108,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/client/governance', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'index'])->name('client.governance.dashboard');
         Route::post('/client/governance/analyze', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'analyzeCsv'])->name('client.governance.analyze');
         Route::post('/client/governance/upload', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'uploadTasks'])->name('client.governance.upload');
+        Route::get('/client/governance/tasks/delete-all', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'deleteAllTasks'])->name('client.governance.task.delete-all');
         Route::put('/client/governance/tasks/{id}', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'updateTask'])->name('client.governance.task.update');
         Route::delete('/client/governance/tasks/{id}', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'deleteTask'])->name('client.governance.task.delete');
         Route::post('/client/governance/tasks/{id}/duplicate', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'duplicateTask'])->name('client.governance.task.duplicate');
@@ -215,6 +216,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Sentiment Analysis Task Upload
     Route::get('/sentiment/upload', [App\Http\Controllers\Admin\SentimentTaskController::class, 'create'])->name('sentiment.upload');
     Route::post('/sentiment/upload', [App\Http\Controllers\Admin\SentimentTaskController::class, 'store'])->name('sentiment.store');
+    
+    // Dataset Upload for Intelligent Routing System
+    Route::get('/dataset/upload', [App\Http\Controllers\Dashboard\DatasetUploadController::class, 'index'])->name('dataset.upload');
+    Route::post('/dataset/upload', [App\Http\Controllers\Dashboard\DatasetUploadController::class, 'upload'])->name('dataset.upload.store');
 });
 
 
