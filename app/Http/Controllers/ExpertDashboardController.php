@@ -57,11 +57,16 @@ class ExpertDashboardController extends Controller
             $badge_icon = 'fa-star';
         }
 
-        // 5. Pending Tasks Count (Strict Assignment Logic)
+        // 5. Pending Tasks Count (STRICT Domain Filtering)
+        // Experts ONLY see tasks matching their domain - no general tasks
         $pending_count = 0;
+        
         if ($user->expert_domain && $user->expert_specialization) {
-            $pending_count = AiTask::where('status', 'pending')
+            $pending_count = AiTask::whereIn('status', ['pending', 'in_progress'])
+                ->whereColumn('current_responses', '<', 'required_responses')
+                // STRICT: Only tasks matching expert's domain
                 ->where('task_domain', $user->expert_domain)
+                // Role validation
                 ->where(function($q) use ($user) {
                     $role = trim($user->expert_specialization);
                     $q->where('allow_all_roles', true)

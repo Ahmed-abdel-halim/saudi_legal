@@ -109,18 +109,31 @@ class GovernanceDashboardController extends Controller
             }
 
             $normalizedHeader = array_map(fn($h) => strtolower(trim((string) $h)), $firstRow);
-            $knownHeaders = ['original_data', 'content', 'text', 'question', 'task', 'task_id', 'id', 'task_type', 'full_text', 'fulltext', 'domain', 'task_domain', 'roles', 'allowed_roles', 'المجال', 'تخصص', 'النطاق', 'الأدوار', 'المسميات_الوظيفية'];
-            $hasKnownHeaders = count(array_intersect($knownHeaders, $normalizedHeader)) > 0;
+            
+            // Expanded column name detection for flexible CSV formats
+            $contentColumns = [
+                'original_data', 'content', 'text', 'question', 'task', 'comment',
+                'tweet text no handles', 'tweet_text_no_handles', 'tweet_text', 'tweet',
+                'full_text', 'fulltext', 'message', 'description',
+                'تغريدة', 'تعليق', 'سؤال', 'مهمة', 'نص', 'محتوى'
+            ];
+            
+            $impressionColumns = ['impression', 'impressions', 'views', 'مشاهدات', 'انطباعات'];
+            $sentimentColumns = ['sentiment', 'feeling', 'tone', 'مشاعر', 'شعور', 'نبرة'];
+            
+            $hasKnownHeaders = count(array_intersect($contentColumns, $normalizedHeader)) > 0;
 
-            $pickContentFromAssoc = function (array $assoc): ?string {
-                $candidates = ['original_data', 'content', 'task_content', 'text', 'question', 'prompt', 'description', 'full_text', 'fulltext'];
-                foreach ($candidates as $key) {
+            // Initialize domain detection service
+            $domainDetector = new \App\Services\DomainDetectionService();
+
+            $pickContentFromAssoc = function (array $assoc) use ($contentColumns): ?string {
+                foreach ($contentColumns as $key) {
                     if (array_key_exists($key, $assoc) && trim((string) $assoc[$key]) !== '') {
                         return (string) $assoc[$key];
                     }
                 }
 
-                $exclude = ['task_id', 'id', 'expert_id', 'is_gold_standard', 'gold_answer', 'answer', 'submitted_at', 'task_type', 'confidence', 'confidence_level'];
+                $exclude = ['task_id', 'id', 'expert_id', 'is_gold_standard', 'gold_answer', 'answer', 'submitted_at', 'task_type', 'confidence', 'confidence_level', 'impression', 'impressions', 'views'];
                 foreach ($assoc as $key => $value) {
                     if (in_array($key, $exclude, true)) {
                         continue;
@@ -140,7 +153,7 @@ class GovernanceDashboardController extends Controller
                     if ($value === '') {
                         continue;
                     }
-                    if (preg_match('/\\p{L}/u', $value)) {
+                    if (preg_match('/\p{L}/u', $value)) {
                         return $value;
                     }
                 }
@@ -166,66 +179,57 @@ class GovernanceDashboardController extends Controller
                     
                     $content = $pickContentFromAssoc($assoc);
 
-                    // Domain support (English & Arabic)
-                    $domain = $assoc['domain'] ?? $assoc['task_domain'] ?? 
-                              $assoc['المجال'] ?? $assoc['تخصص'] ?? $assoc['النطاق'] ?? null;
-                    
-                    // Parse allowed roles (JSON or comma-separated) - Support English & Arabic headers
-                    $rolesRaw = $assoc['roles'] ?? $assoc['allowed_roles'] ?? 
-                                $assoc['الأدوار'] ?? $assoc['المسميات_الوظيفية'] ?? null;
-                    
-                    $allowedRoles = [];
-                    if ($rolesRaw) {
-                        // Try standard decoding
-                        $json = json_decode($rolesRaw, true);
-                        
-                        // If failed, try converting single quotes to double quotes (common CSV issue)
-                        if (json_last_error() !== JSON_ERROR_NONE) {
-                            $fixedJson = str_replace("'", '"', $rolesRaw);
-                            $json = json_decode($fixedJson, true);
-                        }
-
-                        if (json_last_error() === JSON_ERROR_NONE && is_array($json)) {
-                            $allowedRoles = $json;
-                        } else {
-                            // Support Arabic comma if used (،)
-                            $cleanRolesRaw = str_replace(['،', '[', ']', '"', "'"], [',', '', '', '', ''], $rolesRaw);
-                            $allowedRoles = array_map('trim', explode(',', $cleanRolesRaw));
-                        }
-                    }
-
-                    $allowAll = filter_var($assoc['all_roles'] ?? $assoc['allow_all_roles'] ?? false, FILTER_VALIDATE_BOOLEAN);
-
-                    if ($content === null || !$domain) {
+                    if ($content === null) {
                         continue;
                     }
 
+                    // Intelligent domain detection from content
+                    $detectedDomain = $domainDetector->detectDomain($content);
+                    
+                    // Extract sentiment if column exists
+                    $sentiment = null;
+                    foreach ($sentimentColumns as $col) {
+                        if (isset($assoc[$col]) && !empty($assoc[$col])) {
+                            $sentiment = $assoc[$col];
+                            break;
+                        }
+                    }
+
                     \App\Models\AiTask::create([
-                        'task_type' => $assoc['task_type'] ?? 'text_correction',
+                        'task_type' => $assoc['task_type'] ?? 'text_analysis',
                         'original_data' => $content,
                         'client_id' => $user->id,
                         'status' => 'pending',
                         'consensus_status' => 'pending',
                         'required_responses' => 3,
-                        'task_domain' => $domain,
-                        'allowed_roles' => $allowedRoles,
-                        'allow_all_roles' => $allowAll
+                        'task_domain' => $detectedDomain, // Automatically detected domain
+                        'sentiment' => $sentiment,
+                        'allowed_roles' => [],
+                        'allow_all_roles' => $detectedDomain === null // If no domain detected, allow all experts
                     ]);
                     $count++;
                 }
             } else {
-                $processRow = function (array $row) use (&$count, $pickContentFromRow, $user) {
+                $processRow = function (array $row) use (&$count, $pickContentFromRow, $user, $domainDetector) {
                     $content = $pickContentFromRow($row);
                     if ($content === null) {
                         return;
                     }
+                    
+                    // Intelligent domain detection
+                    $detectedDomain = $domainDetector->detectDomain($content);
+                    
                     \App\Models\AiTask::create([
-                        'task_type' => 'text_correction',
+                        'task_type' => 'text_analysis',
                         'original_data' => $content,
                         'client_id' => $user->id,
                         'status' => 'pending',
                         'consensus_status' => 'pending',
-                        'required_responses' => 3
+                        'required_responses' => 3,
+                        'task_domain' => $detectedDomain,
+                        'sentiment' => null,
+                        'allowed_roles' => [],
+                        'allow_all_roles' => $detectedDomain === null
                     ]);
                     $count++;
                 };
@@ -425,5 +429,18 @@ class GovernanceDashboardController extends Controller
         $newTask->save();
 
         return back()->with('success', app()->getLocale() == 'ar' ? 'تم نسخ المهمة بنجاح' : 'Task duplicated successfully.');
+    }
+    /**
+     * Delete ALL tasks for the current client
+     */
+    public function deleteAllTasks()
+    {
+        $count = \App\Models\AiTask::where('client_id', auth()->id())->count();
+        
+        \App\Models\AiTask::where('client_id', auth()->id())->delete();
+
+        return back()->with('success', app()->getLocale() == 'ar' 
+            ? "تم حذف جميع المهام ($count) بنجاح." 
+            : "All tasks ($count) deleted successfully.");
     }
 }

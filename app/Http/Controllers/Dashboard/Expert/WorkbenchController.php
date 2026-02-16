@@ -91,13 +91,34 @@ class WorkbenchController extends Controller
             ->sum('reward_amount') ?? 0;
 
         /**
+         * Calculate available tasks count (STRICT Domain Filtering)
+         */
+        $availableTasksCount = 0;
+        
+        if ($expert->expert_domain && $expert->expert_specialization) {
+            $availableTasksCount = AiTask::whereIn('status', ['pending', 'in_progress'])
+                ->whereColumn('current_responses', '<', 'required_responses')
+                // STRICT: Only tasks matching expert's domain
+                ->where('task_domain', $expert->expert_domain)
+                ->where(function($query) use ($expert) {
+                    $role = trim($expert->expert_specialization);
+                    $query->where('allow_all_roles', true)
+                          ->orWhere('allowed_roles', 'LIKE', '%"' . $role . '"%')
+                          ->orWhere('allowed_roles', 'LIKE', '%' . str_replace('\\', '\\\\', substr(json_encode($role), 1, -1)) . '%');
+                })
+                ->whereDoesntHave('responses', fn($q) => $q->where('expert_id', $expert->id))
+                ->count();
+        }
+
+        /**
          * Return view
          */
         return view('dashboard.expert.workbench', [
-            'currentTask'     => $currentTask,
-            'hasPreviousTask' => $hasPreviousTask,
-            'tasks_today'     => $tasksToday,
-            'earnings_today'  => $earningsToday,
+            'currentTask'           => $currentTask,
+            'hasPreviousTask'       => $hasPreviousTask,
+            'tasks_today'           => $tasksToday,
+            'earnings_today'        => $earningsToday,
+            'available_tasks_count' => $availableTasksCount,
         ]);
     }
 
