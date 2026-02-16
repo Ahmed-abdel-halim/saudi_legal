@@ -738,6 +738,12 @@
             </div>
 
             <div class="stat-badge">
+                <i class="fa-solid fa-clipboard-list" style="color:#8b5cf6"></i>
+                <span>المهام:</span>
+                <span class="value-text">{{ $available_tasks_count ?? 0 }}</span>
+            </div>
+
+            <div class="stat-badge">
                 <i class="fa-solid fa-list-check" style="color:#64748b"></i>
                 <span>اليوم:</span>
                 <span class="value-text">{{ $tasks_today ?? 0 }}</span>

@@ -73,7 +73,17 @@
              <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                     <h3 class="font-bold text-slate-800">{{ app()->getLocale() == 'ar' ? 'متابعة المهام' : 'Task Tracking' }}</h3>
-                    <span class="text-xs text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">{{ $tasks->total() }} {{ app()->getLocale() == 'ar' ? 'مهمة' : 'Tasks' }}</span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">{{ $tasks->total() }} {{ app()->getLocale() == 'ar' ? 'مهمة' : 'Tasks' }}</span>
+                        @if($tasks->total() > 0)
+                            <a href="{{ route('client.governance.task.delete-all') }}" 
+                               onclick="return confirm('{{ app()->getLocale() == 'ar' ? 'هل أنت متأكد أنك تريد حذف جميع الأسئلة والمهام؟ لا يمكن التراجع عن هذا الإجراء.' : 'Are you sure you want to delete ALL questions and tasks? This cannot be undone.' }}')"
+                               class="text-xs bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg font-bold border border-red-200 transition-colors flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                {{ app()->getLocale() == 'ar' ? 'حذف الجميع' : 'Delete All' }}
+                            </a>
+                        @endif
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
@@ -81,6 +91,7 @@
                             <tr class="bg-white border-b border-slate-100 text-xs uppercase tracking-wider text-slate-500">
                                 <th class="px-6 py-3 font-semibold">{{ __('dashboard.id') ?? 'ID' }}</th>
                                 <th class="px-6 py-3 font-semibold">{{ __('dashboard.original_data') ?? 'Full texts' }}</th>
+                                <th class="px-6 py-3 font-semibold">{{ app()->getLocale() == 'ar' ? 'المجال' : 'Domain' }}</th>
                                 <th class="px-6 py-3 font-semibold">{{ __('dashboard.status') ?? 'Status' }}</th>
                                 <th class="px-6 py-3 font-semibold">{{ __('dashboard.consensus') ?? 'Consensus' }}</th>
                                <th class="px-6 py-3 font-semibold">{{ __('dashboard.created_at') ?? 'Created At' }}</th>
@@ -93,6 +104,32 @@
                                     <td class="px-6 py-3 text-sm text-slate-600">#{{ $task->id }}</td>
                                     <td class="px-6 py-3 text-sm text-slate-800 font-medium max-w-md truncate">
                                         {{ Str::limit($task->original_data, 60) }}
+                                    </td>
+                                    <td class="px-6 py-3">
+                                        @if($task->task_domain)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                                @if($task->task_domain === 'medicine') bg-red-50 text-red-700
+                                                @elseif($task->task_domain === 'law') bg-blue-50 text-blue-700
+                                                @elseif($task->task_domain === 'engineering') bg-purple-50 text-purple-700
+                                                @elseif($task->task_domain === 'business') bg-green-50 text-green-700
+                                                @elseif($task->task_domain === 'education') bg-yellow-50 text-yellow-700
+                                                @else bg-slate-50 text-slate-600
+                                                @endif">
+                                                @if(app()->getLocale() == 'ar')
+                                                    @if($task->task_domain === 'medicine') طبي
+                                                    @elseif($task->task_domain === 'law') قانوني
+                                                    @elseif($task->task_domain === 'engineering') هندسي
+                                                    @elseif($task->task_domain === 'business') تجاري
+                                                    @elseif($task->task_domain === 'education') تعليمي
+                                                    @else {{ $task->task_domain }}
+                                                    @endif
+                                                @else
+                                                    {{ ucfirst($task->task_domain) }}
+                                                @endif
+                                            </span>
+                                        @else
+                                            <span class="text-xs text-slate-400">{{ app()->getLocale() == 'ar' ? 'عام' : 'General' }}</span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-3">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
@@ -142,7 +179,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-6 py-8 text-center text-slate-500">
+                                    <td colspan="7" class="px-6 py-8 text-center text-slate-500">
                                         <p class="text-sm">{{ __('dashboard.no_tasks') ?? 'No tasks found.' }}</p>
                                     </td>
                                 </tr>

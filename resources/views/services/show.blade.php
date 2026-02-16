@@ -298,10 +298,10 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         
                         <div class="flex items-center gap-5 mt-8 pt-8 border-t border-slate-100/50">
                             <div class="relative group">
-                                <img src="{{ $service->expert_image ?? 'https://ui-avatars.com/api/?name=Expert&background=random' }}" 
+                                <img src="{{ $service->expert_image ?? 'https://ui-avatars.com/api/?name=' . urlencode($service->expert_name) . '&background=random' }}" 
                                      alt="{{ $service->expert_name }}"
                                      class="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-lg group-hover:scale-105 transition duration-300"
-                                     onerror="this.src='https://ui-avatars.com/api/?name=Expert&background=ccc';">
+                                     onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($service->expert_name) }}&background=E0E7FF&color=4F46E5';">
                                 <div class="absolute -bottom-2 -right-2 w-6 h-6 bg-green-500 border-4 border-white rounded-full"></div>
                             </div>
                             <div>

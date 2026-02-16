@@ -588,11 +588,14 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                             <h3 class="text-xl font-bold text-dark-navy mb-2 line-clamp-1 group-hover:text-brand-primary transition-colors">{{ $service->title }}</h3>
                             <div class="flex items-center gap-3 mb-4">
                                 <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 overflow-hidden">
-                                    @if(!empty($service->expert_image))
-                                    <img src="{{ $service->expert_image }}" class="w-full h-full object-cover" alt="{{ $service->expert_name }}">
-                                    @else
-                                    {{ mb_substr($service->expert_name, 0, 1, "UTF-8") }}
-                                    @endif
+                                    @php
+                                    $defaultAvatar = 'https://ui-avatars.com/api/?name=' . urlencode($service->expert_name) . '&color=7F9CF5&background=EBF4FF';
+                                    $avatar = !empty($service->expert_image) ? $service->expert_image : $defaultAvatar;
+                                    @endphp
+                                    <img src="{{ $avatar }}" 
+                                         class="w-full h-full object-cover" 
+                                         alt="{{ $service->expert_name }}"
+                                         onerror="this.onerror=null; this.src='{{ $defaultAvatar }}';">
                                 </div>
                                 <span class="text-sm text-gray-500">{{ $service->expert_name }}</span>
                             </div>
