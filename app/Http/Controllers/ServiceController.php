@@ -69,6 +69,7 @@ class ServiceController extends Controller
                 DB::raw("NULL as company_name"),
                 DB::raw("NULL as company_logo"),
                 'u.name as provider_name',
+                'u.avatar_path as provider_avatar',
                 DB::raw("CONCAT('https://ui-avatars.com/api/?name=', REPLACE(u.name, ' ', '+'), '&background=4F46E5&color=fff') as provider_image"),
                 DB::raw("'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80' as image"),
                 DB::raw("5.0 as rating"), // Default rating
@@ -147,7 +148,10 @@ class ServiceController extends Controller
             $service->hourly_rate = $service->price;
             $service->service_image = $service->image;
             $service->expert_name = $service->provider_name;
-            $service->expert_image = $service->provider_image;
+            
+            // Use centralized avatar logic
+            $service->expert_image = \App\Models\User::resolveAvatarUrl($service->provider_avatar ?? null, $service->provider_name);
+            
             $service->avg_rating = $service->rating ?? 0;
             $service->skills_list = $service->skills;
             
@@ -160,7 +164,7 @@ class ServiceController extends Controller
                 // Expert services often don't have a separate company name/logo in previous view logic
                 // reusing logic from previous controller
                 $service->company_name = $service->provider_name;
-                $service->company_logo = "https://ui-avatars.com/api/?name=" . substr($service->provider_name, 0, 1) . "&background=8B5CF6&color=fff";
+                $service->company_logo = \App\Models\User::resolveAvatarUrl(null, $service->provider_name);
             }
             
             return $service;
@@ -256,6 +260,7 @@ class ServiceController extends Controller
                     'es.delivery_days',
                     DB::raw("'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80' as image"), // Default service image
                     'u.name as expert_name',
+                    'u.avatar_path',
                     DB::raw("CONCAT('https://ui-avatars.com/api/?name=', REPLACE(u.name, ' ', '+'), '&background=4F46E5&color=fff') as expert_image"),
                     DB::raw("NULL as expert_title"),
                     DB::raw("NULL as expert_bio"),
@@ -276,6 +281,9 @@ class ServiceController extends Controller
             abort(404);
         }
             
+        // Use centralized avatar logic
+        $service->expert_image = \App\Models\User::resolveAvatarUrl($service->avatar_path ?? null, $service->expert_name);
+
         // Format skills
         $service->skills_array = !empty($service->skills_list) 
             ? explode(', ', $service->skills_list) 

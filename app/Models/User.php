@@ -100,6 +100,44 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+    /**
+     * Get the user's avatar URL.
+     *
+     * @return string
+     */
+    public function getAvatarUrlAttribute()
+    {
+        return self::resolveAvatarUrl($this->avatar_path, $this->name);
+    }
+
+    /**
+     * Resolve avatar URL from path and name.
+     *
+     * @param string|null $path
+     * @param string|null $name
+     * @return string
+     */
+    public static function resolveAvatarUrl($path, $name)
+    {
+        if (empty($path)) {
+            return 'https://ui-avatars.com/api/?name=' . urlencode($name ?? 'User') . '&color=7F9CF5&background=EBF4FF';
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        // Handle specific cases
+        if (str_starts_with($path, 'storage/uploads/')) {
+            $path = str_replace('storage/uploads/', 'uploads/', $path);
+        } elseif (!str_starts_with($path, 'uploads/') && !str_starts_with($path, '/')) {
+            // Assume it's in uploads/ if seemingly relative and not starting with uploads
+            $path = 'uploads/' . $path;
+        }
+
+        return asset($path);
+    }
+
     protected function casts(): array
     {
         return [

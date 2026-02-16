@@ -27,13 +27,8 @@ class HomeController extends Controller
             ->get()
             ->map(function ($service) {
                 // Fix avatar path if it exists
-                if ($service->expert_image) {
-                    // Convert storage/uploads to uploads for direct public access
-                    if (str_starts_with($service->expert_image, 'storage/uploads/')) {
-                        $service->expert_image = str_replace('storage/uploads/', 'uploads/', $service->expert_image);
-                    }
-                    $service->expert_image = asset($service->expert_image);
-                }
+                // Use centralized avatar logic
+                $service->expert_image = \App\Models\User::resolveAvatarUrl($service->expert_image ?? null, $service->expert_name);
                 
                 // Set default image to null (view can handle fallback)
                 $service->image = null;
