@@ -24,39 +24,18 @@ class LinguisticTask extends Model
         'is_correct',
         'domain',
         'csv_file',
-        'row_number',
+        'row_number'
     ];
 
     protected $casts = [
         'errors' => 'array',
-        'is_correct' => 'boolean',
         'assigned_at' => 'datetime',
         'completed_at' => 'datetime',
+        'is_correct' => 'boolean',
     ];
 
     public function expert()
     {
         return $this->belongsTo(User::class, 'expert_id');
-    }
-
-    // Scopes
-    public function scopePending($query)
-    {
-        return $query->where('status', 'pending');
-    }
-
-    public function scopeForExpert($query, $expertId)
-    {
-        return $query->where('expert_id', $expertId);
-    }
-    
-    public function scopeByDomain($query, $domain)
-    {
-        return $query->where('domain', $domain);
-    }
-
-    public function scopeSentiment($query)
-    {
-        return $query->where('task_type', 'sentiment');
     }
 }
