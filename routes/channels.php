@@ -21,3 +21,9 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('notifications.{userId}', function ($user, $userId) {
     return (int) $user->id === (int) $userId;
 });
+
+// Private chat channel for conversations
+Broadcast::channel('chat.{conversationId}', function ($user, $conversationId) {
+    $conversation = \App\Models\Conversation::find($conversationId);
+    return $conversation && $conversation->isParticipant($user->id);
+});

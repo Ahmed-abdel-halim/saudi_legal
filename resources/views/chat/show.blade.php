@@ -99,7 +99,7 @@
 
         <!-- Input Area -->
         <div class="absolute bottom-0 left-0 right-0 bg-white p-4 sm:p-5 z-20 border-t border-slate-100">
-            <form action="{{ route($routePrefix . 'send', $conversation->id) }}" method="POST" class="flex items-end gap-3 max-w-5xl mx-auto">
+            <form id="chat-form" action="{{ route($routePrefix . 'send', $conversation->id) }}" method="POST" class="flex items-end gap-3 max-w-5xl mx-auto">
                 @csrf
                 <button type="button" class="flex-shrink-0 w-12 h-12 rounded-xl bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-indigo-600 transition flex items-center justify-center">
                     <i class="fa-solid fa-paperclip text-lg"></i>
@@ -135,6 +135,9 @@
 
 <script>
     const container = document.getElementById('messages-container');
+    const chatForm = document.getElementById('chat-form');
+    const assetUrl = "{{ asset('uploads/') }}";
+    const currentUserId = {{ Auth::id() }};
     
     function scrollToBottom() {
         container.scrollTop = container.scrollHeight;
@@ -142,8 +145,120 @@
 
     // Scroll immediately
     scrollToBottom();
-
-    // Also scroll after images load (just in case)
     window.onload = scrollToBottom;
+
+    if (chatForm) {
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const textarea = chatForm.querySelector('textarea[name="content"]');
+            const content = textarea.value.trim();
+            if (!content) return;
+            
+            const btn = chatForm.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
+            
+            axios.post(chatForm.action, {
+                content: content
+            }, {
+                headers: {
+                    'X-Socket-ID': typeof window.Echo !== 'undefined' ? window.Echo.socketId() : ''
+                }
+            }).then(response => {
+                textarea.value = '';
+                textarea.style.height = '';
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+                
+                if (response.data && response.data.message) {
+                    appendOutgoingMessage(response.data.message);
+                } else {
+                    window.location.reload();
+                }
+            }).catch(error => {
+                console.error(error);
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            });
+        });
+    }
+
+    function appendOutgoingMessage(msg) {
+        let time = '';
+        if (msg.created_at) {
+            const dateObj = new Date(msg.created_at);
+            time = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        
+        const avatarUrl = msg.sender_avatar ? assetUrl + '/' + msg.sender_avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.sender_name) + '&background=indigo&color=fff&size=64';
+
+        const bubbleHtml = `
+            <div class="flex w-full justify-end group animate-fade-in-up">
+                <div class="flex max-w-[85%] sm:max-w-[70%] gap-3 flex-row-reverse">
+                    <div class="flex-shrink-0 self-end mb-1">
+                         <img src="${avatarUrl}" class="w-8 h-8 rounded-full object-cover shadow-sm border border-white">
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <div class="px-5 py-3.5 shadow-md text-sm leading-relaxed relative bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-[1.2rem] rounded-br-sm rtl:rounded-br-[1.2rem] rtl:rounded-bl-sm">
+                            <p class="whitespace-pre-wrap break-words">${msg.content}</p>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-400 mt-1.5 px-1 flex items-center gap-1">
+                            ${time} <i class="fa-solid fa-check-double text-slate-300"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', bubbleHtml);
+        scrollToBottom();
+    }
+    // Laravel Echo Listener
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.Echo !== 'undefined') {
+            const conversationId = {{ $conversation->id }};
+            const currentUserId = {{ Auth::id() }};
+            const assetUrl = "{{ asset('uploads/') }}";
+            
+            window.Echo.private('chat.' + conversationId)
+                .listen('.message.sent', (e) => {
+                    if (e.sender_id !== currentUserId) {
+                        appendIncomingMessage(e);
+                    }
+                });
+        }
+    });
+
+    function appendIncomingMessage(msg) {
+        let time = '';
+        if (msg.created_at) {
+            const dateObj = new Date(msg.created_at);
+            time = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        
+        const avatarUrl = msg.sender_avatar ? assetUrl + '/' + msg.sender_avatar : 'https://ui-avatars.com/api/?name=User&background=random&color=fff&size=64';
+
+        const bubbleHtml = `
+            <div class="flex w-full justify-start group animate-fade-in-up">
+                <div class="flex max-w-[85%] sm:max-w-[70%] gap-3 flex-row">
+                    <div class="flex-shrink-0 self-end mb-1">
+                         <img src="${avatarUrl}" class="w-8 h-8 rounded-full object-cover shadow-sm border border-white">
+                    </div>
+                    <div class="flex flex-col items-start">
+                        <div class="px-5 py-3.5 shadow-md text-sm leading-relaxed relative bg-white text-slate-700 border border-slate-100 rounded-[1.2rem] rounded-bl-sm rtl:rounded-bl-[1.2rem] rtl:rounded-br-sm">
+                            <p class="whitespace-pre-wrap break-words">${msg.content}</p>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-400 mt-1.5 px-1 flex items-center gap-1">
+                            ${time}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', bubbleHtml);
+        scrollToBottom();
+    }
 </script>
 @endsection
