@@ -206,6 +206,27 @@ Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('suppli
 
 // Admin Routes
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    // Super Admin Dashboard
+    Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('dashboard');
+    
+    // User Management
+    Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('users.index');
+    Route::patch('/users/{id}/toggle-status', [\App\Http\Controllers\Admin\AdminUserController::class, 'toggleStatus'])->name('users.toggle-status');
+    Route::delete('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'destroy'])->name('users.destroy');
+    
+    // Companies Management
+    Route::get('/companies', [\App\Http\Controllers\Admin\AdminCompanyController::class, 'index'])->name('companies.index');
+    Route::patch('/companies/{id}/toggle-verified', [\App\Http\Controllers\Admin\AdminCompanyController::class, 'toggleVerified'])->name('companies.toggle-verified');
+    Route::delete('/companies/{id}', [\App\Http\Controllers\Admin\AdminCompanyController::class, 'destroy'])->name('companies.destroy');
+
+    // Experts Management
+    Route::get('/experts', [\App\Http\Controllers\Admin\AdminExpertController::class, 'index'])->name('experts.index');
+    Route::patch('/experts/{id}/toggle-status', [\App\Http\Controllers\Admin\AdminExpertController::class, 'toggleStatus'])->name('experts.toggle-status');
+    Route::delete('/experts/{id}', [\App\Http\Controllers\Admin\AdminExpertController::class, 'destroy'])->name('experts.destroy');
+    
+    // System Settings
+    Route::get('/settings', [\App\Http\Controllers\Admin\AdminSettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [\App\Http\Controllers\Admin\AdminSettingsController::class, 'update'])->name('settings.update');
     // Dispute Management
     Route::get('/disputes', [App\Http\Controllers\Admin\DisputeController::class, 'index'])->name('disputes.index');
     Route::get('/disputes/{type}/{id}', [App\Http\Controllers\Admin\DisputeController::class, 'show'])->name('disputes.show');
@@ -213,13 +234,20 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/disputes/{type}/{id}/resolve-expert', [App\Http\Controllers\Admin\DisputeController::class, 'resolveForExpert'])->name('disputes.resolve-expert');
     Route::post('/disputes/{type}/{id}/message', [App\Http\Controllers\Admin\DisputeController::class, 'sendMessage'])->name('disputes.message');
 
-    // Sentiment Analysis Task Upload
-    Route::get('/sentiment/upload', [App\Http\Controllers\Admin\SentimentTaskController::class, 'create'])->name('sentiment.upload');
-    Route::post('/sentiment/upload', [App\Http\Controllers\Admin\SentimentTaskController::class, 'store'])->name('sentiment.store');
+    // Sentiment Analysis Task Tracker
+    Route::get('/sentiment/tasks', [App\Http\Controllers\Admin\SentimentTaskController::class, 'index'])->name('sentiment.index');
     
     // Dataset Upload for Intelligent Routing System
     Route::get('/dataset/upload', [App\Http\Controllers\Dashboard\DatasetUploadController::class, 'index'])->name('dataset.upload');
     Route::post('/dataset/upload', [App\Http\Controllers\Dashboard\DatasetUploadController::class, 'upload'])->name('dataset.upload.store');
+
+    // Services Board
+    Route::get('/services', [\App\Http\Controllers\Admin\AdminServiceController::class, 'index'])->name('services.index');
+    Route::patch('/services/{id}/toggle-status', [\App\Http\Controllers\Admin\AdminServiceController::class, 'toggleStatus'])->name('services.toggle-status');
+    Route::delete('/services/{id}', [\App\Http\Controllers\Admin\AdminServiceController::class, 'destroy'])->name('services.destroy');
+
+    // Financials
+    Route::get('/financials', [\App\Http\Controllers\Admin\AdminFinancialController::class, 'index'])->name('financials.index');
 });
 
 
