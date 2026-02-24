@@ -3,28 +3,22 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Gate;
+use App\Models\User;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         Paginator::useTailwind();
 
         \Illuminate\Validation\Rules\Password::defaults(function () {
-            // Flexible password: just min 8 chars
             return \Illuminate\Validation\Rules\Password::min(8);
         });
 
@@ -38,5 +32,16 @@ class AppServiceProvider extends ServiceProvider
             \App\Events\AnswerSubmitted::class,
             [\App\Listeners\EvaluateConsensus::class, 'handle']
         );
+
+        // ── Admin Gate Definitions ─────────────────────────────────────────
+        // Allow both 'admin' and 'superadmin' for all admin gates
+        $isAdmin = fn(User $user) => in_array($user->role, ['admin', 'superadmin']);
+
+        Gate::define('resolveDisputes',        $isAdmin);
+        Gate::define('viewDashboard',          $isAdmin);
+        Gate::define('viewAllConversations',   $isAdmin);
+        Gate::define('sendSystemMessages',     $isAdmin);
+        Gate::define('manageUsers',            $isAdmin);
+        Gate::define('viewReports',            $isAdmin);
     }
 }
