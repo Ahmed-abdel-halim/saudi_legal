@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\Request;
+
+class AdminExpertController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = User::where('role', 'expert');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('expert_domain', 'like', "%{$search}%")
+                  ->orWhere('expert_specialization', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('domain')) {
+            $query->where('expert_domain', $request->domain);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active' ? 1 : 0);
+        }
+
+        if ($request->filled('hire')) {
+            $query->where('is_active_for_hire', $request->hire === 'yes' ? 1 : 0);
+        }
+
+        $experts = $query->orderBy('rating_average', 'desc')->paginate(20);
+
+        $totalExperts     = User::where('role', 'expert')->count();
+        $activeExperts    = User::where('role', 'expert')->where('is_active', 1)->count();
+        $forHireExperts   = User::where('role', 'expert')->where('is_active_for_hire', 1)->count();
+        $domains          = User::where('role', 'expert')->whereNotNull('expert_domain')
+                                ->distinct()->pluck('expert_domain');
+
+        return view('admin.experts.index', compact(
+            'experts', 'totalExperts', 'activeExperts', 'forHireExperts', 'domains'
+        ));
+    }
+
+    public function toggleStatus($id)
+    {
+        $expert = User::where('role', 'expert')->findOrFail($id);
+        $expert->is_active = !$expert->is_active;
+        $expert->save();
+
+        $msg = $expert->is_active ? 'Expert activated successfully.' : 'Expert suspended successfully.';
+        return back()->with('success', $msg);
+    }
+
+    public function destroy($id)
+    {
+        $expert = User::where('role', 'expert')->findOrFail($id);
+        $expert->delete();
+        return back()->with('success', 'Expert permanently deleted.');
+    }
+}
