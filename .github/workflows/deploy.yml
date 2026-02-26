@@ -21,6 +21,8 @@ jobs:
           script: |
             cd ~/laravel-core
             git pull origin master
+            npm ci
+            npm run build
             php artisan storage:link
             php artisan optimize
             chmod -R 775 storage bootstrap/cache
