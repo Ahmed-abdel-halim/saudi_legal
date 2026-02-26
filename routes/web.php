@@ -128,6 +128,7 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/legal/terms', [LegalController::class, 'terms'])->name('legal.terms');
 Route::get('/legal/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
 Route::get('/legal/msa', [LegalController::class, 'msa'])->name('legal.msa');
+Route::get('/legal/nda', [LegalController::class, 'nda'])->name('legal.nda');
 
 // Debug route to test notifications
 Route::get('/test-notifications', function() {

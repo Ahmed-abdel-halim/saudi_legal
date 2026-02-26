@@ -29,4 +29,12 @@ class LegalController extends Controller
     {
         return view('legal.msa');
     }
+
+    /**
+     * Display the NDA (Non-Disclosure Agreement) page.
+     */
+    public function nda()
+    {
+        return view('legal.nda');
+    }
 }
