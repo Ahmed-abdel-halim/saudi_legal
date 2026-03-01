@@ -18,10 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'expert' => \App\Http\Middleware\EnsureUserIsExpert::class,
-            'company' => \App\Http\Middleware\EnsureUserIsCompany::class,
-            'freelancer' => \App\Http\Middleware\FreelancerMiddleware::class,
-            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'expert'      => \App\Http\Middleware\EnsureUserIsExpert::class,
+            'company'     => \App\Http\Middleware\EnsureUserIsCompany::class,
+            'freelancer'  => \App\Http\Middleware\FreelancerMiddleware::class,
+            'admin'       => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'superadmin'  => \App\Http\Middleware\EnsureUserIsSuperAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
