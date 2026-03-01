@@ -169,46 +169,46 @@
                 </p>
 
                 {{-- Feature list --}}
-                <div class="space-y-3 text-{{ $isRtl ? 'right' : 'left' }}">
+                <div class="space-y-4 w-full {{ $isRtl ? 'text-right' : 'text-left' }}">
                     {{-- Role access --}}
                     <div class="flex items-center gap-4 p-4 rounded-xl {{ $isRtl ? 'flex-row-reverse' : '' }}"
                          style="background:rgba(79,70,229,0.1);border:1px solid rgba(79,70,229,0.2);">
-                        <div class="w-9 h-9 rounded-lg bg-brand-primary/20 flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-10 h-10 rounded-lg bg-brand-primary/20 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                             </svg>
                         </div>
-                        <div>
+                        <div class="flex-1">
                             <p class="text-white font-semibold text-sm">{{ __('auth.SA_FEATURE_ROLE', [], $currentLang) }}</p>
-                            <p class="text-slate-400 text-xs mt-0.5">{{ __('auth.SA_FEATURE_ROLE_DESC', [], $currentLang) }}</p>
+                            <p class="text-slate-400 text-xs mt-1">{{ __('auth.SA_FEATURE_ROLE_DESC', [], $currentLang) }}</p>
                         </div>
                     </div>
                     {{-- Rate limit --}}
                     <div class="flex items-center gap-4 p-4 rounded-xl {{ $isRtl ? 'flex-row-reverse' : '' }}"
                          style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);">
-                        <div class="w-9 h-9 rounded-lg bg-brand-secondary/20 flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4 text-brand-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-10 h-10 rounded-lg bg-brand-secondary/20 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5 text-brand-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                             </svg>
                         </div>
-                        <div>
+                        <div class="flex-1">
                             <p class="text-white font-semibold text-sm">{{ __('auth.SA_FEATURE_RATE', [], $currentLang) }}</p>
-                            <p class="text-slate-400 text-xs mt-0.5">{{ __('auth.SA_FEATURE_RATE_DESC', [], $currentLang) }}</p>
+                            <p class="text-slate-400 text-xs mt-1">{{ __('auth.SA_FEATURE_RATE_DESC', [], $currentLang) }}</p>
                         </div>
                     </div>
                     {{-- Audit --}}
                     <div class="flex items-center gap-4 p-4 rounded-xl {{ $isRtl ? 'flex-row-reverse' : '' }}"
                          style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);">
-                        <div class="w-9 h-9 rounded-lg bg-brand-teal/20 flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-10 h-10 rounded-lg bg-brand-teal/20 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                             </svg>
                         </div>
-                        <div>
+                        <div class="flex-1">
                             <p class="text-white font-semibold text-sm">{{ __('auth.SA_FEATURE_AUDIT', [], $currentLang) }}</p>
-                            <p class="text-slate-400 text-xs mt-0.5">{{ __('auth.SA_FEATURE_AUDIT_DESC', [], $currentLang) }}</p>
+                            <p class="text-slate-400 text-xs mt-1">{{ __('auth.SA_FEATURE_AUDIT_DESC', [], $currentLang) }}</p>
                         </div>
                     </div>
                 </div>
