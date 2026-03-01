@@ -12,6 +12,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpertDashboardController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\LegalController;
+use App\Http\Controllers\Auth\SuperAdminLoginController;
 
 // Home Route
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -205,8 +206,14 @@ Route::post('/activate/{id}', [ActivationController::class, 'activate'])->name('
 Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');
 Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('suppliers.show');
 
+// ─── Super Admin Login Portal ─────────────────────────────────────────────
+// GET: no throttle (just viewing the page)
+Route::get('/superadmin', [SuperAdminLoginController::class, 'showLoginForm'])->name('superadmin.login');
+// POST: rate-limited to 5 login attempts per 10 minutes per IP
+Route::post('/superadmin', [SuperAdminLoginController::class, 'store'])->middleware('throttle:5,10')->name('superadmin.login.handle');
+
 // Admin Routes
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->group(function () {
     // Super Admin Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('dashboard');
     
