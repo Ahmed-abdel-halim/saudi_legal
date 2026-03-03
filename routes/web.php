@@ -48,11 +48,29 @@ Route::get('/forgot-password', function () {
 
 Route::post('/forgot-password', function() { return back()->with('status', __('auth.PASSWORD_RESET_SENT'));})->name('password.email');
 Route::post('/logout', function () {
+    // Revoke all Sanctum tokens for this user if authenticated via Sanctum
+    if (auth()->check()) {
+        auth()->user()->tokens()->delete();
+    }
     \Illuminate\Support\Facades\Auth::logout();
     request()->session()->invalidate();
     request()->session()->regenerateToken();
-    return redirect()->route('home')->with('success', __('header.LOGOUT_SUCCESS', [], app()->getLocale()));
-})->name('logout')->middleware('auth');
+    return redirect()->route('home')
+        ->withCookie(cookie()->forget('superadmin_token'))
+        ->withCookie(cookie()->forget('impersonation_token'))
+        ->with('success', __('header.LOGOUT_SUCCESS', [], app()->getLocale()));
+})->name('logout');
+
+// Super Admin dedicated logout (redirect to SA login page)
+Route::post('/superadmin/logout', function () {
+    if (auth()->check()) {
+        auth()->user()->tokens()->where('name', 'superadmin_token')->delete();
+    }
+    return redirect()->route('superadmin.login')
+        ->withCookie(cookie()->forget('superadmin_token'))
+        ->withCookie(cookie()->forget('impersonation_token'))
+        ->with('success', 'You have been securely logged out of the admin portal.');
+})->name('superadmin.logout');
 
 
 // Public Expert's Dashboard Routes
@@ -213,7 +231,7 @@ Route::get('/superadmin', [SuperAdminLoginController::class, 'showLoginForm'])->
 Route::post('/superadmin', [SuperAdminLoginController::class, 'store'])->middleware('throttle:5,10')->name('superadmin.login.handle');
 
 // Admin Routes
-Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['superadmin'])->prefix('admin')->name('admin.')->group(function () {
     // Super Admin Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('dashboard');
     
@@ -256,7 +274,13 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
 
     // Financials
     Route::get('/financials', [\App\Http\Controllers\Admin\AdminFinancialController::class, 'index'])->name('financials.index');
+    // Impersonation feature
+    Route::post('/impersonate/{user}', [App\Http\Controllers\Admin\ImpersonationController::class, 'start'])->name('impersonate.start');
 });
+
+// Impersonation Stop Route (available to anyone with an impersonation_token cookie)
+Route::post('/impersonate/stop', [App\Http\Controllers\Admin\ImpersonationController::class, 'stop'])
+    ->name('impersonate.stop');
 
 
 // Freelancer Routes
