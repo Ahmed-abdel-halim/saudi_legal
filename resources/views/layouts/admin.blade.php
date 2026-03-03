@@ -127,7 +127,7 @@
                 </nav>
 
                 <div class="mt-8 border-t border-slate-700/50 pt-6">
-                    <form method="POST" action="{{ route('logout') }}">
+                    <form method="POST" action="{{ route('superadmin.logout') }}">
                         @csrf
                         <button type="submit" class="flex items-center w-full px-4 py-2 text-slate-400 rounded-lg hover:bg-red-500/10 hover:text-red-500 transition group items-start rtl:items-start text-left rtl:text-right text-start">
                             <i class="fa-solid fa-right-from-bracket w-6 text-center transition"></i>

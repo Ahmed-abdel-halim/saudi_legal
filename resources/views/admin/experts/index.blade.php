@@ -170,6 +170,18 @@
                     {{-- Actions --}}
                     <td class="px-5 py-4 text-right rtl:text-left">
                         <div class="flex items-center justify-end gap-2">
+                            {{-- Impersonate Expert --}}
+                            @if(auth()->user()->role === 'superadmin' && $expert->is_active)
+                                <form action="{{ route('admin.impersonate.start', $expert->id) }}" method="POST" class="inline-block">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-brand-primary hover:text-white hover:border-brand-primary hover:bg-brand-primary transition shadow-sm"
+                                        title="Login as Expert">
+                                        <i class="fa-solid fa-user-secret text-xs"></i>
+                                    </button>
+                                </form>
+                            @endif
+
                             <form action="{{ route('admin.experts.toggle-status', $expert->id) }}" method="POST" class="inline-block">
                                 @csrf
                                 @method('PATCH')

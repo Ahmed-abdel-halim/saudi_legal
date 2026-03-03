@@ -83,7 +83,23 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
 
 <body class="bg-slate-light text-gray-800 flex flex-col min-h-screen" dir="{{ $direction }}">
 
-    <header class="fixed w-full top-0 z-50 transition-all duration-300 glass shadow-sm" x-data="{ mobileMenuOpen: false }">
+    @if(request()->hasCookie('impersonation_token') && \Illuminate\Support\Facades\Auth::check())
+        <div class="bg-red-600 text-white text-center py-2 px-4 flex justify-between items-center fixed top-0 w-full z-[100] shadow-md">
+            <span>
+                <strong>⚠️ Impersonation Mode:</strong> You are currently viewing the platform as <strong>{{ auth()->user()->name }}</strong>. Actions you take will be logged.
+            </span>
+            <form action="{{ route('impersonate.stop') }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" class="bg-white text-red-600 px-3 py-1 rounded shadow text-sm font-bold hover:bg-red-50">
+                    Return to Admin
+                </button>
+            </form>
+        </div>
+        <!-- Add margin to body to push down content below the fixed banner -->
+        <style>body { padding-top: 48px; }</style>
+    @endif
+
+    <header class="fixed w-full top-0 z-50 transition-all duration-300 glass shadow-sm @if(request()->hasCookie('impersonation_token')) mt-[48px] @endif" x-data="{ mobileMenuOpen: false }">
         <nav class="container mx-auto px-6 py-3">
             <div class="flex justify-between items-center h-16">
 

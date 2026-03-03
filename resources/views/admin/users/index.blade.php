@@ -205,6 +205,18 @@
                                     @endif
                                 </form>
 
+                                {{-- Impersonate --}}
+                                @if(auth()->user()->role === 'superadmin' && $user->role !== 'superadmin' && $user->is_active)
+                                    <form action="{{ route('admin.impersonate.start', $user->id) }}" method="POST" class="inline-block">
+                                        @csrf
+                                        <button type="submit"
+                                            class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-brand-primary hover:text-white hover:border-brand-primary hover:bg-brand-primary transition shadow-sm"
+                                            title="Login as User">
+                                            <i class="fa-solid fa-user-secret text-xs"></i>
+                                        </button>
+                                    </form>
+                                @endif
+
                                 {{-- Delete --}}
                                 <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="inline-block">
                                     @csrf
