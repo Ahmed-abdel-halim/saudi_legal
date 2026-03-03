@@ -20,6 +20,11 @@ class FreelancerMiddleware
             return redirect()->route('login');
         }
 
+        // Superadmins who land here are not impersonating — send them to the admin dashboard
+        if (Auth::user()->role === 'superadmin') {
+            return redirect()->route('admin.dashboard');
+        }
+
         if (Auth::user()->role !== 'freelancer' && Auth::user()->role !== 'expert') {
             return redirect('/');
         }

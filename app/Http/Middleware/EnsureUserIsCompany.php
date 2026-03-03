@@ -21,6 +21,11 @@ class EnsureUserIsCompany
 
         $user = auth()->user();
 
+        // Superadmins who land here are not impersonating — send them to the admin dashboard
+        if ($user->role === 'superadmin') {
+            return redirect()->route('admin.dashboard');
+        }
+
         // If user is an expert, redirect them to their own dashboard
         if ($user->role === 'expert') {
             return redirect()->route('dashboard.expert')->with('error', 'Access denied. You are redirected to your dashboard.');

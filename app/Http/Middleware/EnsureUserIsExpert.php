@@ -19,6 +19,11 @@ class EnsureUserIsExpert
             return redirect()->route('login');
         }
 
+        // Superadmins who land here are not impersonating — send them to the admin dashboard
+        if (auth()->user()->role === 'superadmin') {
+            return redirect()->route('admin.dashboard');
+        }
+
         if (auth()->user()->role !== 'expert' && auth()->user()->role !== 'freelancer') {
             return redirect()->route('dashboard')->with('error', 'Access denied. This area is for experts only.');
         }
