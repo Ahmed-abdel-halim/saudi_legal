@@ -34,7 +34,9 @@ class AdminCompanyController extends Controller
             }
         }
 
-        $companies = $query->orderBy('created_at', 'desc')->paginate(20);
+        $companies = $query->with(['users' => function($q) {
+            $q->orderBy('id', 'asc')->limit(1);
+        }])->orderBy('created_at', 'desc')->paginate(20);
 
         $totalCompanies   = Company::count();
         $verifiedCount    = Company::where('is_verified_provider', true)->count();

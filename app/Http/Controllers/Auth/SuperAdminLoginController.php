@@ -15,9 +15,9 @@ class SuperAdminLoginController extends Controller
      * Show the Super Admin login form.
      * If already authenticated as superadmin, redirect to admin dashboard.
      */
-    public function showLoginForm()
+    public function showLoginForm(Request $request)
     {
-        if (Auth::check() && Auth::user()->role === 'superadmin') {
+        if ($request->hasCookie('superadmin_token')) {
             return redirect()->route('admin.dashboard');
         }
 
@@ -47,15 +47,11 @@ class SuperAdminLoginController extends Controller
 
         $credentials = $request->only('email', 'password');
 
-        if (Auth::attempt($credentials, false)) {
-            $user = Auth::user();
+        $user = \App\Models\User::where('email', $credentials['email'])->first();
 
+        if ($user && \Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
             // Role gate — only superadmin is allowed through this portal
             if ($user->role !== 'superadmin') {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-
                 // Count this as a failed attempt nonetheless
                 RateLimiter::hit($throttleKey, 600);
 
@@ -66,19 +62,18 @@ class SuperAdminLoginController extends Controller
 
             // Check account is active
             if (!$user->is_active) {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-
                 return back()->withErrors([
                     'email' => 'This Super Admin account has been suspended.',
                 ])->onlyInput('email');
             }
 
             RateLimiter::clear($throttleKey);
-            $request->session()->regenerate();
+            
+            // Generate Sanctum Token
+            $token = $user->createToken('superadmin_token')->plainTextToken;
+            $cookie = cookie('superadmin_token', $token, 1440); // 24 hours
 
-            return redirect()->intended(route('admin.dashboard'));
+            return redirect()->intended(route('admin.dashboard'))->withCookie($cookie);
         }
 
         // Failed attempt

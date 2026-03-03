@@ -25,6 +25,11 @@ class Company extends Model
         'rating',
     ];
 
+    public function users()
+    {
+        return $this->hasMany(User::class, 'company_id', 'company_id');
+    }
+
     // Disable timestamps if the legacy table doesn't have created_at/updated_at
     // public $timestamps = false; 
     // Assuming we might want to add them or they might exist. 
