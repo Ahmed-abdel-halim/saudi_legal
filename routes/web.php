@@ -295,3 +295,22 @@ Route::middleware(['auth', 'freelancer'])->prefix('freelancer')->name('freelance
     Route::get('/dashboard', [ExpertDashboardController::class, 'index'])->name('dashboard');
 });
 
+// ─── Stripe Payment Routes ──────────────────────────────────────────────────
+// Client-facing payment pages (auth required)
+Route::middleware('auth')->prefix('payment')->name('payment.')->group(function () {
+    Route::get('/checkout/{purchase}', [App\Http\Controllers\PaymentController::class, 'checkout'])->name('checkout');
+    Route::get('/success', [App\Http\Controllers\PaymentController::class, 'success'])->name('success');
+    Route::get('/cancel/{purchase}', [App\Http\Controllers\PaymentController::class, 'cancel'])->name('cancel');
+});
+
+// Stripe Webhook — NO auth, NO CSRF (signature verification is done inside the controller)
+Route::post('/stripe/webhook', [App\Http\Controllers\PaymentController::class, 'webhook'])->name('stripe.webhook');
+
+// Friendly GET handler so browsers don't see a raw 405 error
+Route::get('/stripe/webhook', function () {
+    return response()->json([
+        'status'  => 'ok',
+        'message' => 'This endpoint accepts POST requests from Stripe only. Do not call it directly from a browser.',
+        'docs'    => 'https://stripe.com/docs/webhooks',
+    ], 200);
+});
