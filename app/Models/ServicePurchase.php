@@ -16,8 +16,12 @@ class ServicePurchase extends Model
         'hours_purchased',
         'hourly_rate',
         'total_price',
-        'status', // pending, accepted, rejected, completed, cancelled
+        'status', // pending, paid, accepted, rejected, completed, cancelled
         'service_status', // awaiting_start, in_progress, etc.
+        'stripe_session_id',
+        'stripe_payment_intent_id',
+        'payment_status', // unpaid, paid
+        'paid_at',
         'accepted_at',
         'started_at',
         'finished_at',
@@ -28,11 +32,12 @@ class ServicePurchase extends Model
     ];
 
     protected $casts = [
-        'accepted_at' => 'datetime',
-        'started_at' => 'datetime',
-        'finished_at' => 'datetime',
+        'paid_at'      => 'datetime',
+        'accepted_at'  => 'datetime',
+        'started_at'   => 'datetime',
+        'finished_at'  => 'datetime',
         'completed_at' => 'datetime',
-        'resolved_at' => 'datetime',
+        'resolved_at'  => 'datetime',
     ];
 
     // Relationships

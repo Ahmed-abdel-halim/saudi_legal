@@ -430,14 +430,12 @@ class ServiceController extends Controller
             'hourly_rate' => $hourlyRate,
             'total_price' => $request->input('hours') * $hourlyRate,
             'status' => 'pending',
+            'payment_status' => 'unpaid',
         ]);
 
-        // Notify Expert
-        $expert = \App\Models\User::find($expertId);
-        if ($expert) {
-            $expert->notify(new \App\Notifications\NewServiceRequestNotification($purchase));
-        }
-
-        return redirect()->route('services.show', $id)->with('success', 'Service purchase request sent successfully!');
+        // Redirect to Stripe Checkout.
+        // Payment confirmation is handled exclusively by the Stripe Webhook.
+        // The expert will be notified automatically once Stripe confirms payment.
+        return redirect()->route('payment.checkout', $purchase->id);
     }
 }
