@@ -19,7 +19,14 @@ class NewServiceRequestNotification extends Notification implements ShouldQueue,
 
     public function via($notifiable): array
     {
-        return ['database', 'mail', 'broadcast'];
+        $channels = ['database', 'broadcast'];
+
+        // Only add mail channel if MAIL_FROM_ADDRESS is configured
+        if (config('mail.from.address') && config('mail.from.address') !== 'hello@example.com') {
+            $channels[] = 'mail';
+        }
+
+        return $channels;
     }
 
     public function toMail($notifiable): MailMessage

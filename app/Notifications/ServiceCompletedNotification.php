@@ -17,7 +17,11 @@ class ServiceCompletedNotification extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        $channels = ['database'];
+        if (config('mail.from.address') && config('mail.from.address') !== 'hello@example.com') {
+            $channels[] = 'mail';
+        }
+        return $channels;
     }
 
     public function toMail($notifiable): MailMessage
