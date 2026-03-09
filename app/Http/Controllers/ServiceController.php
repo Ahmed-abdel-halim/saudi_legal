@@ -424,25 +424,67 @@ class ServiceController extends Controller
         $expertId = $service->expert_id ?? $service->user_id; 
         $hourlyRate = $service->price ?? $service->hourly_rate;
 
-        $purchase = \App\Models\ServicePurchase::create([
-            'expert_id' => $expertId,
-            'client_id' => auth()->id(),
-            'service_id' => $id,
-            'hours_purchased' => $request->input('hours'),
-            'hourly_rate' => $hourlyRate,
-            'total_price' => $request->input('hours') * $hourlyRate,
-            'status' => 'pending',
-            'payment_status' => 'unpaid',
-        ]);
+        // ── Strict Idempotency Guard ──────────────────────────────────────────
+        // Prevent creating duplicate purchases + chats if the user retries.
+        // If there's already a pending/unpaid purchase for this service by this client, reuse it.
+        $existingPurchase = \App\Models\ServicePurchase::where('client_id', auth()->id())
+            ->where('service_id', $id)
+            ->where('expert_id', $expertId)
+            ->whereIn('payment_status', ['unpaid'])
+            ->whereIn('status', ['pending'])
+            ->latest()
+            ->first();
 
-        // Immediately create a chat conversation for this purchase
-        $chatService = app(\App\Services\ChatService::class);
-        $chatService->createChatForPurchase($purchase);
+        if ($existingPurchase) {
+            // Reuse the existing purchase — redirect straight to checkout
+            return redirect()->route('payment.checkout', $existingPurchase->id);
+        }
 
-        // Notify the expert about the new service request via websocket/database
+        // ── Atomic purchase + chat creation ──────────────────────────────────
+        try {
+            $purchase = DB::transaction(function () use ($id, $expertId, $hourlyRate, $request) {
+                $purchase = \App\Models\ServicePurchase::create([
+                    'expert_id'       => $expertId,
+                    'client_id'       => auth()->id(),
+                    'service_id'      => $id,
+                    'hours_purchased' => $request->input('hours'),
+                    'hourly_rate'     => $hourlyRate,
+                    'total_price'     => $request->input('hours') * $hourlyRate,
+                    'status'          => 'pending',
+                    'payment_status'  => 'unpaid',
+                ]);
+
+                // Create the chat immediately — inside the transaction so if it
+                // fails the purchase is rolled back too (no orphan purchase).
+                $chatService = app(\App\Services\ChatService::class);
+                $chatService->createChatForPurchase($purchase);
+
+                return $purchase;
+            });
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Purchase creation failed', [
+                'client_id'  => auth()->id(),
+                'service_id' => $id,
+                'error'      => $e->getMessage(),
+            ]);
+            return redirect()->back()->withErrors([
+                'error' => __('An error occurred while placing your request. Please try again.'),
+            ]);
+        }
+
+        // Notify the expert after successful transaction (outside, so a
+        // notification failure never rolls back the purchase).
         $expert = \App\Models\User::find($expertId);
         if ($expert) {
-            $expert->notify(new \App\Notifications\NewServiceRequestNotification($purchase));
+            try {
+                $expert->notify(new \App\Notifications\NewServiceRequestNotification($purchase));
+            } catch (\Throwable $e) {
+                // Notification failure must NOT block the user flow
+                \Illuminate\Support\Facades\Log::warning('Expert notification failed', [
+                    'expert_id' => $expertId,
+                    'error'     => $e->getMessage(),
+                ]);
+            }
         }
 
         // Redirect to Stripe Checkout.
