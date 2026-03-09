@@ -1,0 +1,210 @@
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\GovernanceSystemTest::it_validates_correct_gold_standard_answer(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\GovernanceSystemTest::it_penalizes_incorrect_gold_standard_answer(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\GovernanceSystemTest::it_evaluates_consensus_for_normal_tasks(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ServiceLifecycleTest::offer_acceptance_creates_conversation(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ServiceLifecycleTest::service_lifecycle_completes_successfully(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ServiceLifecycleTest::dispute_can_be_opened_and_resolved(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ServiceLifecycleTest::hourly_purchase_acceptance_creates_conversation(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ServiceLifecycleTest::unauthorized_user_cannot_access_conversation(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ServiceLifecycleTest::admin_can_access_any_conversation(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ServiceLifecycleTest::review_updates_expert_ratings(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ServiceLifecycleTest::cannot_submit_duplicate_review(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\TaskAssignmentTest::it_assigns_task_to_eligible_expert(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\TaskAssignmentTest::it_prevents_duplicate_assignment_to_same_expert(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\TaskAssignmentTest::it_stops_assigning_when_max_locks_reached(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\TaskAssignmentTest::it_respects_gold_standard_injection(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\WorkbenchPreviousTaskTest::it_loads_the_most_recently_processed_task(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\WorkbenchPreviousTaskTest::it_loads_skipped_tasks(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\WorkbenchPreviousTaskTest::it_navigates_backwards_through_history(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   FAIL  Tests\Feature\ServiceLifecycleTest
+  ظذ» offer acceptance creates conversation
+  ظذ» service lifecycle completes successfully
+  ظذ» dispute can be opened and resolved
+  ظذ» hourly purchase acceptance creates conversation
+  ظذ» unauthorized user cannot access conversation
+  ظذ» admin can access any conversation
+  ظذ» review updates expert ratings
+  ظذ» cannot submit duplicate review
+  ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤  
+   FAILED  Tests\Feature\ServiceLifecycleTest > offer acceptance creates conversظخ  QueryException   
+  SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error (Connection: sqlite, Database: :memory:, SQL: ALTER TABLE projects MODIFY COLUMN status ENUM('open', 'in_progress', 'completed', 'posted') DEFAULT 'open')
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+    834ظûـ             $exceptionType = $this->isUniqueConstraintError($e)
+    835ظûـ                 ? UniqueConstraintViolationException::class
+    836ظûـ                 : QueryException::class;
+    837ظûـ 
+  ظئ£ 838ظûـ             throw new $exceptionType(
+    839ظûـ                 $this->getNameWithReadWriteType(),
+    840ظûـ                 $query,
+    841ظûـ                 $this->prepareBindings($bindings),
+    842ظûـ                 $e,
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:578
+      NunoMaduro\Collision\Exceptions\TestException::("SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error")
+
+  ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤  
+   FAILED  Tests\Feature\ServiceLifecycleTest > service lifecycle completes succظخ  QueryException   
+  SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error (Connection: sqlite, Database: :memory:, SQL: ALTER TABLE projects MODIFY COLUMN status ENUM('open', 'in_progress', 'completed', 'posted') DEFAULT 'open')
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+    834ظûـ             $exceptionType = $this->isUniqueConstraintError($e)
+    835ظûـ                 ? UniqueConstraintViolationException::class
+    836ظûـ                 : QueryException::class;
+    837ظûـ 
+  ظئ£ 838ظûـ             throw new $exceptionType(
+    839ظûـ                 $this->getNameWithReadWriteType(),
+    840ظûـ                 $query,
+    841ظûـ                 $this->prepareBindings($bindings),
+    842ظûـ                 $e,
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:578
+      NunoMaduro\Collision\Exceptions\TestException::("SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error")
+
+  ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤  
+   FAILED  Tests\Feature\ServiceLifecycleTest > dispute can be opened and resolvظخ  QueryException   
+  SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error (Connection: sqlite, Database: :memory:, SQL: ALTER TABLE projects MODIFY COLUMN status ENUM('open', 'in_progress', 'completed', 'posted') DEFAULT 'open')
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+    834ظûـ             $exceptionType = $this->isUniqueConstraintError($e)
+    835ظûـ                 ? UniqueConstraintViolationException::class
+    836ظûـ                 : QueryException::class;
+    837ظûـ 
+  ظئ£ 838ظûـ             throw new $exceptionType(
+    839ظûـ                 $this->getNameWithReadWriteType(),
+    840ظûـ                 $query,
+    841ظûـ                 $this->prepareBindings($bindings),
+    842ظûـ                 $e,
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:578
+      NunoMaduro\Collision\Exceptions\TestException::("SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error")
+
+  ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤  
+   FAILED  Tests\Feature\ServiceLifecycleTest > hourly purchase acceptance creatظخ  QueryException   
+  SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error (Connection: sqlite, Database: :memory:, SQL: ALTER TABLE projects MODIFY COLUMN status ENUM('open', 'in_progress', 'completed', 'posted') DEFAULT 'open')
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+    834ظûـ             $exceptionType = $this->isUniqueConstraintError($e)
+    835ظûـ                 ? UniqueConstraintViolationException::class
+    836ظûـ                 : QueryException::class;
+    837ظûـ 
+  ظئ£ 838ظûـ             throw new $exceptionType(
+    839ظûـ                 $this->getNameWithReadWriteType(),
+    840ظûـ                 $query,
+    841ظûـ                 $this->prepareBindings($bindings),
+    842ظûـ                 $e,
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:578
+      NunoMaduro\Collision\Exceptions\TestException::("SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error")
+
+  ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤  
+   FAILED  Tests\Feature\ServiceLifecycleTest > unauthorized user cannot accessظخ   QueryException   
+  SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error (Connection: sqlite, Database: :memory:, SQL: ALTER TABLE projects MODIFY COLUMN status ENUM('open', 'in_progress', 'completed', 'posted') DEFAULT 'open')
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+    834ظûـ             $exceptionType = $this->isUniqueConstraintError($e)
+    835ظûـ                 ? UniqueConstraintViolationException::class
+    836ظûـ                 : QueryException::class;
+    837ظûـ 
+  ظئ£ 838ظûـ             throw new $exceptionType(
+    839ظûـ                 $this->getNameWithReadWriteType(),
+    840ظûـ                 $query,
+    841ظûـ                 $this->prepareBindings($bindings),
+    842ظûـ                 $e,
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:578
+      NunoMaduro\Collision\Exceptions\TestException::("SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error")
+
+  ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤  
+   FAILED  Tests\Feature\ServiceLifecycleTest > admin can access any conversatioظخ  QueryException   
+  SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error (Connection: sqlite, Database: :memory:, SQL: ALTER TABLE projects MODIFY COLUMN status ENUM('open', 'in_progress', 'completed', 'posted') DEFAULT 'open')
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+    834ظûـ             $exceptionType = $this->isUniqueConstraintError($e)
+    835ظûـ                 ? UniqueConstraintViolationException::class
+    836ظûـ                 : QueryException::class;
+    837ظûـ 
+  ظئ£ 838ظûـ             throw new $exceptionType(
+    839ظûـ                 $this->getNameWithReadWriteType(),
+    840ظûـ                 $query,
+    841ظûـ                 $this->prepareBindings($bindings),
+    842ظûـ                 $e,
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:578
+      NunoMaduro\Collision\Exceptions\TestException::("SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error")
+
+  ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤  
+   FAILED  Tests\Feature\ServiceLifecycleTest > review updates expert ratings      QueryException   
+  SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error (Connection: sqlite, Database: :memory:, SQL: ALTER TABLE projects MODIFY COLUMN status ENUM('open', 'in_progress', 'completed', 'posted') DEFAULT 'open')
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+    834ظûـ             $exceptionType = $this->isUniqueConstraintError($e)
+    835ظûـ                 ? UniqueConstraintViolationException::class
+    836ظûـ                 : QueryException::class;
+    837ظûـ 
+  ظئ£ 838ظûـ             throw new $exceptionType(
+    839ظûـ                 $this->getNameWithReadWriteType(),
+    840ظûـ                 $query,
+    841ظûـ                 $this->prepareBindings($bindings),
+    842ظûـ                 $e,
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:578
+      NunoMaduro\Collision\Exceptions\TestException::("SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error")
+
+  ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤  
+   FAILED  Tests\Feature\ServiceLifecycleTest > cannot submit duplicate review     QueryException   
+  SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error (Connection: sqlite, Database: :memory:, SQL: ALTER TABLE projects MODIFY COLUMN status ENUM('open', 'in_progress', 'completed', 'posted') DEFAULT 'open')
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+    834ظûـ             $exceptionType = $this->isUniqueConstraintError($e)
+    835ظûـ                 ? UniqueConstraintViolationException::class
+    836ظûـ                 : QueryException::class;
+    837ظûـ 
+  ظئ£ 838ظûـ             throw new $exceptionType(
+    839ظûـ                 $this->getNameWithReadWriteType(),
+    840ظûـ                 $query,
+    841ظûـ                 $this->prepareBindings($bindings),
+    842ظûـ                 $e,
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:578
+      NunoMaduro\Collision\Exceptions\TestException::("SQLSTATE[HY000]: General error: 1 near "MODIFY": syntax error")
+
+
+  Tests:    8 failed (0 assertions)
+  Duration: 3.04s
+

@@ -1,0 +1,31 @@
+Starting End-to-End Workflow Simulation...
+Step 1: Registering Provider Company & Employee
+Provider Company Created: Tech Solutions Ltd (Sim) (Balance: SAR 0)
+Employee Created: Alice Expert (Sim) (Balance: SAR 0)
+Service Created: Advanced Code Review (Sim) at 150 SAR/hr
+
+Step 2: Registering Client Company & User
+Client Company Created: Startup Inc (Sim)
+
+Step 3: Client Requests Service & Chat is initialized
+Service Requested - Total Price: 750 SAR
+Chat Conversation created and initialized.
+
+Step 4: Simulating Stripe Payment (Escrow)
+Payment Confirmed! Funds are held in Escrow.
+
+Step 5: Simulating Service Completion by Client
+Service Marked Completed by Client.
+
+Step 6: Verifying Payment Distribution splits
+Total Paid: 750 SAR
+Platform Commission (20%): 150 SAR
+Employee Shared Wallet Balance (+40%): 300.00 SAR
+Provider Company Wallet Balance (+40%): 300.00 SAR
+
+Step 7: Testing 200 SAR Withdrawal Limit Rule
+Testing Employee Withdrawal: Current Balance = 300.00
+Attempting to withdraw 150 SAR (less than 200 minimum limit)...
+
+ظإî SIMULATION FAILED: 
+Attempt to read property "wallet_balance" on null
