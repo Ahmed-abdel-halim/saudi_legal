@@ -1,4 +1,5 @@
 @extends(Auth::user()->role === 'expert' ? 'layouts.expert' : 'layouts.app')
+@section('full_page', true)
 
 @section('content')
 <div class="h-[calc(100vh-80px)] bg-slate-50 flex items-center justify-center py-4 px-4 overflow-hidden">
@@ -62,38 +63,48 @@
             </div>
 
             @foreach($conversation->messages as $message)
-                @php
-                    $isMe = $message->sender_id == Auth::id();
-                    $user = $isMe ? Auth::user() : $otherUser;
-                @endphp
-                <div class="flex w-full {{ $isMe ? 'justify-end' : 'justify-start' }} group animate-fade-in-up">
-                    <div class="flex max-w-[85%] sm:max-w-[70%] gap-3 {{ $isMe ? 'flex-row-reverse' : 'flex-row' }}">
-                        
-                        <!-- Avatar -->
-                        <div class="flex-shrink-0 self-end mb-1">
-                             <img src="{{ $user->avatar_path ? asset('uploads/' . $user->avatar_path) : 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&background='.($isMe ? 'indigo' : 'random').'&color=fff&size=64' }}" 
-                                 class="w-8 h-8 rounded-full object-cover shadow-sm border border-white"
-                                 onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=random&color=fff&size=64'">
-                        </div>
-
-                        <!-- Message Bubble -->
-                        <div class="flex flex-col {{ $isMe ? 'items-end' : 'items-start' }}">
-                            <div class="px-5 py-3.5 shadow-md text-sm leading-relaxed relative
-                                {{ $isMe 
-                                    ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-[1.2rem] rounded-br-sm rtl:rounded-br-[1.2rem] rtl:rounded-bl-sm' 
-                                    : 'bg-white text-slate-700 border border-slate-100 rounded-[1.2rem] rounded-bl-sm rtl:rounded-bl-[1.2rem] rtl:rounded-br-sm' 
-                                }}">
-                                <p class="whitespace-pre-wrap break-words">{{ $message->content }}</p>
-                            </div>
-                            <span class="text-[10px] font-bold text-slate-400 mt-1.5 px-1 flex items-center gap-1">
-                                {{ $message->created_at->format('h:i A') }}
-                                @if($isMe)
-                                    <i class="fa-solid fa-check-double {{ $message->is_read ? 'text-indigo-500' : 'text-slate-300' }}"></i>
-                                @endif
-                            </span>
+                @if($message->sender_id === null)
+                    <!-- System Message -->
+                    <div class="flex justify-center w-full my-4 animate-fade-in-up">
+                        <div class="bg-indigo-50 border border-indigo-100 text-indigo-800 text-xs font-medium px-4 py-2 rounded-full shadow-sm text-center">
+                            <i class="fa-solid fa-robot me-1.5 opacity-70"></i>
+                            {{ __($message->content) }}
                         </div>
                     </div>
-                </div>
+                @else
+                    @php
+                        $isMe = $message->sender_id == Auth::id();
+                        $user = $isMe ? Auth::user() : $otherUser;
+                    @endphp
+                    <div class="flex w-full {{ $isMe ? 'justify-end' : 'justify-start' }} group animate-fade-in-up">
+                        <div class="flex max-w-[85%] sm:max-w-[70%] gap-3 {{ $isMe ? 'flex-row-reverse' : 'flex-row' }}">
+                            
+                            <!-- Avatar -->
+                            <div class="flex-shrink-0 self-end mb-1">
+                                <img src="{{ $user->avatar_path ? asset('uploads/' . $user->avatar_path) : 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&background='.($isMe ? '4F46E5' : '64748b').'&color=fff&size=64&bold=true' }}" 
+                                     class="w-8 h-8 rounded-full object-cover shadow-sm border border-white"
+                                     onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=64748b&color=fff&size=64&bold=true'">
+                            </div>
+
+                            <!-- Message Bubble -->
+                            <div class="flex flex-col {{ $isMe ? 'items-end' : 'items-start' }}">
+                                <div class="px-5 py-3.5 shadow-md text-sm leading-relaxed relative
+                                    {{ $isMe 
+                                        ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-[1.2rem] rounded-br-sm rtl:rounded-br-[1.2rem] rtl:rounded-bl-sm' 
+                                        : 'bg-white text-slate-700 border border-slate-100 rounded-[1.2rem] rounded-bl-sm rtl:rounded-bl-[1.2rem] rtl:rounded-br-sm' 
+                                    }}">
+                                    <p class="whitespace-pre-wrap break-words" dir="auto">{{ $message->content }}</p>
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-400 mt-1.5 px-1 flex items-center gap-1">
+                                    {{ $message->created_at->format('h:i A') }}
+                                    @if($isMe)
+                                        <i class="fa-solid fa-check-double {{ $message->is_read ? 'text-indigo-500' : 'text-slate-300' }}"></i>
+                                    @endif
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             @endforeach
         </div>
 
@@ -158,28 +169,43 @@
             btn.disabled = true;
             const originalHtml = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
-            
-            axios.post(chatForm.action, {
-                content: content
-            }, {
+
+            // Use FormData so the @csrf _token field is sent automatically
+            const formData = new FormData();
+            formData.append('content', content);
+            formData.append('_token', chatForm.querySelector('input[name="_token"]').value);
+
+            fetch(chatForm.action, {
+                method: 'POST',
                 headers: {
-                    'X-Socket-ID': typeof window.Echo !== 'undefined' ? window.Echo.socketId() : ''
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: formData,
+            })
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) {
+                    console.error('Server error:', data);
+                    throw new Error(data.message || 'Server error ' + res.status);
                 }
-            }).then(response => {
+                return data;
+            })
+            .then(data => {
                 textarea.value = '';
                 textarea.style.height = '';
                 btn.innerHTML = originalHtml;
                 btn.disabled = false;
-                
-                if (response.data && response.data.message) {
-                    appendOutgoingMessage(response.data.message);
-                } else {
-                    window.location.reload();
+
+                if (data && data.message) {
+                    appendOutgoingMessage(data.message);
                 }
-            }).catch(error => {
-                console.error(error);
+            })
+            .catch(error => {
+                console.error('Send message error:', error);
                 btn.innerHTML = originalHtml;
                 btn.disabled = false;
+                alert('Failed to send message: ' + error.message);
             });
         });
     }
@@ -191,7 +217,7 @@
             time = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         }
         
-        const avatarUrl = msg.sender_avatar ? assetUrl + '/' + msg.sender_avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.sender_name) + '&background=indigo&color=fff&size=64';
+        const avatarUrl = msg.sender_avatar ? assetUrl + '/' + msg.sender_avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.sender_name || 'Me') + '&background=4F46E5&color=fff&size=64&bold=true';
 
         const bubbleHtml = `
             <div class="flex w-full justify-end group animate-fade-in-up">
@@ -201,7 +227,7 @@
                     </div>
                     <div class="flex flex-col items-end">
                         <div class="px-5 py-3.5 shadow-md text-sm leading-relaxed relative bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-[1.2rem] rounded-br-sm rtl:rounded-br-[1.2rem] rtl:rounded-bl-sm">
-                            <p class="whitespace-pre-wrap break-words">${msg.content}</p>
+                            <p class="whitespace-pre-wrap break-words" dir="auto">${msg.content}</p>
                         </div>
                         <span class="text-[10px] font-bold text-slate-400 mt-1.5 px-1 flex items-center gap-1">
                             ${time} <i class="fa-solid fa-check-double text-slate-300"></i>
@@ -223,12 +249,27 @@
             
             window.Echo.private('chat.' + conversationId)
                 .listen('.message.sent', (e) => {
-                    if (e.sender_id !== currentUserId) {
+                    if (e.sender_id === null) {
+                        appendSystemMessage(e);
+                    } else if (e.sender_id !== currentUserId) {
                         appendIncomingMessage(e);
                     }
                 });
         }
     });
+
+    function appendSystemMessage(msg) {
+        const bubbleHtml = `
+            <div class="flex justify-center w-full my-4 animate-fade-in-up">
+                <div class="bg-indigo-50 border border-indigo-100 text-indigo-800 text-xs font-medium px-4 py-2 rounded-full shadow-sm text-center">
+                    <i class="fa-solid fa-robot me-1.5 opacity-70"></i>
+                    ${msg.content}
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', bubbleHtml);
+        scrollToBottom();
+    }
 
     function appendIncomingMessage(msg) {
         let time = '';
@@ -237,7 +278,7 @@
             time = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         }
         
-        const avatarUrl = msg.sender_avatar ? assetUrl + '/' + msg.sender_avatar : 'https://ui-avatars.com/api/?name=User&background=random&color=fff&size=64';
+        const avatarUrl = msg.sender_avatar ? assetUrl + '/' + msg.sender_avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.sender_name || 'User') + '&background=64748b&color=fff&size=64&bold=true';
 
         const bubbleHtml = `
             <div class="flex w-full justify-start group animate-fade-in-up">
@@ -247,7 +288,7 @@
                     </div>
                     <div class="flex flex-col items-start">
                         <div class="px-5 py-3.5 shadow-md text-sm leading-relaxed relative bg-white text-slate-700 border border-slate-100 rounded-[1.2rem] rounded-bl-sm rtl:rounded-bl-[1.2rem] rtl:rounded-br-sm">
-                            <p class="whitespace-pre-wrap break-words">${msg.content}</p>
+                            <p class="whitespace-pre-wrap break-words" dir="auto">${msg.content}</p>
                         </div>
                         <span class="text-[10px] font-bold text-slate-400 mt-1.5 px-1 flex items-center gap-1">
                             ${time}

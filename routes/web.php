@@ -135,11 +135,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/client/dashboard/metrics', [\App\Http\Controllers\ClientDashboardController::class, 'getMetrics'])->name('client.dashboard.metrics');
         Route::get('/client/dashboard/metrics', [\App\Http\Controllers\ClientDashboardController::class, 'getMetrics'])->name('client.dashboard.metrics');
 
+        // Service Purchase Completion route
+        Route::post('/client/purchases/{id}/complete', [\App\Http\Controllers\ServiceController::class, 'completePurchase'])->name('client.purchases.complete');
+
         // COMPANY/CLIENT CHAT routes (Prefix: dashboard)
         Route::get('/dashboard/messages', [ChatController::class, 'index'])->name('dashboard.chat.index');
         Route::get('/dashboard/messages/{id}', [ChatController::class, 'show'])->name('dashboard.chat.show');
         Route::post('/dashboard/messages/{id}/send', [ChatController::class, 'sendMessage'])->name('dashboard.chat.send');
     });
+
+    // Wallet Withdraw Routes
+    Route::post('/wallet/withdraw', [\App\Http\Controllers\WalletController::class, 'withdraw'])->name('wallet.withdraw');
 
 });
 

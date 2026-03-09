@@ -24,8 +24,9 @@ return new class extends Migration
             // So we MUST support 'posted'.
         });
         
-        // Raw statement to modify enum for MySQL/MariaDB
-        DB::statement("ALTER TABLE projects MODIFY COLUMN status ENUM('open', 'in_progress', 'completed', 'posted') DEFAULT 'open'");
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE projects MODIFY COLUMN status ENUM('open', 'in_progress', 'completed', 'posted') DEFAULT 'open'");
+        }
     }
 
     /**
@@ -36,6 +37,9 @@ return new class extends Migration
         Schema::table('projects', function (Blueprint $table) {
             $table->dropColumn(['scope_description', 'requested_duration_hours', 'max_hourly_rate']);
         });
-         DB::statement("ALTER TABLE projects MODIFY COLUMN status ENUM('open', 'in_progress', 'completed') DEFAULT 'open'");
+        
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE projects MODIFY COLUMN status ENUM('open', 'in_progress', 'completed') DEFAULT 'open'");
+        }
     }
 };

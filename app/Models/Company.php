@@ -21,8 +21,8 @@ class Company extends Model
         'is_requester',
         'is_supplier',
         'status',
-        'description',
-        'rating',
+        // Add wallet balance to fillable list
+        'wallet_balance',
     ];
 
     public function users()

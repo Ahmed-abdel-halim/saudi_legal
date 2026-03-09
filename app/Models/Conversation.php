@@ -15,6 +15,7 @@ class Conversation extends Model
         'participant_1',
         'participant_2',
         'status',
+        'is_active',
         'company_last_read_at',
         'expert_last_read_at',
     ];

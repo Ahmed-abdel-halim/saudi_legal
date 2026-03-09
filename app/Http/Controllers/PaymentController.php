@@ -101,7 +101,7 @@ class PaymentController extends Controller
 
         if ($sessionId) {
             $purchase = ServicePurchase::where('stripe_session_id', $sessionId)
-                ->with('service', 'expert')
+                ->with('service', 'expert', 'conversation')
                 ->first();
         }
 

@@ -59,12 +59,28 @@ class ChatController extends Controller
             abort(403);
         }
 
-        Message::create([
-            'conversation_id' => $conversation->id,
-            'sender_id' => $userId,
-            'content' => $request->content,
-            'is_read' => false,
-        ]);
+        $chatService = app(\App\Services\ChatService::class);
+        $message = $chatService->sendMessage(
+            $conversation,
+            $userId,
+            $request->content,
+            false // receiverIsPresent can be improved later via presence channel, false to ensure notification
+        );
+
+        if ($request->wantsJson()) {
+            $message->load('sender');
+            return response()->json([
+                'success' => true,
+                'message' => [
+                    'id' => $message->id,
+                    'content' => $message->content,
+                    'sender_id' => $message->sender_id,
+                    'sender_name' => $message->sender ? $message->sender->name : 'System',
+                    'sender_avatar' => $message->sender ? $message->sender->avatar_path : null,
+                    'created_at' => $message->created_at->toIso8601String(),
+                ]
+            ]);
+        }
 
         return back();
     }

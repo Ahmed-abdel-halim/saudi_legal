@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\ServicePurchase;
+use App\Models\WalletTransaction;
 
 class ServiceController extends Controller
 {
@@ -433,9 +435,88 @@ class ServiceController extends Controller
             'payment_status' => 'unpaid',
         ]);
 
+        // Immediately create a chat conversation for this purchase
+        $chatService = app(\App\Services\ChatService::class);
+        $chatService->createChatForPurchase($purchase);
+
+        // Notify the expert about the new service request via websocket/database
+        $expert = \App\Models\User::find($expertId);
+        if ($expert) {
+            $expert->notify(new \App\Notifications\NewServiceRequestNotification($purchase));
+        }
+
         // Redirect to Stripe Checkout.
         // Payment confirmation is handled exclusively by the Stripe Webhook.
-        // The expert will be notified automatically once Stripe confirms payment.
         return redirect()->route('payment.checkout', $purchase->id);
+    }
+
+    /**
+     * Complete a service purchase and distribute funds
+     */
+    public function completePurchase(Request $request, $id)
+    {
+        $purchase = ServicePurchase::with(['expert.company'])->findOrFail($id);
+
+        if ($purchase->client_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        if ($purchase->status === 'completed') {
+            return back()->with('error', 'Purchase is already completed.');
+        }
+
+        if ($purchase->payment_status !== 'paid') {
+            return back()->with('error', 'Purchase has not been paid yet.');
+        }
+
+        DB::transaction(function () use ($purchase) {
+            $purchase->update([
+                'status' => 'completed',
+                'service_status' => 'completed',
+                'completed_at' => now(),
+            ]);
+
+            $totalPrice = $purchase->total_price;
+            
+            // 20% Platform Commission
+            $platformCommission = $totalPrice * 0.20;
+            
+            // 40% Expert Wallet
+            $expertShare = $totalPrice * 0.40;
+            
+            // 40% Provider Company Wallet
+            $companyShare = $totalPrice * 0.40;
+
+            $expert = $purchase->expert;
+            $company = $expert->company;
+
+            // Credit Expert
+            if ($expert) {
+                $expert->increment('wallet_balance', $expertShare);
+                WalletTransaction::create([
+                    'user_id' => $expert->id,
+                    'type' => 'credit',
+                    'amount' => $expertShare,
+                    'description' => "40% Share from Service Completion (#{$purchase->id})",
+                    'reference_type' => ServicePurchase::class,
+                    'reference_id' => $purchase->id,
+                ]);
+            }
+
+            // Credit Company
+            if ($company) {
+                $company->increment('wallet_balance', $companyShare);
+                WalletTransaction::create([
+                    'company_id' => $company->company_id,
+                    'type' => 'credit',
+                    'amount' => $companyShare,
+                    'description' => "40% Share from Service Completion (#{$purchase->id})",
+                    'reference_type' => ServicePurchase::class,
+                    'reference_id' => $purchase->id,
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Service completed successfully. Payment has been distributed.');
     }
 }

@@ -153,10 +153,17 @@
 
             {{-- ── CTA Buttons ───────────────────────────────────────────── --}}
             <div class="px-8 pb-10 flex flex-col sm:flex-row gap-3">
-                <a href="{{ Auth::check() && in_array(Auth::user()->role, ['expert','freelancer']) ? route('dashboard.expert') : route('dashboard') }}"
-                   class="flex-1 text-center bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-black py-3.5 rounded-xl shadow-lg shadow-brand-primary/20 hover:shadow-xl hover:shadow-brand-primary/30 hover:-translate-y-0.5 transition-all text-sm">
-                    {{ app()->getLocale() === 'ar' ? 'الذهاب إلى لوحة التحكم' : 'Go to Dashboard' }}
-                </a>
+                @if($purchase && $purchase->conversation)
+                    <a href="{{ Auth::check() && in_array(Auth::user()->role, ['expert','freelancer']) ? route('dashboard.expert.chat.show', $purchase->conversation->id) : route('dashboard.chat.show', $purchase->conversation->id) }}"
+                       class="flex-1 text-center bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-black py-3.5 rounded-xl shadow-lg shadow-brand-primary/20 hover:shadow-xl hover:shadow-brand-primary/30 hover:-translate-y-0.5 transition-all text-sm">
+                        {{ app()->getLocale() === 'ar' ? 'الذهاب إلى المحادثة' : 'Go to Chat' }}
+                    </a>
+                @else
+                    <a href="{{ Auth::check() && in_array(Auth::user()->role, ['expert','freelancer']) ? route('dashboard.expert') : route('dashboard') }}"
+                       class="flex-1 text-center bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-black py-3.5 rounded-xl shadow-lg shadow-brand-primary/20 hover:shadow-xl hover:shadow-brand-primary/30 hover:-translate-y-0.5 transition-all text-sm">
+                        {{ app()->getLocale() === 'ar' ? 'الذهاب إلى لوحة التحكم' : 'Go to Dashboard' }}
+                    </a>
+                @endif
                 <a href="{{ route('services.browse') }}"
                    class="flex-1 text-center bg-slate-100 text-slate-700 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-all text-sm border border-slate-200">
                     {{ app()->getLocale() === 'ar' ? 'تصفح المزيد من الخدمات' : 'Browse More Services' }}
