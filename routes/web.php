@@ -105,6 +105,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/messages', [ChatController::class, 'index'])->name('.chat.index');
         Route::get('/messages/{id}', [ChatController::class, 'show'])->name('.chat.show');
         Route::post('/messages/{id}/send', [ChatController::class, 'sendMessage'])->name('.chat.send');
+        Route::delete('/messages/{id}', [ChatController::class, 'destroy'])->name('.chat.destroy');
     });
 
 
@@ -142,6 +143,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard/messages', [ChatController::class, 'index'])->name('dashboard.chat.index');
         Route::get('/dashboard/messages/{id}', [ChatController::class, 'show'])->name('dashboard.chat.show');
         Route::post('/dashboard/messages/{id}/send', [ChatController::class, 'sendMessage'])->name('dashboard.chat.send');
+        Route::delete('/dashboard/messages/{id}', [ChatController::class, 'destroy'])->name('dashboard.chat.destroy');
     });
 
     // Wallet Withdraw Routes

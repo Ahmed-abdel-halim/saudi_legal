@@ -84,4 +84,23 @@ class ChatController extends Controller
 
         return back();
     }
+
+    public function destroy($id)
+    {
+        $conversation = Conversation::findOrFail($id);
+        $userId = Auth::id();
+
+        // Ensure only participants can delete the chat
+        if ($conversation->participant_1 != $userId && $conversation->participant_2 != $userId) {
+            abort(403);
+        }
+
+        // Delete associated messages first
+        Message::where('conversation_id', $conversation->id)->delete();
+        
+        // Delete the conversation itself
+        $conversation->delete();
+
+        return back()->with('success', __('Chat deleted successfully'));
+    }
 }
