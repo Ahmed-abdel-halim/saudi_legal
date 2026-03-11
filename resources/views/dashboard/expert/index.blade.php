@@ -66,12 +66,11 @@
                          x-transition:leave="transition ease-in duration-150"
                          x-transition:leave-start="opacity-100 transform scale-100"
                          x-transition:leave-end="opacity-0 transform scale-95"
-                        <div class="absolute {{ app()->getLocale() == 'ar' ? 'left-0' : 'right-0' }} mt-2 w-[450px] bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl shadow-2xl overflow-hidden z-50 p-6 border-4 border-white/20">
+                         class="absolute {{ app()->getLocale() == 'ar' ? 'left-0' : 'right-0' }} mt-2 w-[450px] bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl shadow-2xl overflow-hidden z-50 p-6 border-4 border-white/20">
                         
-                            
                             {{-- Header --}}
                             <div class="flex justify-between items-center mb-6 text-white">
-                                <span class="bg-white text-indigo-600 px-3 py-1 rounded-full text-xs font-black shadow-sm flex items-center gap-1">
+                                <span class="bg-white text-indigo-600 px-3 py-1 rounded-full text-xs font-black shadow-sm flex items-center gap-1" x-show="Number(unreadCount) > 0" x-cloak>
                                     <span x-text="unreadCount"></span>
                                     <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                                 </span>
@@ -379,5 +378,152 @@
 
     </div>
 
+    <script>
+    function notificationDropdown() {
+        return {
+            open: false,
+            loading: false,
+            notifications: [],
+            unreadCount: 0,
+            
+            init() {
+                // Fetch unread count on load
+                this.fetchUnreadCount();
+                
+                // Poll for new notifications every 30 seconds (fallback)
+                setInterval(() => {
+                    this.fetchUnreadCount();
+                }, 30000);
+
+                // Listen for real-time notifications via Pusher
+                if (window.Echo) {
+                    window.Echo.private('App.Models.User.{{ auth()->id() }}')
+                        .notification((notification) => {
+                            this.notifications.unshift(notification);
+                            this.unreadCount++;
+                            
+                            // Show browser notification if permitted
+                            if ('Notification' in window && Notification.permission === 'granted') {
+                                new Notification(notification.data.title || 'New Notification', {
+                                    body: notification.data.message || '',
+                                    icon: '/images/icon.png',
+                                    badge: '/images/icon.png'
+                                });
+                            }
+                        });
+                }
+            },
+            
+            toggleDropdown() {
+                this.open = !this.open;
+                if (this.open && this.notifications.length === 0) {
+                    this.fetchNotifications();
+                }
+            },
+            
+            async fetchUnreadCount() {
+                try {
+                    const response = await fetch('/notifications/unread-count', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        credentials: 'same-origin'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.unreadCount = data.count;
+                    }
+                } catch (error) {
+                    console.error('Error fetching unread count:', error);
+                }
+            },
+            
+            async fetchNotifications() {
+                this.loading = true;
+                try {
+                    const response = await fetch('/notifications', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        credentials: 'same-origin'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.notifications = data.notifications;
+                        this.unreadCount = data.unread_count; // sync
+                    }
+                } catch (error) {
+                    console.error('Error fetching notifications:', error);
+                } finally {
+                    this.loading = false;
+                }
+            },
+            
+            async markAsRead(id, url) {
+                try {
+                    await fetch(`/notifications/${id}/read`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        credentials: 'same-origin'
+                    });
+                    
+                    // Update local state
+                    const notif = this.notifications.find(n => n.id === id);
+                    if (notif && !notif.read_at) {
+                        notif.read_at = new Date().toISOString();
+                        this.unreadCount = Math.max(0, this.unreadCount - 1);
+                    }
+                    
+                    if (url && url !== '#') {
+                        window.location.href = url;
+                    }
+                } catch (error) {
+                    console.error('Error marking as read:', error);
+                }
+            },
+            
+            async markAllAsRead() {
+                try {
+                    await fetch('/notifications/read-all', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        credentials: 'same-origin'
+                    });
+                    
+                    this.notifications.forEach(n => n.read_at = new Date().toISOString());
+                    this.unreadCount = 0;
+                } catch (error) {
+                    console.error('Error marking all as read:', error);
+                }
+            },
+
+            getNotificationIcon(type) {
+                if(type.includes('Message')) return 'fa-solid fa-envelope';
+                if(type.includes('Service')) return 'fa-solid fa-briefcase';
+                if(type.includes('Review')) return 'fa-solid fa-star';
+                if(type.includes('Dispute')) return 'fa-solid fa-triangle-exclamation';
+                return 'fa-regular fa-bell';
+            },
+
+            getNotificationIconClass(type) {
+                if(type.includes('Message')) return 'bg-blue-500';
+                if(type.includes('Service')) return 'bg-green-500';
+                if(type.includes('Review')) return 'bg-yellow-500';
+                if(type.includes('Dispute')) return 'bg-red-500';
+                return 'bg-gray-400';
+            }
+        }
+    }
+    </script>
 </body>
 </html>
