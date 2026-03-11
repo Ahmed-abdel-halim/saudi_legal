@@ -3,6 +3,18 @@
 @php
 $currentLang = app()->getLocale();
 $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
+
+// Category label map — DB value → translated label
+$categoryLabels = __('services.CATEGORY_LABELS', [], $currentLang);
+if (!is_array($categoryLabels)) {
+    $categoryLabels = [
+        'Tech'       => 'Tech & Programming',
+        'Design'     => 'Design & Creative',
+        'Marketing'  => 'Marketing',
+        'Consulting' => 'Consulting',
+        'Other'      => 'Other',
+    ];
+}
 @endphp
 
 @push('styles')
@@ -18,6 +30,15 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
             position: relative;
             top: 0;
         }
+    }
+
+    .kind-badge-expert {
+        background: linear-gradient(135deg, #a78bfa, #7c3aed);
+        color: #fff;
+    }
+    .kind-badge-company {
+        background: linear-gradient(135deg, #34d399, #059669);
+        color: #fff;
     }
 </style>
 @endpush
@@ -65,28 +86,49 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                     {{-- Preserve search parameter --}}
                     <input type="hidden" name="search" value="{{ $filterSearch }}">
 
-                    {{-- Industry Filter --}}
+                    {{-- Service Category Filter --}}
+                    <div class="mb-6">
+                        <h4 class="font-semibold text-gray-800 mb-3 text-sm">
+                            {{ __('services.SERVICES_FILTER_CATEGORY', [], $currentLang) }}
+                        </h4>
+                        <ul class="space-y-2 text-sm">
+                            @foreach($categoryLabels as $dbValue => $label)
+                            <li>
+                                <label class="flex items-center gap-2 cursor-pointer hover:text-brand-primary transition">
+                                    <input type="checkbox"
+                                        name="industry[]"
+                                        value="{{ $dbValue }}"
+                                        class="text-brand-teal focus:ring-brand-teal rounded border-gray-300"
+                                        {{ in_array($dbValue, $filterIndustries) ? 'checked' : '' }}>
+                                    <span>{{ $label }}</span>
+                                </label>
+                            </li>
+                            @endforeach
+                        </ul>
+                    </div>
+
+                    {{-- Industry Filter (for company services) --}}
+                    @if($industries->isNotEmpty())
                     <div class="mb-6">
                         <h4 class="font-semibold text-gray-800 mb-3 text-sm">
                             {{ __('services.SERVICES_FILTER_INDUSTRY', [], $currentLang) }}
                         </h4>
-                        <ul class="space-y-2 text-sm max-h-48 overflow-y-auto">
-                            @forelse($industries as $industry)
+                        <ul class="space-y-2 text-sm max-h-40 overflow-y-auto">
+                            @foreach($industries->diff(array_keys($categoryLabels)) as $industry)
                             <li>
-                                <label class="flex items-center cursor-pointer hover:text-brand-primary transition">
+                                <label class="flex items-center gap-2 cursor-pointer hover:text-brand-primary transition">
                                     <input type="checkbox"
                                         name="industry[]"
                                         value="{{ $industry }}"
-                                        class="{{ $direction === 'rtl' ? 'ml-2' : 'mr-2' }} text-brand-teal focus:ring-brand-teal rounded border-gray-300"
+                                        class="text-brand-teal focus:ring-brand-teal rounded border-gray-300"
                                         {{ in_array($industry, $filterIndustries) ? 'checked' : '' }}>
                                     <span>{{ $industry }}</span>
                                 </label>
                             </li>
-                            @empty
-                            <li class="text-gray-500 text-xs">{{ $direction === 'rtl' ? 'لا توجد صناعات' : 'No industries' }}</li>
-                            @endforelse
+                            @endforeach
                         </ul>
                     </div>
+                    @endif
 
                     {{-- Apply Filter Button --}}
                     <button type="submit"
@@ -125,7 +167,20 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                                     class="w-full h-full object-cover"
                                     onerror="this.src='https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80';">
 
-                                {{-- Company Badge --}}
+                                {{-- Service Kind Badge (Expert / Company) --}}
+                                <div class="absolute top-3 {{ $direction === 'rtl' ? 'left-3' : 'right-3' }} z-20">
+                                    @if($service->type === 'expert')
+                                    <span class="kind-badge-expert text-[10px] font-bold px-2 py-1 rounded-full shadow">
+                                        {{ $currentLang === 'ar' ? 'خبير مستقل' : 'Expert' }}
+                                    </span>
+                                    @else
+                                    <span class="kind-badge-company text-[10px] font-bold px-2 py-1 rounded-full shadow">
+                                        {{ $currentLang === 'ar' ? 'شركة' : 'Company' }}
+                                    </span>
+                                    @endif
+                                </div>
+
+                                {{-- Provider Badge --}}
                                 <div class="absolute bottom-4 {{ $direction === 'rtl' ? 'right-4' : 'left-4' }} z-20">
                                     <span class="bg-white/20 backdrop-blur-md border border-white/30 text-white px-3 py-1 rounded-full text-xs font-bold">
                                         {{ $service->company_name }}
@@ -135,6 +190,17 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
 
                             {{-- Service Content --}}
                             <div class="p-5">
+                                {{-- Category Pill --}}
+                                @php
+                                    $rawCategory = $service->industry ?? '';
+                                    $categoryLabel = $categoryLabels[$rawCategory] ?? $rawCategory;
+                                @endphp
+                                @if($categoryLabel)
+                                <span class="inline-block text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 px-2 py-0.5 rounded-full mb-2">
+                                    {{ $categoryLabel }}
+                                </span>
+                                @endif
+
                                 <h3 class="text-lg font-bold text-dark-navy truncate mb-2" title="{{ $service->title }}">
                                     {{ $service->title }}
                                 </h3>
@@ -147,7 +213,6 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                                         onerror="this.src='https://ui-avatars.com/api/?name=User&background=ccc&color=fff';">
                                     <div class="flex flex-col flex-1 min-w-0">
                                         <span class="text-sm font-bold text-gray-700 truncate">{{ $service->expert_name }}</span>
-                                        <span class="text-xs text-gray-500 truncate">{{ $service->industry }}</span>
                                     </div>
                                 </div>
 

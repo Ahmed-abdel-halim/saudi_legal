@@ -12,11 +12,19 @@ return [
     // Filters
     'SERVICES_FILTER_TITLE' => 'Filters',
     'SERVICES_FILTER_INDUSTRY' => 'Industry',
+    'SERVICES_FILTER_CATEGORY' => 'Service Category',
     'SERVICES_FILTER_MIN_PRICE' => 'Min Price',
     'SERVICES_FILTER_MAX_PRICE' => 'Max Price',
     'SERVICES_FILTER_RATING' => 'Min Rating',
     'BTN_FILTER' => 'Apply',
     'BTN_CANCEL_FILTER' => 'Reset',
+    'CATEGORY_LABELS' => [
+        'Tech'       => 'Tech & Programming',
+        'Design'     => 'Design & Creative',
+        'Marketing'  => 'Marketing',
+        'Consulting' => 'Consulting',
+        'Other'      => 'Other',
+    ],
     
     // Results
     'SERVICES_DISPLAY_COUNT' => 'Results ([COUNT])',

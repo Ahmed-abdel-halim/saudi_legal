@@ -91,6 +91,7 @@ Route::middleware(['auth'])->group(function () {
         
         Route::get('/services', [ExpertDashboardController::class, 'services'])->name('.services');
         Route::post('/services', [ExpertDashboardController::class, 'services']);
+        Route::put('/services/{id}', [ExpertDashboardController::class, 'updateService'])->name('.services.update');
         Route::delete('/services/{id}', [ExpertDashboardController::class, 'deleteService'])->name('.services.delete');
         
         Route::get('/workbench', [\App\Http\Controllers\Dashboard\Expert\WorkbenchController::class, 'index'])->name('.workbench');
