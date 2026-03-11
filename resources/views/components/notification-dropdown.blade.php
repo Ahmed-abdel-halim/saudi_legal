@@ -24,8 +24,9 @@
         
         <!-- Unread Badge -->
         <span 
-            x-show="unreadCount > 0" 
-            x-text="unreadCount > 99 ? '99+' : unreadCount"
+            x-show="Number(unreadCount) > 0" 
+            x-cloak
+            x-text="Number(unreadCount) > 99 ? '99+' : unreadCount"
             class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 shadow-lg"
         ></span>
     </button>
