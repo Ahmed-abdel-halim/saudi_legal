@@ -133,6 +133,25 @@ class ExpertDashboardController extends Controller
             'accepted_at' => now()
         ]);
 
+        // Find and mark the exact notification as read for this purchase
+        $user = Auth::user();
+        $cacheCleared = false;
+        foreach ($user->unreadNotifications as $notification) {
+            // Check if it's the right notification type and matching ID
+            if ($notification->type === 'App\Notifications\NewServiceRequestNotification' || 
+                $notification->type === 'App\Notifications\ExpertPaymentReceivedNotification') {
+                if (isset($notification->data['id']) && $notification->data['id'] == $id) {
+                    $notification->markAsRead();
+                    $cacheCleared = true;
+                }
+            }
+        }
+        
+        if ($cacheCleared) {
+            \Illuminate\Support\Facades\Cache::forget("user_{$user->id}_{$user->role}_notifications");
+            \Illuminate\Support\Facades\Cache::forget("user_{$user->id}_{$user->role}_unread_count");
+        }
+
         // Create Conversation
         $conversation = $chatService->createChatForPurchase($purchase);
 
@@ -309,6 +328,25 @@ class ExpertDashboardController extends Controller
             ->get();
 
         return view('dashboard.expert.services', compact('user', 'services', 'msg'));
+    }
+
+    public function updateService(Request $request, $id)
+    {
+        $user = Auth::user();
+        $service = ExpertService::where('service_id', $id)->where('expert_id', $user->id)->firstOrFail();
+
+        $data = $request->validate([
+            'title'         => 'required|string|max:255',
+            'category'      => 'required|string|in:Tech,Design,Marketing,Consulting,Other',
+            'price'         => 'required|numeric|min:0',
+            'delivery_days' => 'required|integer|min:1',
+            'description'   => 'required|string',
+        ]);
+
+        $service->update($data);
+
+        return redirect()->route('dashboard.expert.services')
+            ->with('success', '✅ تم تحديث الخدمة بنجاح!');
     }
 
     public function deleteService($id)

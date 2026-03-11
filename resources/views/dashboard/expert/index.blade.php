@@ -52,8 +52,8 @@
                             class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition relative" 
                             aria-label="Notifications">
                         <i class="fa-regular fa-bell"></i>
-                        <span x-show="unreadCount > 0" 
-                              x-text="unreadCount > 99 ? '99+' : unreadCount"
+                        <span x-show="Number(unreadCount) > 0" 
+                              x-cloak
                               class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-white animate-pulse">
                         </span>
                     </button>
