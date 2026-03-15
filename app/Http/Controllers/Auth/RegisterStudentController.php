@@ -70,11 +70,11 @@ class RegisterStudentController extends Controller
             $user->is_active = true;
             $user->save();
 
-            // Log the user in
-            Auth::login($user);
+            // Store user ID in session for OTP verification
+            session(['verify_otp_user_id' => $user->id, 'email' => $user->email]);
+            \App\Http\Controllers\Auth\OtpVerificationController::generateAndSendOtp($user);
 
-            // Redirect to expert dashboard
-            return redirect()->route('dashboard.expert')->with('success', 'تم التسجيل بنجاح! مرحباً بك في لوحة التحكم.');
+            return redirect()->route('verify-otp')->with('success', __('auth.OTP_SENT', [], app()->getLocale()) ?? 'Verification code sent to your email.');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withErrors(['error' => 'حدث خطأ أثناء التسجيل: ' . $e->getMessage()])

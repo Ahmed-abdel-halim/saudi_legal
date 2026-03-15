@@ -41,6 +41,11 @@ Route::post('/contact', function () { return back()->with('success', __('contact
 Route::get('/login', function () {return view('auth.login');})->name('login');
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'store'])->name('login.handle');
 
+// OTP Verification Routes
+Route::get('/verify-otp', [App\Http\Controllers\Auth\OtpVerificationController::class, 'show'])->name('verify-otp');
+Route::post('/verify-otp/submit', [App\Http\Controllers\Auth\OtpVerificationController::class, 'verify'])->name('verify-otp.submit');
+Route::post('/verify-otp/resend', [App\Http\Controllers\Auth\OtpVerificationController::class, 'resend'])->name('verify-otp.resend');
+
 // Password reset route (placeholder - you'll need to create this)
 Route::get('/forgot-password', function () {
     return view('auth.forgot-password');

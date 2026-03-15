@@ -92,11 +92,12 @@ class RegisterCompanyController extends Controller
                 'role' => $request->input('registration-type') === 'supplier' ? 'supplier' : 'requester',
             ]);
 
-            // Log the user in
-            Auth::login($user);
+            // Store user ID in session for OTP verification
+            session(['verify_otp_user_id' => $user->id, 'email' => $user->email]);
+            \App\Http\Controllers\Auth\OtpVerificationController::generateAndSendOtp($user);
 
             // Redirect to dashboard or welcome page
-            return redirect()->route('dashboard')->with('success', __('auth.REGISTRATION_SUCCESS', [], app()->getLocale()));
+            return redirect()->route('verify-otp')->with('success', __('auth.OTP_SENT', [], app()->getLocale()) ?? 'Verification code sent to your email.');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withErrors(['error' => __('auth.ERROR_GENERIC', [], app()->getLocale()) . ' ' . $e->getMessage()])

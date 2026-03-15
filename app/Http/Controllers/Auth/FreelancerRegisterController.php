@@ -32,8 +32,9 @@ class FreelancerRegisterController extends Controller
             'is_active' => true, // Assuming active by default
         ]);
 
-        Auth::login($user);
+        session(['verify_otp_user_id' => $user->id, 'email' => $user->email]);
+        \App\Http\Controllers\Auth\OtpVerificationController::generateAndSendOtp($user);
 
-        return redirect()->route('freelancer.onboarding.skills');
+        return redirect()->route('verify-otp')->with('success', __('auth.OTP_SENT', [], app()->getLocale()) ?? 'Verification code sent to your email.');
     }
 }

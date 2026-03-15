@@ -142,4 +142,21 @@ return [
     'SA_FEATURE_RATE_DESC'    => 'Brute-force attacks blocked automatically',
     'SA_FEATURE_AUDIT'        => 'All Activity Monitored',
     'SA_FEATURE_AUDIT_DESC'   => 'Every login attempt is logged and audited',
+
+    // Email OTP Verification
+    'VERIFY_EMAIL_TITLE' => 'Verify Your Email',
+    'VERIFY_EMAIL_INSTRUCTION' => 'We\'ve sent a 6-digit verification code to',
+    'ENTER_OTP' => 'Enter 6-digit code',
+    'OTP_VALIDITY' => 'Code expires in 10 minutes.',
+    'BTN_VERIFY_OTP' => 'Verify Code',
+    'DIDNT_RECEIVE_CODE' => 'Didn\'t receive the code?',
+    'BTN_RESEND_OTP' => 'Resend Code',
+    'CANCEL_AND_LOGOUT' => 'Cancel and Return to Home',
+    'OTP_SENT' => 'Verification code sent to your email.',
+    'INVALID_OTP' => 'Invalid OTP code.',
+    'EXPIRED_OTP' => 'This OTP has expired. Please request a new one.',
+    'OTP_THROTTLE' => 'Please wait before requesting a new code.',
+    'OTP_RESENT' => 'A new verification code has been sent to your email.',
+    'VERIFICATION_SUCCESS' => 'Email verified successfully!',
+    'SESSION_EXPIRED' => 'Session expired. Please log in again.',
 ];

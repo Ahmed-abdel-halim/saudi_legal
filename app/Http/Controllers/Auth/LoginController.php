@@ -20,9 +20,18 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+            $user = Auth::user();
+
+            // Enforce OTP Email Verification for new / unverified users
+            if (!$user->hasVerifiedEmail()) {
+                Auth::logout();
+                session(['verify_otp_user_id' => $user->id, 'email' => $user->email]);
+                \App\Http\Controllers\Auth\OtpVerificationController::generateAndSendOtp($user);
+                
+                return redirect()->route('verify-otp')->with('success', __('auth.OTP_SENT', [], app()->getLocale()) ?? 'Please verify your email to login. A new code has been sent.');
+            }
 
             // Redirect based on role
-            $user = Auth::user();
 
             if ($user->role === 'superadmin' || $user->role === 'admin') {
                 return redirect()->intended(route('admin.dashboard'));
