@@ -33,7 +33,8 @@ class SendOtpVerification extends Notification
             ? "رمز التحقق من البريد الإلكتروني - {$appName}"
             : "Email Verification Code - {$appName}";
 
-        return new OtpVerificationMail($this->otp, $notifiable->name, $lang, $subject);
+        return (new OtpVerificationMail($this->otp, $notifiable->name, $lang, $subject))
+            ->to($notifiable->email, $notifiable->name);
     }
 
     public function toArray(object $notifiable): array

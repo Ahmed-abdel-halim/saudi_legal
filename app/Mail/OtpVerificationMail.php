@@ -15,7 +15,6 @@ class OtpVerificationMail extends Mailable
     public string $otpCode;
     public string $userName;
     public string $lang;
-    public string $subject;
 
     public function __construct(string $otpCode, string $userName, string $lang, string $subject)
     {
