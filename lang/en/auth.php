@@ -6,11 +6,11 @@ return [
     'AUTH_STEP_ACCOUNT' => 'Your Account',
     'AUTH_STEP_COMPANY' => 'Your Company',
     'AUTH_STEP_AGREEMENT' => 'Agreement',
-    
+
     // Navbar / General
     'Register' => 'Register',
     'Login' => 'Login',
-    
+
     // Form Labels
     'AUTH_FULL_NAME' => 'Full Name',
     'AUTH_EMAIL_LABEL' => 'Email Address',
@@ -21,7 +21,7 @@ return [
     'AUTH_CR_PLACEHOLDER' => 'Example: 1234567890',
     'AUTH_INDUSTRY' => 'Industry',
     'AUTH_COMPANY_SIZE' => 'Company Size',
-    
+
     // Industries
     'INDUSTRY_IT' => 'Information Technology',
     'INDUSTRY_UI' => 'UI Design',
@@ -29,13 +29,13 @@ return [
     'INDUSTRY_FINANCE' => 'Financial Consulting',
     'INDUSTRY_MARKETING' => 'Digital Marketing',
     'INDUSTRY_OTHER' => 'Other',
-    
+
     // Company Sizes
     'SIZE_1_10' => '1-10 Employees',
     'SIZE_11_50' => '11-50 Employees',
     'SIZE_51_200' => '51-200 Employees',
     'SIZE_201_PLUS' => '201+ Employees',
-    
+
     // Legal
     'AUTH_LEGAL_AGREEMENT' => 'Legal Agreement',
     'AUTH_LEGAL_AGREEMENT_DESC' => 'Please read and agree to the Terms & Conditions and Privacy Policy',
@@ -43,17 +43,17 @@ return [
     'AUTH_TERMS' => 'Terms & Conditions',
     'AUTH_PRIVACY' => 'Privacy Policy',
     'AND' => 'and',
-    
+
     // Buttons
     'BTN_NEXT' => 'Next',
     'BTN_PREVIOUS' => 'Previous',
     'BTN_SIGN_UP' => 'Sign Up',
     'BTN_LOGIN' => 'Login',
-    
+
     // Messages
     'AUTH_ALREADY_HAVE_ACCOUNT' => 'Already have an account?',
     'AUTH_LOGIN_TO_CONTINUE' => 'Register your company to start your journey with Radiif',
-    
+
     // Errors
     'ERROR_EMAIL_EXISTS' => 'Email already exists',
     'ERROR_EMPTY_FIELDS' => 'Please fill all required fields',
@@ -64,7 +64,7 @@ return [
     'ERROR_TERMS_REQUIRED' => 'You must agree to the terms and conditions',
     'REGISTRATION_SUCCESS' => 'Account created successfully',
     'required' => 'required',
-    
+
     // Login Page
     'PLATFORM_NAME' => 'Radiif',
     'AUTH_WELCOME' => 'Welcome Back',
@@ -73,25 +73,25 @@ return [
     'AUTH_NEW_USER' => 'New to Radiif?',
     'AUTH_EMAIL_PLACEHOLDER' => 'example@company.com',
     'BACK_TO_HOME' => 'Back to Home',
-    
+
     // Error Messages
     'ERROR_INVALID_CREDENTIALS' => 'Invalid email or password',
     'ERROR_AUTH_REQUIRED' => 'Authentication required',
-    
+
     // Success Messages
     'SUCCESS_REGISTER_COMPANY' => 'Registration successful! Please check your email for activation.',
     'SUCCESS_ACTIVATED' => 'Account activated! Please log in.',
-    
+
     // Feature Highlights
     'FEATURE_SECURE' => 'Secure Login',
     'FEATURE_FAST' => 'Fast Access',
-    
+
     // Registration Page
     'REGISTER_SUBTITLE' => 'Join thousands of companies on Radiif',
     'STEP_1_SHORT' => 'Account',
     'STEP_2_SHORT' => 'Company',
     'STEP_3_SHORT' => 'Done',
-    
+
     // Forgot Password
     'FORGOT_PASSWORD_TITLE' => 'Forgot Password?',
     'FORGOT_PASSWORD_DESC' => 'Enter your email address and we\'ll send you a link to reset your password.',
@@ -100,9 +100,14 @@ return [
     'NEED_HELP' => 'Need help?',
     'CONTACT_SUPPORT' => 'Contact Support',
     'PASSWORD_RESET_SENT' => 'We have sent you a password reset link to your email address.',
+    'RESET_PASSWORD_TITLE' => 'Reset Password',
+    'RESET_PASSWORD_DESC' => 'Enter your new password below.',
+    'PASSWORD_LABEL' => 'New Password',
+    'PASSWORD_CONFIRM_LABEL' => 'Confirm Password',
+    'BTN_RESET_PASSWORD' => 'Update Password',
     'ARE_YOU_STUDENT' => 'Are you a student? Register here',
     'NOT_STUDENT' => 'Not a student? Register as Company/Expert',
-    
+
     // Student Registration
     'STUDENT_REGISTRATION' => 'Student Registration',
     'STUDENT_REGISTER_DESC' => 'Start your career and contribute to building the future of AI',
@@ -121,27 +126,27 @@ return [
     'FULL_NAME_PLACEHOLDER' => 'Full Name',
 
     // ── Super Admin Portal ──────────────────────────────────────────────
-    'SA_PAGE_TITLE'           => 'Super Admin — Restricted Portal',
-    'SA_RESTRICTED_BADGE'     => 'Restricted Access',
-    'SA_WELCOME'              => 'Welcome, Administrator',
-    'SA_SUBTITLE'             => 'Sign in to your Super Admin dashboard',
-    'SA_PLATFORM_SUBTITLE'    => 'Super Administration Portal',
-    'SA_EMAIL_LABEL'          => 'Admin Email',
-    'SA_EMAIL_PLACEHOLDER'    => 'admin@example.com',
-    'SA_PASSWORD_LABEL'       => 'Password',
+    'SA_PAGE_TITLE' => 'Super Admin — Restricted Portal',
+    'SA_RESTRICTED_BADGE' => 'Restricted Access',
+    'SA_WELCOME' => 'Welcome, Administrator',
+    'SA_SUBTITLE' => 'Sign in to your Super Admin dashboard',
+    'SA_PLATFORM_SUBTITLE' => 'Super Administration Portal',
+    'SA_EMAIL_LABEL' => 'Admin Email',
+    'SA_EMAIL_PLACEHOLDER' => 'admin@example.com',
+    'SA_PASSWORD_LABEL' => 'Password',
     'SA_PASSWORD_PLACEHOLDER' => '••••••••••',
-    'SA_AUDIT_NOTICE'         => 'All access attempts are <strong class="text-amber-300 font-semibold">logged and monitored</strong>. Unauthorized access is prohibited and may be subject to legal action.',
-    'SA_BTN_SIGNIN'           => 'Sign In to Admin Panel',
-    'SA_BTN_SIGNING_IN'       => 'Authenticating…',
-    'SA_BACK_TO_SITE'         => 'Back to main site',
-    'SA_FOOTER_VERSION'       => 'ADMIN · v2.0',
-    'SA_TOGGLE_PASSWORD'      => 'Toggle password visibility',
-    'SA_FEATURE_ROLE'         => 'Role-Restricted Access',
-    'SA_FEATURE_ROLE_DESC'    => 'Only Super Admin accounts can sign in here',
-    'SA_FEATURE_RATE'         => 'Rate-Limited Protection',
-    'SA_FEATURE_RATE_DESC'    => 'Brute-force attacks blocked automatically',
-    'SA_FEATURE_AUDIT'        => 'All Activity Monitored',
-    'SA_FEATURE_AUDIT_DESC'   => 'Every login attempt is logged and audited',
+    'SA_AUDIT_NOTICE' => 'All access attempts are <strong class="text-amber-300 font-semibold">logged and monitored</strong>. Unauthorized access is prohibited and may be subject to legal action.',
+    'SA_BTN_SIGNIN' => 'Sign In to Admin Panel',
+    'SA_BTN_SIGNING_IN' => 'Authenticating…',
+    'SA_BACK_TO_SITE' => 'Back to main site',
+    'SA_FOOTER_VERSION' => 'ADMIN · v2.0',
+    'SA_TOGGLE_PASSWORD' => 'Toggle password visibility',
+    'SA_FEATURE_ROLE' => 'Role-Restricted Access',
+    'SA_FEATURE_ROLE_DESC' => 'Only Super Admin accounts can sign in here',
+    'SA_FEATURE_RATE' => 'Rate-Limited Protection',
+    'SA_FEATURE_RATE_DESC' => 'Brute-force attacks blocked automatically',
+    'SA_FEATURE_AUDIT' => 'All Activity Monitored',
+    'SA_FEATURE_AUDIT_DESC' => 'Every login attempt is logged and audited',
 
     // Email OTP Verification
     'VERIFY_EMAIL_TITLE' => 'Verify Your Email',
