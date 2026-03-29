@@ -45,9 +45,8 @@
                     </div>
                 </div>
 
-                {{-- List --}}
-                <div class="flex-1 overflow-y-auto custom-scrollbar divide-y divide-slate-50" id="conversationList"
-                     x-data="{ showDeleteModal: false, deleteUrl: '' }">
+                {{-- Conversation List --}}
+                <div class="flex-1 overflow-y-auto custom-scrollbar divide-y divide-slate-50" id="conversationList">
 
                     @forelse($conversations as $conversation)
                         @php
@@ -61,11 +60,10 @@
                                 : 'https://ui-avatars.com/api/?name='.urlencode($otherUser->name).'&background=6366f1&color=fff&size=128&bold=true';
                         @endphp
 
-                        <div class="conversation-item group relative hover:bg-indigo-50/60 transition-colors duration-200 cursor-pointer"
-                             data-name="{{ strtolower($otherUser->name) }}"
-                             data-href="{{ route($routePrefix . 'show', $conversation->id) }}">
+                        <div class="conversation-item group relative hover:bg-indigo-50/60 transition-colors duration-200"
+                             data-name="{{ strtolower($otherUser->name) }}">
 
-                            <a href="{{ route($routePrefix . 'show', $conversation->id) }}" class="flex items-center gap-3.5 px-4 py-4">
+                            <a href="{{ route($routePrefix . 'show', $conversation->id) }}" class="flex items-center gap-3.5 px-4 py-4 {{ $isRtl ? 'pl-14' : 'pr-14' }}">
                                 {{-- Avatar --}}
                                 <div class="relative flex-shrink-0">
                                     <img src="{{ $avatarUrl }}"
@@ -99,50 +97,15 @@
                                 @endif
                             </a>
 
-                            {{-- Delete (hover) --}}
+                            {{-- Delete button (reveals on hover) --}}
                             <button type="button"
-                                    @click.prevent="showDeleteModal = true; deleteUrl = '{{ route($routePrefix . 'destroy', $conversation->id) }}'"
-                                    class="absolute top-1/2 -translate-y-1/2 {{ $isRtl ? 'left-3' : 'right-3' }} w-8 h-8 rounded-full bg-white border border-red-100 text-red-400 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-lg shadow-red-200 transition-all duration-200 z-10">
+                                    onclick="openDeleteModal('{{ route($routePrefix . 'destroy', $conversation->id) }}')"
+                                    class="absolute top-1/2 -translate-y-1/2 {{ $isRtl ? 'left-3' : 'right-3' }} w-8 h-8 rounded-full bg-white border border-red-100 text-red-400 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-lg shadow-red-200 transition-all duration-200 z-10"
+                                    title="{{ $isRtl ? 'حذف المحادثة' : 'Delete conversation' }}">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
                             </button>
-
-                            {{-- Delete Modal (AlpineJS) --}}
-                            <div x-show="showDeleteModal"
-                                 style="display:none"
-                                 class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
-                                 x-transition:enter="ease-out duration-200"
-                                 x-transition:enter-start="opacity-0"
-                                 x-transition:enter-end="opacity-100">
-                                <div @click.away="showDeleteModal = false"
-                                     class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center"
-                                     x-transition:enter="ease-out duration-200"
-                                     x-transition:enter-start="opacity-0 scale-95"
-                                     x-transition:enter-end="opacity-100 scale-100">
-                                    <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5">
-                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                        </svg>
-                                    </div>
-                                    <h3 class="text-xl font-bold text-slate-800 mb-2">{{ $isRtl ? 'حذف المحادثة؟' : 'Delete Chat?' }}</h3>
-                                    <p class="text-slate-500 text-sm mb-7 leading-relaxed">{{ $isRtl ? 'سيتم حذف جميع الرسائل بشكل نهائي ولا يمكن التراجع.' : 'All messages will be permanently deleted. This cannot be undone.' }}</p>
-                                    <div class="flex gap-3">
-                                        <button @click="showDeleteModal = false" type="button"
-                                                class="flex-1 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition text-sm">
-                                            {{ $isRtl ? 'إلغاء' : 'Cancel' }}
-                                        </button>
-                                        <form method="POST" :action="deleteUrl" class="flex-1">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    class="w-full py-2.5 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-100 transition text-sm">
-                                                {{ $isRtl ? 'نعم، احذف' : 'Delete' }}
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                     @empty
@@ -161,7 +124,6 @@
 
             {{-- RIGHT: Welcome / Select a chat --}}
             <div class="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-slate-50 to-indigo-50/40 relative overflow-hidden">
-                {{-- Decorative circles --}}
                 <div class="absolute -top-20 -right-20 w-64 h-64 bg-indigo-100/40 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-purple-100/40 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -198,6 +160,35 @@
     </div>
 </div>
 
+{{-- ── Delete Confirmation Modal (pure JS, no Alpine dependency) ── --}}
+<div id="deleteModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+    <div id="deleteModalBox" class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center transform scale-95 opacity-0 transition-all duration-200">
+        <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold text-slate-800 mb-2">{{ $isRtl ? 'حذف المحادثة؟' : 'Delete Chat?' }}</h3>
+        <p class="text-slate-500 text-sm mb-7 leading-relaxed">
+            {{ $isRtl ? 'سيتم حذف جميع الرسائل بشكل نهائي ولا يمكن التراجع.' : 'All messages will be permanently deleted. This cannot be undone.' }}
+        </p>
+        <div class="flex gap-3">
+            <button onclick="closeDeleteModal()" type="button"
+                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition text-sm">
+                {{ $isRtl ? 'إلغاء' : 'Cancel' }}
+            </button>
+            <form id="deleteForm" method="POST" action="" class="flex-1">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                        class="w-full py-2.5 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-100 transition text-sm">
+                    {{ $isRtl ? 'نعم، احذف' : 'Yes, Delete' }}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
     .custom-scrollbar::-webkit-scrollbar { width: 5px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -206,7 +197,37 @@
 </style>
 
 <script>
-    // Live search filter
+    // ── Delete Modal ──────────────────────────────────────────────
+    function openDeleteModal(url) {
+        document.getElementById('deleteForm').action = url;
+        const modal = document.getElementById('deleteModal');
+        const box   = document.getElementById('deleteModalBox');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            box.classList.remove('scale-95', 'opacity-0');
+            box.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        const box   = document.getElementById('deleteModalBox');
+        box.classList.remove('scale-100', 'opacity-100');
+        box.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+    }
+
+    // Close on backdrop click
+    document.getElementById('deleteModal').addEventListener('click', function (e) {
+        if (e.target === this) closeDeleteModal();
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeDeleteModal();
+    });
+
+    // ── Live search filter ────────────────────────────────────────
     const searchInput = document.getElementById('searchInput');
     const items       = document.querySelectorAll('.conversation-item');
 

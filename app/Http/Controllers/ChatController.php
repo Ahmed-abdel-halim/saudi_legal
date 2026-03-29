@@ -101,6 +101,7 @@ class ChatController extends Controller
         // Delete the conversation itself
         $conversation->delete();
 
-        return back()->with('success', __('Chat deleted successfully'));
+        $routeName = Auth::user()->role === 'expert' ? 'dashboard.expert.chat.index' : 'dashboard.chat.index';
+        return redirect()->route($routeName)->with('success', 'Chat deleted successfully.');
     }
 }
