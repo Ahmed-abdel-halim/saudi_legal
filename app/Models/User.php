@@ -16,7 +16,7 @@ class User extends Authenticatable
 
     public function company()
     {
-        return $this->belongsTo(Company::class, 'company_id', 'company_id');
+        return $this->belongsTo(Company::class , 'company_id', 'company_id');
     }
 
 
@@ -64,15 +64,15 @@ class User extends Authenticatable
         return Conversation::where('participant_1', $this->id)
             ->orWhere('participant_2', $this->id);
     }
-    
+
     public function sentMessages()
     {
-        return $this->hasMany(Message::class, 'sender_id');
+        return $this->hasMany(Message::class , 'sender_id');
     }
 
     public function reviews()
     {
-        return $this->hasMany(Review::class, 'expert_id');
+        return $this->hasMany(Review::class , 'expert_id');
     }
 
     public function freelancerProfile()
@@ -130,7 +130,8 @@ class User extends Authenticatable
         // Handle specific cases
         if (str_starts_with($path, 'storage/uploads/')) {
             $path = str_replace('storage/uploads/', 'uploads/', $path);
-        } elseif (!str_starts_with($path, 'uploads/') && !str_starts_with($path, '/')) {
+        }
+        elseif (!str_starts_with($path, 'uploads/') && !str_starts_with($path, '/')) {
             // Assume it's in uploads/ if seemingly relative and not starting with uploads
             $path = 'uploads/' . $path;
         }
@@ -144,5 +145,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\CustomResetPasswordNotification($token));
     }
 }
