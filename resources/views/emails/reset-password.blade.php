@@ -12,7 +12,11 @@
             
             <!-- Header -->
             <div style="background-color: #1c2a4f; padding: 40px 30px; text-align: center;">
-                <img src="{{ $message->embed(public_path('assets/images/logo.png')) }}" alt="Radiif" style="height: 80px; width: 80px; object-fit: contain; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); margin-bottom: 15px; padding: 5px;">
+                @php
+                    $logoPath = public_path('assets/images/logo.png');
+                    $logoSrc = file_exists($logoPath) ? $message->embed($logoPath) : asset('assets/images/logo.png');
+                @endphp
+                <img src="{{ $logoSrc }}" alt="Radiif" style="height: 80px; width: 80px; object-fit: contain; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); margin-bottom: 15px; padding: 5px;">
                 <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 1px;">
                     Radiif
                 </h1>
