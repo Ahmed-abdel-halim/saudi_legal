@@ -95,7 +95,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-                @forelse($users  $user)
+                @forelse($users as $user)
                     <tr class="hover:bg-slate-50/60 transition {{ $user->is_active ? '' : 'opacity-60' }}">
 
                         {{-- User Details --}}
