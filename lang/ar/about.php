@@ -16,10 +16,9 @@ return [
     'REGISTRATION' => 'التسجيل',
     'REGISTERED_LOCATION' => 'مسجلة في إنجلترا وويلز',
     'COMPANY_NUMBER' => 'رقم الشركة',
-    'COMPANY_NUMBER_STATUS' => 'قيد التأسيس',
+    'COMPANY_NUMBER_STATUS' => '16969281',
     'HEADQUARTERS' => 'المقر الرئيسي',
-    'HEADQUARTERS_ADDRESS' => 'الجناح 7086، الوحدة 3A،-35 هاتون جاردن، هولبورن،
-    لندن، EC1N 8DX، المملكة المتحدة.',  
+    'HEADQUARTERS_ADDRESS' => '60 توتنهام كورت رود، الجناح 7086a، فيتزروفيا، لندن، W1T 2EW',  
     'FOUNDER_QUOTE' => 'في رديف، نعمل على بناء البنية التحتية لمستقبل العمل. رديف هي منصتنا الرئيسية المصممة لإضافة المرونة على سوق البرمجيات العالمي.',
     'FOUNDER_NAME' => 'محمد عبد الحميد',
     'FOUNDER_TITLE' => 'المدير والمؤسس',
