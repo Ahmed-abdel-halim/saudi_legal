@@ -774,6 +774,16 @@
             <div class="question-box">
                 <div class="q-label">تحقق من صحة العبارة</div>
                 <div class="q-text" id="originalText">{!! nl2br(htmlspecialchars($currentTask->original_data)) !!}</div>
+
+                @if($currentTask->ai_suggestion)
+                {{-- by Ahmed abdelhalim --}}
+                <div style="margin-top: 30px; padding-top: 30px; border-top: 1px dashed #cbd5e1;">
+                    <div class="q-label" style="color: var(--primary);">الإجابة المقترحة</div>
+                    <div class="q-text" style="font-size: 1.3rem; color: #475569; font-weight: 500;">
+                        {!! nl2br(htmlspecialchars($currentTask->ai_suggestion)) !!}
+                    </div>
+                </div>
+                @endif
             </div>
 
             <div class="decision-area" id="decisionStep">

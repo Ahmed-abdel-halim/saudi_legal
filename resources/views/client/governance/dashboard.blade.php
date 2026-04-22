@@ -133,8 +133,9 @@
                                     </td>
                                     <td class="px-6 py-3">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                                            {{ $task->status === 'completed' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700' }}">
-                                            {{ ucfirst($task->status) }}
+                                            {{ $task->status->value === 'completed' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700' }}">
+                                            {{-- by Ahmed abdelhalim --}}
+                                            {{ ucfirst($task->status->value) }}
                                         </span>
                                     </td>
                                      <td class="px-6 py-3">
@@ -144,7 +145,8 @@
                                             @elseif($task->consensus_status === 'in_progress') bg-blue-50 text-blue-700
                                             @else bg-slate-50 text-slate-600
                                             @endif">
-                                            {{ ucfirst(str_replace('_', ' ', $task->consensus_status)) }}
+                                            {{-- by Ahmed abdelhalim --}}
+                                            {{ ucfirst(str_replace('_', ' ', is_string($task->consensus_status) ? $task->consensus_status : $task->consensus_status->value)) }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-3 text-sm text-slate-500">

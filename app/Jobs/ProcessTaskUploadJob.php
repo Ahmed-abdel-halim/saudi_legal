@@ -111,6 +111,8 @@ class ProcessTaskUploadJob implements ShouldQueue
         ];
 
         $sentimentColumns = ['sentiment', 'feeling', 'tone', 'مشاعر', 'شعور', 'نبرة'];
+        // by Ahmed abdelhalim
+        $answerColumns = ['ai_suggestion', 'suggestion', 'answer', 'proposed_answer', 'الاجابة', 'الإجابة', 'الرد', 'المقترح'];
         $hasKnownHeaders = count(array_intersect($contentColumns, $normalizedHeader)) > 0;
 
         $domainDetector = new DomainDetectionService();
@@ -181,9 +183,19 @@ class ProcessTaskUploadJob implements ShouldQueue
                     }
                 }
 
+                $suggestion = null;
+                foreach ($answerColumns as $col) {
+                    if (isset($assoc[$col]) && !empty($assoc[$col])) {
+                        $suggestion = $assoc[$col];
+                        break;
+                    }
+                }
+
+                // by Ahmed abdelhalim
                 AiTask::create([
                     'task_type' => $assoc['task_type'] ?? 'text_analysis',
                     'original_data' => $content,
+                    'ai_suggestion' => $suggestion,
                     'client_id' => $this->clientId,
                     'status' => 'pending',
                     'consensus_status' => 'pending',
@@ -191,7 +203,7 @@ class ProcessTaskUploadJob implements ShouldQueue
                     'task_domain' => $detectedDomain,
                     'sentiment' => $sentiment,
                     'allowed_roles' => [],
-                    'allow_all_roles' => $detectedDomain === null
+                    'allow_all_roles' => true
                 ]);
                 $count++;
             }

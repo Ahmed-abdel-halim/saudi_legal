@@ -120,6 +120,7 @@ class GovernanceDashboardController extends Controller
             
             $impressionColumns = ['impression', 'impressions', 'views', 'مشاهدات', 'انطباعات'];
             $sentimentColumns = ['sentiment', 'feeling', 'tone', 'مشاعر', 'شعور', 'نبرة'];
+            $answerColumns = ['ai_suggestion', 'suggestion', 'answer', 'proposed_answer', 'الاجابة', 'الإجابة', 'الرد', 'المقترح'];
             
             $hasKnownHeaders = count(array_intersect($contentColumns, $normalizedHeader)) > 0;
 
@@ -195,17 +196,27 @@ class GovernanceDashboardController extends Controller
                         }
                     }
 
+                    $suggestion = null;
+                    foreach ($answerColumns as $col) {
+                        if (isset($assoc[$col]) && !empty($assoc[$col])) {
+                            $suggestion = $assoc[$col];
+                            break;
+                        }
+                    }
+
+                    // by Ahmed abdelhalim
                     \App\Models\AiTask::create([
                         'task_type' => $assoc['task_type'] ?? 'text_analysis',
                         'original_data' => $content,
+                        'ai_suggestion' => $suggestion,
                         'client_id' => $user->id,
                         'status' => 'pending',
                         'consensus_status' => 'pending',
                         'required_responses' => 3,
-                        'task_domain' => $detectedDomain, // Automatically detected domain
+                        'task_domain' => $detectedDomain,
                         'sentiment' => $sentiment,
                         'allowed_roles' => [],
-                        'allow_all_roles' => $detectedDomain === null // If no domain detected, allow all experts
+                        'allow_all_roles' => true
                     ]);
                     $count++;
                 }
