@@ -31,8 +31,11 @@ class OtpVerificationMail extends Mailable
 
     public function content(): Content
     {
-        // Embed the logo as a CID attachment — works in all email clients including Gmail
-        $logoPath = public_path('images/favicon-32x32.png');
+        // Modified by Ahmedabdelhalim
+        $logoPath = public_path('images/icon.png');
+        if (!file_exists($logoPath)) {
+            $logoPath = public_path('images/favicon-32x32.png');
+        }
 
         return new Content(
             view: 'emails.otp-verification',
@@ -41,9 +44,7 @@ class OtpVerificationMail extends Mailable
                 'userName' => $this->userName,
                 'lang'     => $this->lang,
                 'subject'  => $this->subject,
-                'logoSrc'  => file_exists($logoPath)
-                    ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
-                    : null,
+                'logoPath' => $logoPath,
             ]
         );
     }

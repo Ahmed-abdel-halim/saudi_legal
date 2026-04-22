@@ -19,8 +19,9 @@
                     <!-- ===== HEADER ===== -->
                     <tr>
                         <td style="background:linear-gradient(135deg,#0f172a 0%,#1a3a6c 100%);padding:28px 40px;text-align:center;">
-                            @if(!empty($logoSrc))
-                                <img src="{{ $logoSrc }}"
+                            {{-- Modified by Ahmedabdelhalim --}}
+                            @if(!empty($logoPath) && file_exists($logoPath))
+                                <img src="{{ $message->embed($logoPath) }}"
                                      alt="Radiif"
                                      width="64"
                                      height="64"
