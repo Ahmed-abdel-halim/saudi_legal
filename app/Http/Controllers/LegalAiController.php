@@ -15,23 +15,16 @@ class LegalAiController extends Controller
         $this->searchService = $searchService;
     }
 
-    /**
-     * عرض صفحة المساعد القانوني
-     */
     public function index()
     {
         return view('saudi_legal.chat');
     }
 
-    /**
-     * معالجة سؤال المستخدم (RAG Flow)
-     */
     public function ask(Request $request)
     {
         $request->validate(['question' => 'required|string|max:500']);
         $question = $request->question;
 
-        // 1. البحث عن السياق القانوني (Retrieval)
         $contextArticles = $this->searchService->search($question, 3);
         
         if ($contextArticles->isEmpty()) {
@@ -41,7 +34,6 @@ class LegalAiController extends Controller
             ]);
         }
 
-        // 2. تجهيز السياق للذكاء الاصطناعي
         $contextText = "";
         $citations = [];
         foreach ($contextArticles as $article) {
@@ -53,8 +45,6 @@ class LegalAiController extends Controller
             ];
         }
 
-        // 3. إرسال السؤال مع السياق إلى الـ LLM (هنا نستخدم Placeholder لـ Gemini أو GPT)
-        // ملاحظة: سأقوم بكتابة إجابة تجريبية ذكية بناءً على السياق في حال عدم توفر API Key حالياً
         $answer = $this->generateAiAnswer($question, $contextText);
 
         return response()->json([
@@ -63,9 +53,6 @@ class LegalAiController extends Controller
         ]);
     }
 
-    /**
-     * توليد الإجابة باستخدام الذكاء الاصطناعي (Google Gemini API)
-     */
     private function generateAiAnswer($question, $context)
     {
         $apiKey = env('GEMINI_API_KEY');

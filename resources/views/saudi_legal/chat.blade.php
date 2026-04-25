@@ -93,23 +93,15 @@
         </div>
     </nav>
 
-    <!-- Background Wrapper -->
-    <div class="premium-bg flex-1 w-full flex flex-col relative overflow-hidden">
-
-        <!-- Main Content Area (Scrollable) -->
+<div class="premium-bg flex-1 w-full flex flex-col relative overflow-hidden">
         <main id="chat-container" class="flex-1 relative z-10 flex flex-col max-w-7xl mx-auto w-full px-4 pt-10 pb-4 overflow-y-auto" style="scrollbar-width: none;">
-        
-            <!-- Top Section: Visuals & Welcome -->
             <div class="flex-1 flex items-center justify-between relative mb-12" id="welcome-visuals">
-                <!-- Left: Robot Image Placeholder -->
                 <div class="w-1/3 flex justify-start pl-10 relative">
                      <div class="w-64 h-64 rounded-full flex items-center justify-center relative"></div>
                 </div>
 
-                <!-- Center: Live RAG Circle -->
                 <div class="w-1/3 flex justify-center relative z-20"></div>
 
-                <!-- Right: Welcome Bubble & Gavel -->
                 <div class="w-1/3 flex flex-col items-end pr-10 relative">
                     <div class="glass-bubble p-6 max-w-sm mb-6 relative z-20" style="margin-top: -60px;">
                         <p class="text-sm text-gray-700 leading-relaxed font-medium">
@@ -125,7 +117,6 @@
                 </div>
             </div>
 
-            <!-- Suggested Queries -->
             <div class="flex flex-col gap-3 w-full max-w-4xl mx-auto" id="suggested-queries">
                 <h3 class="text-sm font-bold text-gray-500 text-right px-2">أسئلة مقترحة:</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4" dir="rtl">
@@ -153,14 +144,11 @@
                 </div>
             </div>
 
-            <!-- Chat Display Area -->
             <div id="chat-messages" class="flex flex-col w-full max-w-4xl mx-auto mt-6 px-2 pb-4">
-                <!-- Messages will be appended here dynamically -->
             </div>
             
         </main>
 
-        <!-- Fixed Input Bar Area -->
         <div class="w-full relative z-20 pb-6 pt-2">
             <div class="max-w-4xl mx-auto px-4">
                 <div class="relative w-full input-glow transition-all duration-300 rounded-full bg-white/80 backdrop-blur-xl border border-white shadow-xl shadow-blue-900/5">
@@ -186,13 +174,11 @@
             const question = input.value.trim();
             if(!question) return;
 
-            // Hide Suggestions & Visuals once chat starts
             const visuals = document.getElementById('welcome-visuals');
             if(visuals) visuals.style.display = 'none';
             const suggestions = document.getElementById('suggested-queries');
             if(suggestions) suggestions.style.display = 'none';
 
-            // 1. Append User Message
             const userMsgHtml = `
                 <div class="flex justify-start mb-8">
                     <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-3xl rounded-tr-none px-6 py-4 shadow-xl shadow-blue-900/20 max-w-[85%] border border-blue-500/30">
@@ -202,7 +188,6 @@
             `;
             chatMessages.insertAdjacentHTML('beforeend', userMsgHtml);
             
-            // 2. Append Loading Indicator
             const loadingId = 'loading-' + Date.now();
             const loadingHtml = `
                 <div id="${loadingId}" class="flex justify-end mb-8">
@@ -216,13 +201,11 @@
             `;
             chatMessages.insertAdjacentHTML('beforeend', loadingHtml);
 
-            // Reset input & scroll to bottom
             input.value = '';
             document.getElementById('btn-send').disabled = true;
             document.getElementById('btn-send').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
             mainContainer.scrollTop = mainContainer.scrollHeight;
 
-            // 3. Make API Call
             try {
                 const response = await fetch("{{ route('dashboard.expert.legal_assistant.ask') }}", {
                     method: 'POST',
@@ -236,10 +219,8 @@
 
                 const data = await response.json();
                 
-                // Remove loading
                 document.getElementById(loadingId).remove();
 
-                // Format Citations
                 let citationsContainer = '';
                 if(data.citations && data.citations.length > 0) {
                     const citationsHtml = data.citations.map((c, index) => `
@@ -266,7 +247,6 @@
                     `;
                 }
 
-                // 4. Append AI Answer
                 const formattedAnswer = data.answer ? data.answer.replace(/\n/g, '<br>') : '';
                 const aiMsgHtml = `
                     <div class="flex justify-end mb-8">
