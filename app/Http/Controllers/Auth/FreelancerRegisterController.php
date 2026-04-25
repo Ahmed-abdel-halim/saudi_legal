@@ -28,8 +28,9 @@ class FreelancerRegisterController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'freelancer', // Explicitly set role
-            'is_active' => true, // Assuming active by default
+            'role' => ($request->type === 'expert') ? 'expert' : 'freelancer', // Set role based on type
+            'expert_domain' => ($request->type === 'expert') ? 'law' : null, // Set domain to 'law' for experts
+            'is_active' => true,
         ]);
 
         session(['verify_otp_user_id' => $user->id, 'email' => $user->email]);

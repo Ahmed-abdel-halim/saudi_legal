@@ -21,7 +21,8 @@ $header = fgetcsv($file); // Skip header
 
 $count = 0;
 while (($row = fgetcsv($file)) !== FALSE) {
-    if (count($row) < 3) continue;
+    if (count($row) < 3)
+        continue;
 
     // Mapping: 0:instruction, 1:question, 2:answer, 3:case_number, 4:year
     $instruction = $row[0];
@@ -46,9 +47,10 @@ while (($row = fgetcsv($file)) !== FALSE) {
         'domain' => 'law',
         'source_file' => 'Radiif_Cleaned_Sample.csv'
     ]);
-    
+
     $count++;
-    if ($count % 10 == 0) echo "Imported $count rows...\n";
+    if ($count % 10 == 0)
+        echo "Imported $count rows...\n";
 }
 
 fclose($file);

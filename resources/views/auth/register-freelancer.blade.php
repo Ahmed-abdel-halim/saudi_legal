@@ -184,7 +184,11 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                 </div>
 
                 <h2 class="text-2xl md:text-3xl font-bold text-brand-teal mb-2">
-                    إنشاء حساب مستقل جديد
+                    @if(request('type') == 'expert')
+                        إنشاء حساب خبير قانوني جديد
+                    @else
+                        إنشاء حساب مستقل جديد
+                    @endif
                 </h2>
                 <p class="text-gray-600 mb-6">
                     أكمل البيانات التالية للبدء
@@ -201,6 +205,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
 
                 <form class="space-y-5" action="{{ route('freelancer.register') }}" method="POST">
                     @csrf
+                    <input type="hidden" name="type" value="{{ request('type') }}">
                     
                     {{-- Full Name --}}
                     <div>

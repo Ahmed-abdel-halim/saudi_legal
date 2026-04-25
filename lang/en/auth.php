@@ -106,6 +106,7 @@ return [
     'PASSWORD_CONFIRM_LABEL' => 'Confirm Password',
     'BTN_RESET_PASSWORD' => 'Update Password',
     'ARE_YOU_STUDENT' => 'Are you a student? Register here',
+    'ARE_YOU_LAWYER' => 'Are you a lawyer or legal expert? Register here',
     'NOT_STUDENT' => 'Not a student? Register as Company/Expert',
 
     // Student Registration
@@ -120,6 +121,7 @@ return [
     'SCHOOL_NAME' => 'School or University Name',
     'OTHER_OPTIONS' => 'Other Options',
     'REGISTER_AS_COMPANY' => 'Register as Company',
+    'REGISTER_AS_EXPERT' => 'Register as Lawyer/Expert',
     'UNIVERSITY_EMAIL_PLACEHOLDER' => 'student@university.edu.sa',
     'NATIONAL_ID_PLACEHOLDER' => '10xxxxxxxx',
     'SCHOOL_NAME_PLACEHOLDER' => 'King Saud University',

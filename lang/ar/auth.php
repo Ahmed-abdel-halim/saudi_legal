@@ -107,6 +107,7 @@ return [
     'BTN_RESET_PASSWORD' => 'تحديث كلمة المرور',
     'ARE_YOU_STUDENT' => 'هل أنت طالب؟ سجل هنا',
     'ARE_YOU_FREELANCER' => 'هل أنت مستقل؟ سجل هنا',
+    'ARE_YOU_LAWYER' => 'هل أنت محامي أو خبير قانوني؟ سجل هنا',
     'NOT_STUDENT' => 'لست طالباً؟ سجل كشركة/خبير',
 
     // Student Registration
@@ -123,6 +124,7 @@ return [
     'REGISTER_AS_COMPANY' => 'سجل شركتك',
     'REGISTER_AS_STUDENT' => 'سجل كطالب',
     'REGISTER_AS_FREELANCER' => 'سجل كمستقل',
+    'REGISTER_AS_EXPERT' => 'سجل كمحامي/خبير',
     'UNIVERSITY_EMAIL_PLACEHOLDER' => 'student@university.edu.sa',
     'NATIONAL_ID_PLACEHOLDER' => '10xxxxxxxx',
     'SCHOOL_NAME_PLACEHOLDER' => 'جامعة الملك سعود',

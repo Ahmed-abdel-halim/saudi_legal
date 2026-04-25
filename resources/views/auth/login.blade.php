@@ -303,15 +303,25 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                     <div class="flex-grow h-[2px] bg-gradient-to-l from-transparent via-gray-300 to-gray-300"></div>
                 </div>
 
-                {{-- Register Link --}}
-                <a href="{{ route('register.company') }}"
-                    class="btn-register block w-full text-center bg-gradient-to-r from-brand-teal to-teal-500 text-white py-3 px-6 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]">
-                    {{ __('auth.AUTH_CREATE_COMPANY', [], $currentLang) }}
-                </a>
+                {{-- Register Links --}}
+                <div class="space-y-4">
+                    <a href="{{ route('register.company') }}"
+                        class="btn-register block w-full text-center bg-gradient-to-r from-brand-teal to-teal-500 text-white py-3 px-6 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]">
+                        {{ __('auth.AUTH_CREATE_COMPANY', [], $currentLang) }}
+                    </a>
 
-                <div class="mt-4 text-center">
-                    <a href="{{ route('register.student') }}" class="text-brand-teal hover:underline font-medium text-sm">
+                    <a href="{{ route('freelancer.register.form', ['type' => 'expert']) }}"
+                        class="block w-full text-center border-2 border-brand-teal text-brand-teal py-3 px-6 rounded-lg font-semibold text-lg hover:bg-brand-teal hover:text-white transition-all duration-300 transform hover:scale-[1.02]">
+                        {{ __('auth.REGISTER_AS_EXPERT', [], $currentLang) }}
+                    </a>
+                </div>
+
+                <div class="mt-6 grid grid-cols-2 gap-4 text-center">
+                    <a href="{{ route('register.student') }}" class="text-gray-500 hover:text-brand-teal font-medium text-xs border-r border-gray-200">
                         {{ __('auth.ARE_YOU_STUDENT', [], $currentLang) }}
+                    </a>
+                    <a href="{{ route('register.company') }}" class="text-gray-500 hover:text-brand-teal font-medium text-xs">
+                        {{ __('auth.AUTH_NEW_USER', [], $currentLang) }}
                     </a>
                 </div>
 
