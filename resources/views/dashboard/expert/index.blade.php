@@ -321,6 +321,47 @@
                     </div>
                 </div>
 
+                @if($user->expert_domain == 'law')
+                {{-- SAUDI LEGAL SPECIAL CARDS --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {{-- Workbench Card --}}
+                    <div class="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden group border-4 border-white/10">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 -mr-16 -mt-16 rounded-full blur-3xl transition group-hover:scale-150 duration-700"></div>
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-xl shadow-inner">
+                                    <i class="fa-solid fa-gavel text-yellow-400"></i>
+                                </div>
+                                <span class="bg-yellow-400 text-blue-900 text-[10px] font-black px-2 py-0.5 rounded uppercase">Legal Expert</span>
+                            </div>
+                            <h2 class="text-xl font-black mb-1">تنقيح المساعد القانوني</h2>
+                            <p class="text-blue-100/70 text-[11px] leading-relaxed mb-4">راجع إجابات الـ AI بناءً على الأنظمة السعودية.</p>
+                            <a href="{{ route('dashboard.expert.legal_workbench') }}" class="inline-flex items-center gap-2 bg-white text-blue-800 px-5 py-2.5 rounded-xl font-black text-xs shadow-xl transition transform hover:-translate-y-1">
+                                ابدأ التنقيح <i class="fa-solid fa-arrow-left rtl:rotate-180"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- AI Assistant Card --}}
+                    <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden group border-4 border-white/10">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 -mr-16 -mt-16 rounded-full blur-3xl transition group-hover:scale-150 duration-700"></div>
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-xl shadow-inner">
+                                    <i class="fa-solid fa-robot text-emerald-300"></i>
+                                </div>
+                                <span class="bg-emerald-400 text-teal-900 text-[10px] font-black px-2 py-0.5 rounded uppercase">NEW RAG ENGINE</span>
+                            </div>
+                            <h2 class="text-xl font-black mb-1">المساعد القانوني الذكي</h2>
+                            <p class="text-emerald-100/70 text-[11px] leading-relaxed mb-4">اسأل الذكاء الاصطناعي وسيجيبك من 15,954 مادة قانونية.</p>
+                            <a href="{{ route('dashboard.expert.legal_assistant') }}" class="inline-flex items-center gap-2 bg-white text-emerald-800 px-5 py-2.5 rounded-xl font-black text-xs shadow-xl transition transform hover:-translate-y-1">
+                                اسأل المساعد <i class="fa-solid fa-comment-dots"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
                     <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
                         <h3 class="font-bold text-slate-800 flex items-center gap-2">

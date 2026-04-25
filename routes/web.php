@@ -106,6 +106,16 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/workbench/action', [\App\Http\Controllers\Dashboard\Expert\WorkbenchController::class , 'action'])->name('.workbench.action');
             Route::post('/workbench/sentiment', [\App\Http\Controllers\Dashboard\Expert\WorkbenchController::class , 'submitSentiment'])->name('.workbench.sentiment');
 
+            // SAUDI LEGAL Routes
+            Route::get('/legal-workbench', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class , 'index'])->name('.legal_workbench');
+            Route::post('/legal-workbench/submit', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class , 'submit'])->name('.legal_workbench.submit');
+            Route::post('/legal-workbench/skip', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class , 'skip'])->name('.legal_workbench.skip');
+            Route::post('/legal-workbench/previous', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class , 'previous'])->name('.legal_workbench.previous');
+
+            // SAUDI LEGAL AI Assistant Routes
+            Route::get('/legal-assistant', [\App\Http\Controllers\LegalAiController::class, 'index'])->name('.legal_assistant');
+            Route::post('/legal-assistant/ask', [\App\Http\Controllers\LegalAiController::class, 'ask'])->name('.legal_assistant.ask');
+
             Route::get('/settings', [ExpertDashboardController::class , 'settings'])->name('.settings');
             Route::post('/purchase/{id}/accept', [ExpertDashboardController::class , 'acceptPurchase'])->name('.purchase.accept');
             Route::post('/settings', [ExpertDashboardController::class , 'settings']);
