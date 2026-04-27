@@ -38,19 +38,24 @@ class LegalTaskController extends Controller
             }
         }
 
-        // الذكاء الاصطناعي للإصلاح التلقائي عند العرض (في كل المهام وفي أي وقت)
-        if ($currentTask && $currentTask->status !== 'completed') {
-            $linkingService = new \App\Services\LegalLinkingService();
-            $searchText = $currentTask->expert_comment . ' ' . $currentTask->question . ' ' . $currentTask->proposed_answer;
-            $match = $linkingService->findBestMatch($searchText);
+        // استخدام محرك الربط الذكي الجديد لاستخراج المواد القانونية من نص الحكم
+        $mentionedArticles = collect();
+        if ($currentTask) {
+            $referenceService = new \App\Services\LegalReferenceService();
+            // نستخدم نص الحكم (case_text) كمصدر أساسي، مع تمرير بيانات المهمة كاحتياطي (fallback)
+            $mentionedArticles = $referenceService->getMentionedArticles(
+                $currentTask->case_text ?? '',
+                $currentTask->law_system_name,
+                $currentTask->law_article_number
+            );
             
-            // إذا وجدنا ربطاً أفضل بنسبة ثقة عالية جداً، نقوم بتحديث المهمة تلقائياً
-            if ($match['confidence'] >= 85 && $match['system_name'] !== $currentTask->law_system_name) {
-                $currentTask->update([
-                    'law_system_name' => $match['system_name'],
-                    'law_article_number' => $match['article_number'],
-                    'law_article_text' => $match['article_text'],
-                ]);
+            // إذا لم نجد في نص الحكم، نبحث في السؤال
+            if ($mentionedArticles->isEmpty()) {
+                $mentionedArticles = $referenceService->getMentionedArticles(
+                    $currentTask->question,
+                    $currentTask->law_system_name,
+                    $currentTask->law_article_number
+                );
             }
         }
 
@@ -58,12 +63,14 @@ class LegalTaskController extends Controller
             return response()->json([
                 'success' => true,
                 'task' => $currentTask,
+                'mentioned_articles' => $mentionedArticles,
                 'stats' => $this->getExpertStats($expert)
             ]);
         }
 
         return view('dashboard.expert.legal_workbench', [
             'task' => $currentTask,
+            'mentioned_articles' => $mentionedArticles,
             'stats' => $this->getExpertStats($expert)
         ]);
     }
@@ -113,6 +120,22 @@ class LegalTaskController extends Controller
             $task->update([
                 'status' => 'skipped',
             ]);
+        }
+        
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * حذف المهمة الحالية (للمهام الفارغة أو غير الصالحة)
+     */
+    public function delete(Request $request)
+    {
+        $task = LegalTask::where('id', $request->task_id)
+            ->where('expert_id', Auth::id())
+            ->first();
+
+        if ($task) {
+            $task->delete();
         }
         
         return response()->json(['success' => true]);

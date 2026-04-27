@@ -208,6 +208,16 @@ class GovernanceDashboardController extends Controller
                         }
                     }
 
+                    // Create the Client Question record
+                    $clientQuestion = \App\Models\ClientQuestion::create([
+                        'company_id' => $user->company_id ?? 1, // Fallback if user doesn't have company_id
+                        'user_id' => $user->id,
+                        'question' => $content,
+                        'context' => $assoc['context'] ?? null,
+                        'status' => 'pending',
+                        'domain' => $detectedDomain
+                    ]);
+
                     // Create the AI Task for governance tracking
                     $aiTask = \App\Models\AiTask::create([
                         'task_type' => $assoc['task_type'] ?? 'text_analysis',
@@ -299,6 +309,8 @@ class GovernanceDashboardController extends Controller
                         }
 
                         \App\Models\LegalTask::create([
+                            'source_type' => 'client_question',
+                            'source_id' => $clientQuestion->id,
                             'task_type' => 'verification',
                             'status' => 'pending',
                             'question' => $question,
