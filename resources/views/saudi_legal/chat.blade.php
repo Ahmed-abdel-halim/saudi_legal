@@ -230,7 +230,7 @@
                                 <h5 class="text-xs font-black text-gray-800 line-clamp-1 flex-1">${c.title}</h5>
                                 <span class="text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-100 px-2 py-1 rounded-md shrink-0">${c.article}</span>
                             </div>
-                            <p class="text-xs text-gray-500 leading-relaxed font-medium line-clamp-3 pr-11">${c.text}</p>
+                            <p class="text-xs text-gray-600 leading-relaxed font-medium max-h-60 overflow-y-auto custom-scrollbar pr-11 whitespace-pre-wrap">${c.text}</p>
                         </div>
                     `).join('');
                     
@@ -240,7 +240,7 @@
                                 <span class="text-xs font-black text-gray-400 uppercase tracking-widest">المصادر القانونية المؤكدة</span>
                                 <i class="fa-solid fa-book-open text-gray-300"></i>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 gap-4">
                                 ${citationsHtml}
                             </div>
                         </div>

@@ -145,7 +145,7 @@
                         <div class="flex items-center justify-end gap-2 text-gray-400 font-bold text-xs uppercase tracking-widest">
                             نص المادة <i class="fa-regular fa-file-lines"></i>
                         </div>
-                        <p class="text-sm text-gray-600 leading-relaxed font-medium">
+                        <p class="text-sm text-gray-600 leading-relaxed font-medium max-h-64 overflow-y-auto custom-scrollbar pl-2 whitespace-pre-wrap">
                             @php
                                 $articleText = strip_tags($task->law_article_text);
                                 $articleNum = $task->law_article_number;
@@ -166,8 +166,8 @@
                                     }
                                 }
                             @endphp
-                            <span class="font-bold text-gray-800">المادة ({{ $articleNum }}) من {{ $sysName }}:</span> 
-                            {{ Str::limit($articleText, 400) }}
+                            <span class="font-bold text-gray-800">المادة ({{ $articleNum }}) من {{ $sysName }}:</span><br>
+                            {{ $articleText }}
                         </p>
                     </div>
 
@@ -176,7 +176,7 @@
                         <div class="flex items-center justify-end gap-2 text-gray-400 font-bold text-xs uppercase tracking-widest">
                             نص الحكم <i class="fa-solid fa-gavel"></i>
                         </div>
-                        <p class="text-sm text-gray-600 leading-relaxed font-medium">
+                        <p class="text-sm text-gray-600 leading-relaxed font-medium max-h-64 overflow-y-auto custom-scrollbar pl-2 whitespace-pre-wrap">
                             {{ $task->case_text ?? 'لا يتوفر نص سابقة قضائية لهذه المهمة في قاعدة البيانات.' }}
                         </p>
                     </div>

@@ -32,8 +32,12 @@ class GovernanceDashboardController extends Controller
      */
     public function uploadTasks(\Illuminate\Http\Request $request)
     {
+        // إيقاف حدود الوقت والذاكرة لتجنب مشكلة الـ Timeout مع الملفات الضخمة
+        set_time_limit(0);
+        ini_set('memory_limit', '-1');
+
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt|max:51200'
+            'csv_file' => 'required|file|max:153600' // 150MB
         ]);
 
         $user = auth()->user();
@@ -204,8 +208,8 @@ class GovernanceDashboardController extends Controller
                         }
                     }
 
-                    // by Ahmed abdelhalim
-                    \App\Models\AiTask::create([
+                    // Create the AI Task for governance tracking
+                    $aiTask = \App\Models\AiTask::create([
                         'task_type' => $assoc['task_type'] ?? 'text_analysis',
                         'original_data' => $content,
                         'ai_suggestion' => $suggestion,
@@ -218,10 +222,83 @@ class GovernanceDashboardController extends Controller
                         'allowed_roles' => [],
                         'allow_all_roles' => true
                     ]);
+
+                    // NEW: If the domain is legal (or law), sync to LegalTask table for the Expert Workbench
+                    if (in_array($detectedDomain, ['law', 'legal', 'محاماة', 'قانون'])) {
+                        
+                        $caseNumber = $assoc['case_number'] ?? null;
+                        
+                        if ($caseNumber) {
+                            $arabicNums = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+                            $englishNums = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                            $caseNumber = str_replace($arabicNums, $englishNums, $caseNumber);
+                        }
+
+                        $year = $assoc['year'] ?? '';
+                        $caseRef = $caseNumber ? "حكم رقم {$caseNumber}" . ($year ? " لعام {$year}هـ" : "") : null;
+
+                        $originalCaseText = null;
+                        if ($caseNumber) {
+                            $originalTask = \App\Models\LegalTask::where('case_reference', 'LIKE', "%{$caseNumber}%")
+                                ->where('status', 'completed')
+                                ->first();
+                            if ($originalTask) {
+                                $originalCaseText = $originalTask->case_text;
+                            }
+                        }
+
+                        $question = $assoc['question'] ?? $content;
+                        $instruction = $assoc['instruction'] ?? '';
+                        
+                        $articleNum = 'غير محدد';
+                        $sysName = 'نظام غير محدد';
+                        $articleText = 'يرجى البحث يدوياً عن نص المادة...';
+                        
+                        // استخراج "المادة 29 من نظام الإثبات"
+                        if (preg_match('/المادة\s+([0-9٠-٩]+)\s+من\s+([^.)،]+)/u', $instruction, $matches)) {
+                            $articleNum = $matches[1];
+                            $sysName = trim($matches[2]);
+                            
+                            $arabicNums = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+                            $englishNums = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                            $articleNum = str_replace($arabicNums, $englishNums, $articleNum);
+                            
+                            $ordinal = $this->numberToArabicOrdinal((int)$articleNum);
+                            
+                            // البحث عن المادة الدقيقة في الداتابيز باستخدام اللفظ العربي (مثلاً المادة التاسعة والعشرون)
+                            $exactArticle = \App\Models\LegalArticle::where('legislation_title', 'LIKE', "%{$sysName}%")
+                                            ->where('article_title', 'LIKE', "%المادة {$ordinal}%")
+                                            ->first();
+                            
+                            if ($exactArticle) {
+                                $articleText = strip_tags($exactArticle->content);
+                            }
+                        }
+
+                        \App\Models\LegalTask::create([
+                            'task_type' => 'verification',
+                            'status' => 'pending',
+                            'question' => $question,
+                            'proposed_answer' => $suggestion ?? 'لا يوجد رد مقترح حالياً.',
+                            'case_text' => $originalCaseText ?? $suggestion,
+                            'case_reference' => $caseRef,
+                            'law_article_number' => $articleNum,
+                            'law_system_name' => $sysName,
+                            'law_article_text' => $articleText,
+                            'domain' => 'law',
+                            'source_file' => $file->getClientOriginalName(),
+                            'expert_comment' => "مهمة مستوردة من لوحة الحوكمة - العميل #{$user->id}"
+                        ]);
+                    }
+                    
                     $count++;
+                    
+                    // Limit to 5000 records for now as per user request
+                    if ($count >= 5000) break;
                 }
             } else {
-                $processRow = function (array $row) use (&$count, $pickContentFromRow, $user, $domainDetector) {
+                $processRow = function (array $row) use (&$count, $pickContentFromRow, $user, $domainDetector, $file) {
+                    if ($count >= 5000) return false;
                     $content = $pickContentFromRow($row);
                     if ($content === null) {
                         return;
@@ -230,7 +307,7 @@ class GovernanceDashboardController extends Controller
                     // Intelligent domain detection
                     $detectedDomain = $domainDetector->detectDomain($content);
                     
-                    \App\Models\AiTask::create([
+                    $aiTask = \App\Models\AiTask::create([
                         'task_type' => 'text_analysis',
                         'original_data' => $content,
                         'client_id' => $user->id,
@@ -242,12 +319,59 @@ class GovernanceDashboardController extends Controller
                         'allowed_roles' => [],
                         'allow_all_roles' => $detectedDomain === null
                     ]);
+
+                    // NEW: Sync to LegalTask table for Expert Workbench
+                    if (in_array($detectedDomain, ['law', 'legal', 'محاماة', 'قانون'])) {
+                        
+                        // محاولة استخراج تفاصيل القضية من الملفات المشابهة لـ Radiif_Cleaned_Sample
+                        $question = count($row) > 1 ? $row[1] : $content;
+                        $csvAnswer = count($row) > 2 ? $row[2] : 'لا يوجد رد مقترح حالياً.';
+                        
+                        $caseNumber = (count($row) > 3) ? trim($row[3]) : null;
+                        // تحويل الأرقام العربية إلى إنجليزية لضمان تطابق البحث في قاعدة البيانات
+                        if ($caseNumber) {
+                            $arabicNums = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+                            $englishNums = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                            $caseNumber = str_replace($arabicNums, $englishNums, $caseNumber);
+                        }
+
+                        $caseRef = ($caseNumber && count($row) > 4) ? "حكم رقم {$caseNumber} لعام {$row[4]}هـ" : null;
+
+                        // سحب نص الحكم الأصلي من الـ 5000 قضية المرفوعة مسبقاً
+                        $originalCaseText = null;
+                        if ($caseNumber) {
+                            $originalTask = \App\Models\LegalTask::where('case_reference', 'LIKE', "%{$caseNumber}%")
+                                ->where('status', 'completed')
+                                ->first();
+                            if ($originalTask) {
+                                $originalCaseText = $originalTask->case_text;
+                            }
+                        }
+
+                        \App\Models\LegalTask::create([
+                            'task_type' => 'verification',
+                            'status' => 'pending',
+                            'question' => $question,
+                            'proposed_answer' => $csvAnswer,
+                            'case_text' => $originalCaseText ?? $csvAnswer, // لو ملقاش الحكم الأصلي يحط الإجابة كاحتياطي
+                            'case_reference' => $caseRef,
+                            'domain' => 'law',
+                            'source_file' => $file->getClientOriginalName(),
+                            'expert_comment' => "مهمة مستوردة من لوحة الحوكمة - العميل #{$user->id}"
+                        ]);
+                    }
+
                     $count++;
+                    if ($count >= 5000) return false;
                 };
 
-                $processRow($firstRow);
-                while (($row = fgetcsv($handle)) !== false) {
-                    $processRow($row);
+                $result = $processRow($firstRow);
+                if ($result !== false) {
+                    while (($row = fgetcsv($handle)) !== false) {
+                        if ($processRow($row) === false) {
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -453,5 +577,38 @@ class GovernanceDashboardController extends Controller
         return back()->with('success', app()->getLocale() == 'ar' 
             ? "تم حذف جميع المهام ($count) بنجاح." 
             : "All tasks ($count) deleted successfully.");
+    }
+    /**
+     * Convert number to Arabic ordinal words (e.g., 29 -> التاسعة والعشرون)
+     */
+    private function numberToArabicOrdinal($number)
+    {
+        $ordinals = [
+            1 => 'الأولى', 2 => 'الثانية', 3 => 'الثالثة', 4 => 'الرابعة', 5 => 'الخامسة',
+            6 => 'السادسة', 7 => 'السابعة', 8 => 'الثامنة', 9 => 'التاسعة', 10 => 'العاشرة',
+            11 => 'الحادية عشرة', 12 => 'الثانية عشرة', 13 => 'الثالثة عشرة', 14 => 'الرابعة عشرة', 15 => 'الخامسة عشرة',
+            16 => 'السادسة عشرة', 17 => 'السابعة عشرة', 18 => 'الثامنة عشرة', 19 => 'التاسعة عشرة', 20 => 'العشرون',
+            30 => 'الثلاثون', 40 => 'الأربعون', 50 => 'الخمسون', 60 => 'الستون', 70 => 'السبعون', 80 => 'الثمانون', 90 => 'التسعون', 100 => 'المائة'
+        ];
+
+        if (isset($ordinals[$number])) {
+            return $ordinals[$number];
+        }
+
+        if ($number > 20 && $number < 100) {
+            $ones = $number % 10;
+            $tens = floor($number / 10) * 10;
+            
+            $onesMap = [
+                1 => 'الحادية', 2 => 'الثانية', 3 => 'الثالثة', 4 => 'الرابعة', 5 => 'الخامسة',
+                6 => 'السادسة', 7 => 'السابعة', 8 => 'الثامنة', 9 => 'التاسعة'
+            ];
+
+            if (isset($onesMap[$ones]) && isset($ordinals[$tens])) {
+                return $onesMap[$ones] . ' و' . $ordinals[$tens];
+            }
+        }
+
+        return (string)$number;
     }
 }

@@ -38,6 +38,22 @@ class LegalTaskController extends Controller
             }
         }
 
+        // الذكاء الاصطناعي للإصلاح التلقائي عند العرض (في كل المهام وفي أي وقت)
+        if ($currentTask && $currentTask->status !== 'completed') {
+            $linkingService = new \App\Services\LegalLinkingService();
+            $searchText = $currentTask->expert_comment . ' ' . $currentTask->question . ' ' . $currentTask->proposed_answer;
+            $match = $linkingService->findBestMatch($searchText);
+            
+            // إذا وجدنا ربطاً أفضل بنسبة ثقة عالية، نقوم بتحديث المهمة تلقائياً
+            if ($match['confidence'] >= 60 && $match['system_name'] !== $currentTask->law_system_name) {
+                $currentTask->update([
+                    'law_system_name' => $match['system_name'],
+                    'law_article_number' => $match['article_number'],
+                    'law_article_text' => $match['article_text'],
+                ]);
+            }
+        }
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,

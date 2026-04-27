@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
-use App\Models\LegalArticle;
+use App\Models\LegalTask;
 use Illuminate\Support\Facades\DB;
 
 class LegalSearchService
 {
+    /**
+     * Search for relevant legal context in Judgments/Tasks
+     */
     public function search($query, $limit = 5)
     {
         $keywords = $this->extractKeywords($query);
@@ -15,36 +18,42 @@ class LegalSearchService
             return collect();
         }
 
-        $queryBuilder = LegalArticle::query();
+        $queryBuilder = LegalTask::query();
         
+        // Search in question, correct_answer, and case_text
         $queryBuilder->where(function($q) use ($keywords) {
             foreach ($keywords as $keyword) {
-                $q->orWhere('content', 'LIKE', '%' . $keyword . '%')
-                  ->orWhere('legislation_title', 'LIKE', '%' . $keyword . '%');
+                $q->orWhere('question', 'LIKE', '%' . $keyword . '%')
+                  ->orWhere('case_text', 'LIKE', '%' . $keyword . '%')
+                  ->orWhere('correct_answer', 'LIKE', '%' . $keyword . '%');
             }
         });
 
-        $articles = $queryBuilder->limit(50)->get();
+        $tasks = $queryBuilder->limit(50)->get();
 
-        $articles = $articles->sortByDesc(function ($article) use ($keywords) {
+        // Rank by keyword frequency and relevance
+        $tasks = $tasks->sortByDesc(function ($task) use ($keywords) {
             $score = 0;
             foreach ($keywords as $keyword) {
-                if (mb_stripos($article->content, $keyword) !== false) {
-                    $score += 1;
+                if ($task->question && mb_stripos($task->question, $keyword) !== false) {
+                    $score += 3; // Question match is highly relevant
                 }
-                if (mb_stripos($article->legislation_title, $keyword) !== false) {
+                if ($task->case_text && mb_stripos($task->case_text, $keyword) !== false) {
                     $score += 2;
+                }
+                if ($task->correct_answer && mb_stripos($task->correct_answer, $keyword) !== false) {
+                    $score += 1;
                 }
             }
             return $score;
         });
 
-        return $articles->take($limit)->values();
+        return $tasks->take($limit)->values();
     }
 
     private function extractKeywords($query)
     {
-        $stopWords = ['ما', 'هي', 'ماذا', 'كيف', 'هل', 'في', 'من', 'على', 'عن', 'إلى', 'مع', 'متى', 'أين', 'لماذا', 'كم', 'أي'];
+        $stopWords = ['ما', 'هي', 'ماذا', 'كيف', 'هل', 'في', 'من', 'على', 'عن', 'إلى', 'مع', 'متى', 'أين', 'لماذا', 'كم', 'أي', 'قضية', 'حكم'];
         $symbols = ['؟', '!', '.', ',', '،', ':', '؛'];
         
         $cleanQuery = str_replace($symbols, ' ', $query);
@@ -67,6 +76,7 @@ class LegalSearchService
 
     public function semanticSearch($query)
     {
+        // Fallback to keyword search for now
         return $this->search($query);
     }
 }

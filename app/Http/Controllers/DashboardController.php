@@ -199,7 +199,7 @@ class DashboardController extends Controller
     public function uploadTasks(Request $request)
     {
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt|max:51200'
+            'csv_file' => 'required|file|max:153600' // 150MB
         ]);
 
         $user = Auth::user();

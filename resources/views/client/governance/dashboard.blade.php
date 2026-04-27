@@ -1,503 +1,627 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="bg-slate-50 text-slate-800 min-h-screen pb-20">
-    
-    <!-- Navbar -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <a href="{{ route('dashboard.projects') }}" class="bg-slate-100 p-2 rounded-lg hover:bg-slate-200 transition">
-                    <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M{{ app()->getLocale() == 'ar' ? '19 12H5m7 7l-7-7 7-7' : '5 12h14M12 5l7 7-7 7' }}"></path></svg>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
+
+    :root {
+        --primary: #4f46e5;
+        --secondary: #0ea5e9;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --glass: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.4);
+    }
+
+    @keyframes spin-slow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow {
+        animation: spin-slow 8s linear infinite;
+    }
+
+    .svg-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        fill: currentColor;
+    }
+
+    .metric-icon .svg-icon {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    body {
+        font-family: 'Cairo', sans-serif;
+    }
+
+    .dashboard-bg {
+        background: #f8fafc;
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.05) 0px, transparent 50%),
+            radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.05) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
+            radial-gradient(at 0% 100%, rgba(239, 68, 68, 0.05) 0px, transparent 50%);
+        background-attachment: fixed;
+    }
+
+    .glass-card {
+        background: var(--glass);
+        backdrop-filter: blur(16px) saturate(180%);
+        -webkit-backdrop-filter: blur(16px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: 2rem;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+        border-color: rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.8);
+    }
+
+    .metric-icon {
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 1.25rem;
+        font-size: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .glass-card:hover .metric-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .live-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--success);
+        position: relative;
+    }
+
+    .live-dot::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: inherit;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 0.8; }
+        100% { transform: scale(3); opacity: 0; }
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.02);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+
+    .status-pill {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .btn-premium {
+        background: #1e293b;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 1.25rem;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-premium:hover {
+        background: #0f172a;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .conflict-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="dashboard-bg min-h-screen text-slate-900 pb-20 pt-6">
+    <div class="container mx-auto px-6">
+        
+        <!-- Premium Header -->
+        <header class="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
+            <div class="flex items-center gap-6">
+                <a href="{{ route('dashboard.projects') }}" class="w-12 h-12 glass-card flex items-center justify-center hover:bg-slate-900 hover:text-white transition-all">
+                    <svg class="w-5 h-5 fill-currentColor rtl:rotate-180" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
                 </a>
-                <span class="font-bold text-xl text-slate-800">{{ app()->getLocale() == 'ar' ? 'لوحة الحوكمة والجودة' : 'Quality & Governance Dashboard' }}</span>
+                <div>
+                    <h1 class="text-3xl font-black tracking-tight text-slate-800">
+                        {{ app()->getLocale() == 'ar' ? 'نظام حوكمة الجودة والذكاء القانوني' : 'Governance & Legal Intelligence' }}
+                    </h1>
+                    <p class="text-slate-500 font-medium mt-1">
+                        {{ app()->getLocale() == 'ar' ? 'متابعة مباشرة لأداء الخبراء وتدقيق البيانات' : 'Real-time expert performance & data auditing' }}
+                    </p>
+                </div>
             </div>
-            <div class="flex items-center gap-2">
-                <span class="text-sm text-slate-500">{{ app()->getLocale() == 'ar' ? 'آخر تحديث:' : 'Last Updated:' }}</span>
-                <span class="text-sm font-bold text-slate-700">{{ now()->format('Y-m-d H:i') }}</span>
+            <div class="glass-card px-6 py-3 flex items-center gap-4">
+                <div class="flex flex-col items-end">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">{{ app()->getLocale() == 'ar' ? 'آخر تحديث للبيانات' : 'Last sync' }}</span>
+                    <span class="text-sm font-black text-slate-700">{{ now()->format('H:i:s') }}</span>
+                </div>
+                <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                    <svg class="svg-icon animate-spin-slow" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                </div>
             </div>
-        </div>
-    </nav>
+        </header>
 
-    <div class="container mx-auto px-6 py-8">
-
-        <!-- Alerts -->
-        @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <span class="block sm:inline">{{ session('success') }}</span>
-            </div>
-        @endif
-        @if(session('error'))
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <span class="block sm:inline">{{ session('error') }}</span>
-            </div>
-        @endif
-
-        <!-- Task Upload & Tracking Section -->
-        <div class="space-y-8 mb-8">
-            <!-- New Task Upload Section -->
-            <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200">
-                <div class="max-w-xl">
-                     <h2 class="text-xl font-bold text-slate-800 mb-2">{{ app()->getLocale() == 'ar' ? 'رفع مهام جديدة' : 'Upload New Tasks' }}</h2>
-                     <p class="text-slate-500 mb-6 text-sm">
+        <!-- Main Upload Section -->
+        <section class="glass-card p-10 mb-12 relative overflow-hidden group">
+            <div class="absolute -right-20 -top-20 w-64 h-64 bg-indigo-600 opacity-[0.03] rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+            <div class="relative flex flex-col lg:flex-row items-center gap-10">
+                <div class="lg:w-2/3">
+                    <h2 class="text-2xl font-black text-slate-800 mb-4 flex items-center gap-3">
+                        <svg class="svg-icon text-indigo-500" viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                        {{ app()->getLocale() == 'ar' ? 'استيراد مهام جديدة للتدقيق' : 'Import New Audit Tasks' }}
+                    </h2>
+                    <p class="text-slate-500 text-lg mb-8 leading-relaxed">
                         {{ app()->getLocale() == 'ar' 
-                            ? 'قم برفع ملف CSV يحتوي على المهام الجديدة لتوزيعها على الخبراء.' 
-                            : 'Upload a CSV file containing new tasks to check quality, detect manipulation, and measure expert consensus.' }}
-                     </p>
-                     
-                     <form action="{{ route('client.governance.upload') }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row gap-3">
+                            ? 'قم برفع ملف البيانات (CSV) لبدء توزيع المهام آلياً على الخبراء وتفعيل خوارزميات كشف التلاعب.' 
+                            : 'Upload your dataset to begin automated distribution and activate manipulation detection algorithms.' }}
+                    </p>
+                    <form action="{{ route('client.governance.upload') }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row gap-4">
                         @csrf
-                        <div class="flex-1">
-                            <label class="block text-sm font-medium text-slate-700 mb-1 sr-only">CSV File</label>
-                            <input type="file" name="csv_file" accept=".csv,.txt" class="block w-full text-sm text-slate-500
-                                file:mr-4 file:py-2.5 file:px-4
-                                file:rounded-full file:border-0
-                                file:text-sm file:font-semibold
-                                file:bg-blue-50 file:text-blue-700
-                                hover:file:bg-blue-100
-                                border border-slate-300 rounded-lg cursor-pointer
-                            "/>
+                        <div class="flex-1 relative group/input">
+                            <input type="file" name="csv_file" id="csv_file" accept=".csv,.txt" class="hidden" onchange="updateFileName(this)"/>
+                            <label for="csv_file" class="flex items-center gap-4 px-6 py-4 bg-white/50 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:border-indigo-400 hover:bg-white transition-all">
+                                <svg class="svg-icon text-slate-400 group-hover/input:text-indigo-500" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                                <span id="file-name-display" class="text-slate-600 font-bold">{{ app()->getLocale() == 'ar' ? 'اختر ملف CSV...' : 'Select CSV file...' }}</span>
+                            </label>
                         </div>
-                        <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-sm flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                            {{ app()->getLocale() == 'ar' ? 'رفع وتوزيع المهام' : 'Upload & Assign' }}
+                        <button type="submit" class="btn-premium px-10">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+                            {{ app()->getLocale() == 'ar' ? 'بدء المعالجة' : 'Launch Batch' }}
                         </button>
                     </form>
-                    <div class="mt-4 text-xs text-slate-400">
-                        {{ app()->getLocale() == 'ar' ? 'الأعمدة المطلوبة:' : 'Required columns:' }} {{ __('dashboard.original_data') ?? 'original_data' }} (Question/Text)
+                </div>
+                <div class="lg:w-1/3 flex justify-center">
+                    <div class="relative w-48 h-48 bg-indigo-50 rounded-full flex items-center justify-center border-4 border-white shadow-xl overflow-hidden">
+                        <svg class="w-32 h-32 text-indigo-200 animate-pulse" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M15 9H9v6h6V9zm-2 4h-2v-2h2v2zm8-2V9h-2V7c0-1.1-.9-2-2-2h-2V3h-2v2h-2V3H9v2H7c-1.1 0-2 .9-2 2v2H3v2h2v2H3v2h2v2c0 1.1.9 2 2 2h2v2h2v-2h2v2h2v-2h2c1.1 0 2-.9 2-2v-2h2v-2h-2v-2h2zm-4 6H7V7h10v10z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Metrics Section -->
+        <section class="space-y-12 mb-12">
+            
+            <!-- Expert Pulse -->
+            <div>
+                <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-3">
+                    <i class="fa-solid fa-users-viewfinder text-indigo-500"></i>
+                    {{ app()->getLocale() == 'ar' ? 'متابعة الخبراء المباشرة' : 'Live Expert Pulse' }}
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Total Experts -->
+                    <div class="glass-card p-8 flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{{ app()->getLocale() == 'ar' ? 'إجمالي الخبراء' : 'Total Workforce' }}</p>
+                            <h4 class="text-4xl font-black text-slate-800">{{ number_format($liveTracking['total_experts']) }}</h4>
+                        </div>
+                        <div class="metric-icon bg-slate-100 text-slate-600">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                        </div>
+                    </div>
+                    <!-- Active Experts -->
+                    <div class="glass-card p-8 flex items-center justify-between border-emerald-100">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1">{{ app()->getLocale() == 'ar' ? 'نشط الآن' : 'Active Duty' }}</p>
+                            <h4 class="text-4xl font-black text-emerald-700 flex items-center gap-3">
+                                {{ number_format($liveTracking['active_experts']) }}
+                                <span class="live-dot"></span>
+                            </h4>
+                        </div>
+                        <div class="metric-icon bg-emerald-50 text-emerald-600">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M2 22h20V2z"/></svg>
+                        </div>
+                    </div>
+                    <!-- Avg Trust -->
+                    <div class="glass-card p-8 flex items-center justify-between border-purple-100">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-purple-600 mb-1">{{ app()->getLocale() == 'ar' ? 'متوسط الثقة' : 'Integrity Index' }}</p>
+                            <h4 class="text-4xl font-black text-purple-700">{{ $liveTracking['avg_trust_score'] }}%</h4>
+                        </div>
+                        <div class="metric-icon bg-purple-50 text-purple-600">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                        </div>
+                    </div>
+                    <!-- Banned -->
+                    <div class="glass-card p-8 flex items-center justify-between border-rose-100">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-rose-600 mb-1">{{ app()->getLocale() == 'ar' ? 'محظورين' : 'Quarantined' }}</p>
+                            <h4 class="text-4xl font-black text-rose-700">{{ number_format($liveTracking['banned_experts']) }}</h4>
+                        </div>
+                        <div class="metric-icon bg-rose-50 text-rose-600">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8 0-1.85.63-3.55 1.69-4.9L16.9 18.31C15.55 19.37 13.85 20 12 20zm5.31-3.1L6.69 5.69A7.941 7.941 0 0112 4c4.42 0 8 3.58 8 8 0 1.85-.63 3.55-1.69 4.9z"/></svg>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Task List / Tracking Table -->
-             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-                    <h3 class="font-bold text-slate-800">{{ app()->getLocale() == 'ar' ? 'متابعة المهام' : 'Task Tracking' }}</h3>
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">{{ $tasks->total() }} {{ app()->getLocale() == 'ar' ? 'مهمة' : 'Tasks' }}</span>
-                        @if($tasks->total() > 0)
-                            <a href="{{ route('client.governance.task.delete-all') }}" 
-                               onclick="return confirm('{{ app()->getLocale() == 'ar' ? 'هل أنت متأكد أنك تريد حذف جميع الأسئلة والمهام؟ لا يمكن التراجع عن هذا الإجراء.' : 'Are you sure you want to delete ALL questions and tasks? This cannot be undone.' }}')"
-                               class="text-xs bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg font-bold border border-red-200 transition-colors flex items-center gap-1">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                {{ app()->getLocale() == 'ar' ? 'حذف الجميع' : 'Delete All' }}
-                            </a>
-                        @endif
+            <!-- Accuracy Benchmarks -->
+            <div>
+                <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-3">
+                    <i class="fa-solid fa-chart-line text-indigo-500"></i>
+                    {{ app()->getLocale() == 'ar' ? 'مقاييس الدقة والجودة' : 'Accuracy Benchmarks' }}
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Total Tasks -->
+                    <div class="glass-card p-8 flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{{ app()->getLocale() == 'ar' ? 'إجمالي المهام' : 'Registry Size' }}</p>
+                            <h4 class="text-4xl font-black text-slate-800">{{ number_format($metrics['total_tasks']) }}</h4>
+                        </div>
+                        <div class="metric-icon bg-slate-100 text-slate-600">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2zm4 8h-2V7h2v10z"/></svg>
+                        </div>
+                    </div>
+                    <!-- Perfect Consensus -->
+                    <div class="glass-card p-8 flex items-center justify-between border-emerald-100">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1">{{ app()->getLocale() == 'ar' ? 'إجماع كامل' : 'Perfect Sync' }}</p>
+                            <h4 class="text-4xl font-black text-emerald-700">{{ $metrics['perfect_consensus_pct'] }}%</h4>
+                            <p class="text-[9px] text-emerald-400 font-bold mt-1 uppercase tracking-tighter">3/3 Experts Agreed</p>
+                        </div>
+                        <div class="metric-icon bg-emerald-50 text-emerald-600">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM1 14l4.24-4.24 1.41 1.41L1 15.41z"/></svg>
+                        </div>
+                    </div>
+                    <!-- Majority Vote -->
+                    <div class="glass-card p-8 flex items-center justify-between border-indigo-100">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1">{{ app()->getLocale() == 'ar' ? 'تصويت الأغلبية' : 'Majority Rule' }}</p>
+                            <h4 class="text-4xl font-black text-indigo-700">{{ $metrics['majority_vote_pct'] }}%</h4>
+                            <p class="text-[9px] text-indigo-400 font-bold mt-1 uppercase tracking-tighter">2/3 Experts Agreed</p>
+                        </div>
+                        <div class="metric-icon bg-indigo-50 text-indigo-600">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                        </div>
+                    </div>
+                    <!-- Conflicts -->
+                    <div class="glass-card p-8 flex items-center justify-between border-amber-100">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">{{ app()->getLocale() == 'ar' ? 'النزاعات' : 'Critical Conflicts' }}</p>
+                            <h4 class="text-4xl font-black text-amber-700">{{ $metrics['conflict_pct'] }}%</h4>
+                            <p class="text-[9px] text-amber-400 font-bold mt-1 uppercase tracking-tighter">Requires Intervention</p>
+                        </div>
+                        <div class="metric-icon bg-amber-50 text-amber-600">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                        </div>
                     </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="bg-white border-b border-slate-100 text-xs uppercase tracking-wider text-slate-500">
-                                <th class="px-6 py-3 font-semibold">{{ __('dashboard.id') ?? 'ID' }}</th>
-                                <th class="px-6 py-3 font-semibold">{{ __('dashboard.original_data') ?? 'Full texts' }}</th>
-                                <th class="px-6 py-3 font-semibold">{{ app()->getLocale() == 'ar' ? 'المجال' : 'Domain' }}</th>
-                                <th class="px-6 py-3 font-semibold">{{ __('dashboard.status') ?? 'Status' }}</th>
-                                <th class="px-6 py-3 font-semibold">{{ __('dashboard.consensus') ?? 'Consensus' }}</th>
-                               <th class="px-6 py-3 font-semibold">{{ __('dashboard.created_at') ?? 'Created At' }}</th>
-                                <th class="px-6 py-3 font-semibold text-center">{{ __('dashboard.actions') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-50">
-                            @forelse($tasks as $task)
-                                <tr class="hover:bg-slate-50 transition-colors">
-                                    <td class="px-6 py-3 text-sm text-slate-600">#{{ $task->id }}</td>
-                                    <td class="px-6 py-3 text-sm text-slate-800 font-medium max-w-md truncate">
-                                        {{ Str::limit($task->original_data, 60) }}
-                                    </td>
-                                    <td class="px-6 py-3">
-                                        @if($task->task_domain)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                                                @if($task->task_domain === 'medicine') bg-red-50 text-red-700
-                                                @elseif($task->task_domain === 'law') bg-blue-50 text-blue-700
-                                                @elseif($task->task_domain === 'engineering') bg-purple-50 text-purple-700
-                                                @elseif($task->task_domain === 'business') bg-green-50 text-green-700
-                                                @elseif($task->task_domain === 'education') bg-yellow-50 text-yellow-700
-                                                @else bg-slate-50 text-slate-600
-                                                @endif">
-                                                @if(app()->getLocale() == 'ar')
-                                                    @if($task->task_domain === 'medicine') طبي
-                                                    @elseif($task->task_domain === 'law') قانوني
-                                                    @elseif($task->task_domain === 'engineering') هندسي
-                                                    @elseif($task->task_domain === 'business') تجاري
-                                                    @elseif($task->task_domain === 'education') تعليمي
-                                                    @else {{ $task->task_domain }}
-                                                    @endif
-                                                @else
-                                                    {{ ucfirst($task->task_domain) }}
-                                                @endif
-                                            </span>
-                                        @else
-                                            <span class="text-xs text-slate-400">{{ app()->getLocale() == 'ar' ? 'عام' : 'General' }}</span>
+            </div>
+
+        </section>
+
+        <!-- Global Task Registry Table -->
+        <section class="glass-card overflow-hidden mb-12 shadow-2xl shadow-slate-200/50 border-0">
+            <div class="px-10 py-8 border-b border-slate-100 bg-white/60 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <h3 class="text-xl font-black text-slate-800 flex items-center gap-3">
+                        <i class="fa-solid fa-list-check text-indigo-500"></i>
+                        {{ app()->getLocale() == 'ar' ? 'سجل المهام العام' : 'Global Task Registry' }}
+                    </h3>
+                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mt-1 italic">V2.0 Core System</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
+                        <span class="text-xs font-black text-slate-500 uppercase tracking-widest">{{ $tasks->total() }} Units</span>
+                    </div>
+                    @if($tasks->total() > 0)
+                        <a href="{{ route('client.governance.task.delete-all') }}" 
+                           onclick="return confirm('Confirm Purge?')"
+                           class="text-[10px] bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white px-6 py-3 rounded-2xl font-black uppercase tracking-[0.2em] transition-all border border-rose-100 flex items-center gap-2">
+                            <svg class="w-3 h-3 fill-currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                            {{ app()->getLocale() == 'ar' ? 'حذف الكل' : 'Purge All' }}
+                        </a>
+                    @endif
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-right border-collapse">
+                    <thead>
+                        <tr class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 bg-slate-50/50 border-b border-slate-100">
+                            <th class="px-10 py-6">ID</th>
+                            <th class="px-10 py-6">{{ app()->getLocale() == 'ar' ? 'المحتوى' : 'Context' }}</th>
+                            <th class="px-10 py-6 text-center">{{ app()->getLocale() == 'ar' ? 'المجال' : 'Domain' }}</th>
+                            <th class="px-10 py-6 text-center">{{ app()->getLocale() == 'ar' ? 'الحالة' : 'Status' }}</th>
+                            <th class="px-10 py-6 text-center">{{ app()->getLocale() == 'ar' ? 'التوافق' : 'Consensus' }}</th>
+                            <th class="px-10 py-6 text-center">{{ app()->getLocale() == 'ar' ? 'الإجراءات' : 'Actions' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        @forelse($tasks as $task)
+                            <tr class="hover:bg-white transition-all duration-300">
+                                <td class="px-10 py-6 text-xs font-black text-slate-300">#{{ $task->id }}</td>
+                                <td class="px-10 py-6">
+                                    <div class="max-w-2xl">
+                                        <p class="text-sm font-bold text-slate-700 mb-1 leading-relaxed">{{ Str::limit($task->original_data, 120) }}</p>
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{{ $task->created_at->format('Y-m-d') }}</span>
+                                            <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
+                                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{{ $task->created_at->format('H:i') }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-10 py-6 text-center">
+                                    <span class="status-pill 
+                                        @if($task->task_domain === 'law') bg-indigo-50 text-indigo-700 border border-indigo-100
+                                        @elseif($task->task_domain === 'medicine') bg-rose-50 text-rose-700 border border-rose-100
+                                        @else bg-slate-100 text-slate-600 border border-slate-200
+                                        @endif">
+                                        {{ $task->task_domain === 'law' ? (app()->getLocale() == 'ar' ? 'قانوني' : 'Legal') : ($task->task_domain ?? 'General') }}
+                                    </span>
+                                </td>
+                                <td class="px-10 py-6 text-center">
+                                    <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest
+                                        {{ $task->status->value === 'completed' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border border-amber-500/20' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $task->status->value === 'completed' ? 'bg-emerald-500' : 'bg-amber-500' }}"></span>
+                                        {{ $task->status->value }}
+                                    </span>
+                                </td>
+                                <td class="px-10 py-6 text-center">
+                                    <span class="status-pill
+                                        @if($task->consensus_status === 'consensus_reached') bg-emerald-50 text-emerald-700 border border-emerald-100
+                                        @elseif($task->consensus_status === 'conflict') bg-rose-50 text-rose-700 border border-rose-100
+                                        @else bg-slate-100 text-slate-600 border border-slate-200
+                                        @endif">
+                                        {{ str_replace('_', ' ', is_string($task->consensus_status) ? $task->consensus_status : $task->consensus_status->value) }}
+                                    </span>
+                                </td>
+                                <td class="px-10 py-6">
+                                    <div class="flex items-center justify-center gap-3">
+                                        @if($task->status->value === 'pending')
+                                            <button onclick="openEditModal({{ $task->id }}, '{{ addslashes($task->original_data) }}')" class="w-10 h-10 flex items-center justify-center glass-card border border-slate-200 text-indigo-500 hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
+                                                <svg class="w-4 h-4 fill-currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 000-1.41l-2.34-2.34a.996.996 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                            </button>
                                         @endif
-                                    </td>
-                                    <td class="px-6 py-3">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                                            {{ $task->status->value === 'completed' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700' }}">
-                                            {{-- by Ahmed abdelhalim --}}
-                                            {{ ucfirst($task->status->value) }}
-                                        </span>
-                                    </td>
-                                     <td class="px-6 py-3">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                                            @if($task->consensus_status === 'consensus_reached') bg-green-50 text-green-700
-                                            @elseif($task->consensus_status === 'conflict') bg-red-50 text-red-700
-                                            @elseif($task->consensus_status === 'in_progress') bg-blue-50 text-blue-700
-                                            @else bg-slate-50 text-slate-600
-                                            @endif">
-                                            {{-- by Ahmed abdelhalim --}}
-                                            {{ ucfirst(str_replace('_', ' ', is_string($task->consensus_status) ? $task->consensus_status : $task->consensus_status->value)) }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-slate-500">
-                                        {{ $task->created_at->format('Y-m-d H:i') }}
-                                    </td>
-                                    <td class="px-6 py-3 text-center">
-                                        <div class="flex items-center justify-center gap-2">
-                                            @if($task->status === 'pending')
-                                                <button onclick="openEditModal({{ $task->id }}, '{{ addslashes($task->original_data) }}')" class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-all" title="{{ __('dashboard.edit') }}">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                                </button>
-                                            @endif
-                                            
-                                            <form action="{{ route('client.governance.task.duplicate', $task->id) }}" method="POST" class="inline" onsubmit="return confirm('{{ app()->getLocale() == 'ar' ? 'هل أنت متأكد من نسخ هذه المهمة؟' : 'Are you sure you want to duplicate this task?' }}')">
-                                                @csrf
-                                                <button type="submit" class="p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-all" title="{{ __('dashboard.copy') }}">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                        <form action="{{ route('client.governance.task.duplicate', $task->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="w-10 h-10 flex items-center justify-center glass-card border border-slate-200 text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm">
+                                                <svg class="w-4 h-4 fill-currentColor" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                            </button>
+                                        </form>
+                                        @if($task->status->value === 'pending')
+                                            <form action="{{ route('client.governance.task.delete', $task->id) }}" method="POST" onsubmit="return confirm('Delete?')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="w-10 h-10 flex items-center justify-center glass-card border border-slate-200 text-rose-500 hover:bg-rose-600 hover:text-white transition-all shadow-sm">
+                                                    <svg class="w-4 h-4 fill-currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
                                                 </button>
                                             </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="6" class="px-10 py-20 text-center text-slate-300 font-bold uppercase tracking-widest text-sm">Registry Empty</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            @if($tasks->hasPages())
+                <div class="px-10 py-8 bg-slate-50/50 border-t border-slate-100">
+                    {{ $tasks->links() }}
+                </div>
+            @endif
+        </section>
 
-                                            @if($task->status === 'pending')
-                                                <form action="{{ route('client.governance.task.delete', $task->id) }}" method="POST" class="inline" onsubmit="return confirm('{{ app()->getLocale() == 'ar' ? 'هل أنت متأكد من حذف هذه المهمة؟' : 'Are you sure you want to delete this task?' }}')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-all" title="{{ __('dashboard.delete') }}">
-                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
+        <!-- Fraud Intelligence Log -->
+        <section class="space-y-6 mb-12">
+            <h3 class="text-xl font-black text-slate-800 flex items-center gap-4">
+                <i class="fa-solid fa-user-shield text-rose-500"></i>
+                {{ app()->getLocale() == 'ar' ? 'سجل كشف الاحتيال الذكي' : 'Fraud Intelligence Log' }}
+            </h3>
+            <div class="glass-card overflow-hidden border-0">
+                @if($fraudLogs->count() > 0)
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-right text-sm border-collapse">
+                            <thead class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 bg-slate-50/50 border-b border-slate-100">
                                 <tr>
-                                    <td colspan="7" class="px-6 py-8 text-center text-slate-500">
-                                        <p class="text-sm">{{ __('dashboard.no_tasks') ?? 'No tasks found.' }}</p>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                
-                <!-- Pagination -->
-                @if($tasks->hasPages())
-                    <div class="px-6 py-3 border-t border-slate-100">
-                        {{ $tasks->links() }}
-                    </div>
-                @endif
-            </div>
-        </div>
-
-        <!-- Live Expert Tracking -->
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                {{ app()->getLocale() == 'ar' ? 'متابعة الخبراء المباشرة' : 'Live Expert Tracking' }}
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <!-- Total Experts -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                    <div class="text-slate-500 text-sm font-medium mb-1">{{ app()->getLocale() == 'ar' ? 'إجمالي الخبراء' : 'Total Experts' }}</div>
-                    <div class="text-3xl font-bold text-slate-800">{{ number_format($liveTracking['total_experts']) }}</div>
-                </div>
-
-                <!-- Active Experts -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                     <div class="text-slate-500 text-sm font-medium mb-1">{{ app()->getLocale() == 'ar' ? 'نشط الآن' : 'Active Now' }}</div>
-                    <div class="text-3xl font-bold text-green-600 flex items-center gap-2">
-                        <span class="relative flex h-3 w-3">
-                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                          <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                        </span>
-                        {{ number_format($liveTracking['active_experts']) }}
-                    </div>
-                </div>
-
-                <!-- Avg Trust Score -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                    <div class="text-slate-500 text-sm font-medium mb-1">{{ app()->getLocale() == 'ar' ? 'متوسط الثقة' : 'Avg. Trust Score' }}</div>
-                    <div class="text-3xl font-bold text-purple-700">{{ $liveTracking['avg_trust_score'] }}%</div>
-                </div>
-
-                <!-- Banned Experts -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                    <div class="text-slate-500 text-sm font-medium mb-1">{{ app()->getLocale() == 'ar' ? 'محظورين' : 'Banned Experts' }}</div>
-                    <div class="text-3xl font-bold text-red-600">{{ number_format($liveTracking['banned_experts']) }}</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Accuracy Metrics -->
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                {{ app()->getLocale() == 'ar' ? 'مقاييس الدقة' : 'Accuracy Metrics' }}
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <!-- Total Tasks -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-slate-500 text-sm font-medium">{{ app()->getLocale() == 'ar' ? 'إجمالي المهام' : 'Total Tasks' }}</span>
-                        <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center">
-                            <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                        </div>
-                    </div>
-                    <div class="text-3xl font-bold text-slate-800">{{ number_format($metrics['total_tasks']) }}</div>
-                </div>
-
-                <!-- Perfect Consensus -->
-                <div class="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl p-6 shadow-sm border border-emerald-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-emerald-700 text-sm font-medium">{{ app()->getLocale() == 'ar' ? 'إجماع كامل' : 'Perfect Consensus' }}</span>
-                        <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </div>
-                    </div>
-                    <div class="text-3xl font-bold text-emerald-700">{{ $metrics['perfect_consensus_pct'] }}%</div>
-                    <div class="text-xs text-emerald-600 mt-1">{{ app()->getLocale() == 'ar' ? 'اتفاق 3 خبراء' : 'All 3 experts agreed' }}</div>
-                </div>
-
-                <!-- Majority Vote -->
-                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 shadow-sm border border-blue-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-blue-700 text-sm font-medium">{{ app()->getLocale() == 'ar' ? 'تصويت الأغلبية' : 'Majority Vote' }}</span>
-                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        </div>
-                    </div>
-                    <div class="text-3xl font-bold text-blue-700">{{ $metrics['majority_vote_pct'] }}%</div>
-                    <div class="text-xs text-blue-600 mt-1">{{ app()->getLocale() == 'ar' ? 'اتفاق 2 من 3' : '2 out of 3 agreed' }}</div>
-                </div>
-
-                <!-- Conflicts -->
-                <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 shadow-sm border border-amber-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-amber-700 text-sm font-medium">{{ app()->getLocale() == 'ar' ? 'نزاعات' : 'Conflicts' }}</span>
-                        <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                        </div>
-                    </div>
-                    <div class="text-3xl font-bold text-amber-700">{{ $metrics['conflict_pct'] }}%</div>
-                    <div class="text-xs text-amber-600 mt-1">{{ app()->getLocale() == 'ar' ? 'يتطلب مراجعة' : 'Requires review' }}</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Fraud Detection Log -->
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                {{ app()->getLocale() == 'ar' ? 'سجل كشف الاحتيال' : 'Fraud Detection Log' }}
-            </h2>
-
-            @if(count($fraudLogs) > 0)
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left rtl:text-right">
-                            <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-100">
-                                <tr>
-                                    <th class="px-6 py-4 font-bold">{{ app()->getLocale() == 'ar' ? 'الوقت' : 'Timestamp' }}</th>
-                                    <th class="px-6 py-4 font-bold">{{ app()->getLocale() == 'ar' ? 'الخبير' : 'Expert' }}</th>
-                                    <th class="px-6 py-4 font-bold">{{ app()->getLocale() == 'ar' ? 'الحدث' : 'Event' }}</th>
-                                    <th class="px-6 py-4 font-bold">{{ app()->getLocale() == 'ar' ? 'التفاصيل' : 'Description' }}</th>
-                                    <th class="px-6 py-4 font-bold text-center">{{ app()->getLocale() == 'ar' ? 'تغيير النقاط' : 'Trust Score Change' }}</th>
+                                    <th class="px-10 py-6">{{ app()->getLocale() == 'ar' ? 'الوقت' : 'Event Time' }}</th>
+                                    <th class="px-10 py-6">{{ app()->getLocale() == 'ar' ? 'الخبير' : 'Expert' }}</th>
+                                    <th class="px-10 py-6 text-center">{{ app()->getLocale() == 'ar' ? 'الحدث' : 'Event' }}</th>
+                                    <th class="px-10 py-6">{{ app()->getLocale() == 'ar' ? 'الوصف' : 'Description' }}</th>
+                                    <th class="px-10 py-6 text-center">{{ app()->getLocale() == 'ar' ? 'تغيير النقاط' : 'Impact' }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
-                                @foreach($fraudLogs as $log)
-                                    <tr class="hover:bg-slate-50 transition {{ $log['event'] == 'expert_banned' ? 'bg-red-50' : '' }}">
-                                        <td class="px-6 py-4 text-slate-600 text-xs">
-                                            {{ $log['timestamp']->format('Y-m-d H:i') }}
-                                        </td>
-                                        <td class="px-6 py-4 font-medium text-slate-800">
+                                @foreach($fraudLogs->take(10) as $log)
+                                    <tr class="hover:bg-white transition-all {{ $log['event'] == 'expert_banned' ? 'bg-rose-50/30' : '' }}">
+                                        <td class="px-10 py-5 text-slate-400 text-xs font-bold">{{ $log['timestamp']->format('H:i:s') }}</td>
+                                        <td class="px-10 py-5 font-black text-slate-700">
                                             {{ $log['expert_name'] }}
-                                            <span class="text-xs text-slate-400">(#{{ $log['expert_id'] }})</span>
+                                            <span class="text-[9px] text-slate-300 ml-2">#{{ $log['expert_id'] }}</span>
                                         </td>
-                                        <td class="px-6 py-4">
-                                            @if($log['event'] == 'gold_task_failed')
-                                                <span class="px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">
-                                                    {{ app()->getLocale() == 'ar' ? 'فشل في السؤال الذهبي' : 'Gold Task Failed' }}
-                                                </span>
-                                            @elseif($log['event'] == 'trust_score_warning')
-                                                <span class="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
-                                                    {{ app()->getLocale() == 'ar' ? 'تحذير النقاط' : 'Trust Warning' }}
-                                                </span>
-                                            @elseif($log['event'] == 'expert_banned')
-                                                <span class="px-2 py-1 rounded-full text-xs font-bold bg-red-600 text-white">
-                                                    {{ app()->getLocale() == 'ar' ? 'حظر تلقائي' : 'Auto-Banned' }}
-                                                </span>
-                                            @endif
+                                        <td class="px-10 py-5 text-center">
+                                            <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest
+                                                @if($log['event'] == 'expert_banned') bg-rose-600 text-white shadow-lg shadow-rose-200
+                                                @elseif($log['event'] == 'gold_task_failed') bg-amber-500 text-white
+                                                @else bg-slate-800 text-white
+                                                @endif">
+                                                {{ str_replace('_', ' ', $log['event']) }}
+                                            </span>
                                         </td>
-                                        <td class="px-6 py-4 text-slate-600">
-                                            {{ $log['description'] }}
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            @if($log['trust_score_change'])
-                                                <span class="px-3 py-1 rounded-full text-sm font-bold {{ $log['trust_score_change'] < 0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' }}">
-                                                    {{ $log['trust_score_change'] > 0 ? '+' : '' }}{{ $log['trust_score_change'] }}
-                                                </span>
-                                            @else
-                                                <span class="text-slate-400">—</span>
-                                            @endif
+                                        <td class="px-10 py-5 text-slate-500 font-medium italic text-xs">{{ $log['description'] }}</td>
+                                        <td class="px-10 py-5 text-center font-black {{ $log['trust_score_change'] < 0 ? 'text-rose-600' : 'text-emerald-600' }}">
+                                            {{ $log['trust_score_change'] > 0 ? '+' : '' }}{{ $log['trust_score_change'] }}
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
-                </div>
-            @else
-                <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 text-center">
-                    <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                @else
+                    <div class="py-20 text-center">
+                        <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-100 text-emerald-500">
+                            <svg class="w-10 h-10 fill-currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+                        </div>
+                        <p class="text-slate-400 font-black uppercase tracking-widest text-sm italic">No security alerts in the last 24h</p>
                     </div>
-                    <p class="text-slate-500">{{ app()->getLocale() == 'ar' ? 'لا توجد أحداث احتيال مسجلة' : 'No fraud events detected' }}</p>
-                </div>
-            @endif
-        </div>
+                @endif
+            </div>
+        </section>
 
-        <!-- Recent Conflicts -->
-        <div>
-            <h2 class="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+        <!-- Recent Conflicts Resolution -->
+        <section class="space-y-6 mb-12">
+            <h3 class="text-xl font-black text-slate-800 flex items-center gap-4">
+                <i class="fa-solid fa-code-merge text-purple-500"></i>
                 {{ app()->getLocale() == 'ar' ? 'النزاعات الأخيرة' : 'Recent Conflicts' }}
-            </h2>
-
-            @if(count($conflicts) > 0)
-                <div class="space-y-4">
-                    @foreach($conflicts as $conflict)
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                            <div class="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-purple-100">
+            </h3>
+            
+            @if($conflicts->count() > 0)
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    @foreach($conflicts->take(6) as $conflict)
+                        <div class="glass-card overflow-hidden border-0 shadow-xl group">
+                            <div class="bg-gradient-to-r from-purple-500/10 to-indigo-600/10 px-8 py-5 border-b border-slate-100">
                                 <div class="flex items-center justify-between">
-                                    <div>
-                                        <h4 class="font-bold text-slate-800">{{ app()->getLocale() == 'ar' ? 'مهمة' : 'Task' }} #{{ $conflict['task_id'] }} - {{ $conflict['task_type'] }}</h4>
-                                        <p class="text-xs text-slate-500 mt-1">{{ $conflict['created_at']->format('Y-m-d H:i') }}</p>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+                                            <svg class="w-4 h-4 fill-currentColor" viewBox="0 0 24 24"><path d="M11.19 1.36l-7 3.11C3.47 4.79 3 5.51 3 6.3V11c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6.3c0-.79-.47-1.51-1.19-1.83l-7-3.11c-.51-.23-1.11-.23-1.62 0z"/></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-black text-slate-800 uppercase">TASK #{{ $conflict['task_id'] }}</h4>
+                                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $conflict['task_type'] }}</p>
+                                        </div>
                                     </div>
-                                    @if($conflict['resolved'])
-                                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">
-                                            {{ app()->getLocale() == 'ar' ? 'تم الحل' : 'Resolved' }}
-                                        </span>
-                                    @else
-                                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
-                                            {{ app()->getLocale() == 'ar' ? 'قيد الانتظار' : 'Pending' }}
-                                        </span>
-                                    @endif
+                                    <span class="status-pill {{ $conflict['resolved'] ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white animate-pulse' }}">
+                                        {{ $conflict['resolved'] ? 'Resolved' : 'Pending' }}
+                                    </span>
                                 </div>
                             </div>
-
-                            <div class="p-6">
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div class="p-8 space-y-6">
+                                <div class="grid grid-cols-3 gap-3">
                                     @foreach($conflict['expert_answers'] as $index => $answer)
-                                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                                            <div class="flex items-center gap-2 mb-2">
-                                                <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                                                    <span class="text-sm font-bold text-indigo-700">{{ $index + 1 }}</span>
-                                                </div>
-                                                <span class="text-sm font-bold text-slate-700">{{ app()->getLocale() == 'ar' ? 'خبير' : 'Expert' }} #{{ $answer['expert_id'] }}</span>
+                                        <div class="bg-slate-50/50 rounded-2xl p-4 border border-slate-100">
+                                            <div class="flex items-center gap-2 mb-3">
+                                                <div class="conflict-avatar bg-indigo-50 text-indigo-600">E{{ $index + 1 }}</div>
+                                                <span class="text-[9px] font-black text-slate-400 uppercase">Expert #{{ $answer['expert_id'] }}</span>
                                             </div>
-                                            <div class="bg-white rounded-lg p-3 text-xs font-mono text-slate-600 max-h-32 overflow-y-auto">
-                                                {{ json_encode($answer['answer'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}
-                                            </div>
-                                            <div class="mt-2 text-xs text-slate-500">
-                                                {{ app()->getLocale() == 'ar' ? 'الثقة:' : 'Confidence:' }} {{ $answer['confidence'] ?? 'N/A' }}%
+                                            <div class="bg-white rounded-xl p-3 text-[10px] font-bold text-slate-600 h-24 overflow-y-auto custom-scrollbar shadow-inner leading-relaxed">
+                                                {{ is_array($answer['answer']) ? json_encode($answer['answer'], JSON_UNESCAPED_UNICODE) : $answer['answer'] }}
                                             </div>
                                         </div>
                                     @endforeach
                                 </div>
-
-                                @if($conflict['conflict_notes'])
-                                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                                        <p class="text-sm text-amber-800"><strong>{{ app()->getLocale() == 'ar' ? 'ملاحظات:' : 'Notes:' }}</strong> {{ $conflict['conflict_notes'] }}</p>
-                                    </div>
-                                @endif
-
-                                @if($conflict['resolved'])
-                                    <div class="mt-4 text-sm text-slate-600">
-                                        {{ app()->getLocale() == 'ar' ? 'تم الحل بواسطة:' : 'Resolved by:' }} <strong>{{ $conflict['resolved_by'] }}</strong>
-                                    </div>
-                                @endif
                             </div>
                         </div>
                     @endforeach
                 </div>
             @else
-                <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 text-center">
-                    <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="glass-card py-20 text-center">
+                    <div class="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-purple-100 text-purple-500">
+                        <svg class="w-10 h-10 fill-currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2zm4 8h-2V7h2v10z"/></svg>
                     </div>
-                    <p class="text-slate-500">{{ app()->getLocale() == 'ar' ? 'لا توجد نزاعات حالياً' : 'No conflicts at this time' }}</p>
+                    <p class="text-slate-400 font-black uppercase tracking-widest text-sm italic">{{ app()->getLocale() == 'ar' ? 'لا توجد نزاعات حالياً' : 'System is in complete alignment' }}</p>
                 </div>
             @endif
-        </div>
+        </section>
 
     </div>
+</div>
 
-    <!-- Edit Task Modal -->
-    <div id="editTaskModal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeEditModal()"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <form id="editTaskForm" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <h3 class="text-lg leading-6 font-medium text-slate-900 mb-4" id="modal-title">
-                            {{ app()->getLocale() == 'ar' ? 'تعديل المهمة' : 'Edit Task' }}
-                        </h3>
-                        <div class="mb-4">
-                            <label for="taskOriginalData" class="block text-sm font-medium text-slate-700 mb-2">
-                                {{ app()->getLocale() == 'ar' ? 'محتوى المهمة' : 'Task Content' }}
-                            </label>
-                            <textarea name="original_data" id="taskOriginalData" rows="6" class="w-full px-3 py-2 text-slate-700 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required></textarea>
+<!-- Premium Edit Modal -->
+<div id="editTaskModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeEditModal()"></div>
+        <div class="relative glass-card rounded-[3rem] w-full max-w-xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+            <form id="editTaskForm" method="POST">
+                @csrf @method('PUT')
+                <div class="p-12">
+                    <div class="flex items-center gap-6 mb-10">
+                        <div class="w-16 h-16 bg-indigo-100 rounded-[1.5rem] flex items-center justify-center text-indigo-600">
+                            <svg class="w-8 h-8 fill-currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 000-1.41l-2.34-2.34a.996.996 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-black text-slate-800">
+                                {{ app()->getLocale() == 'ar' ? 'تعديل بيانات المهمة' : 'Refine Task Data' }}
+                            </h3>
+                            <p class="text-xs text-slate-400 font-black uppercase tracking-widest">Update context registry</p>
                         </div>
                     </div>
-                    <div class="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
-                            {{ app()->getLocale() == 'ar' ? 'حفظ التعديلات' : 'Save Changes' }}
-                        </button>
-                        <button type="button" onclick="closeEditModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                            {{ app()->getLocale() == 'ar' ? 'إلغاء' : 'Cancel' }}
-                        </button>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Task Content</label>
+                            <textarea name="original_data" id="taskOriginalData" rows="8" 
+                                class="w-full px-6 py-5 bg-white border border-slate-200 rounded-[2rem] text-sm text-slate-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium leading-relaxed" 
+                                placeholder="Enter updated content..."></textarea>
+                        </div>
                     </div>
-                </form>
-            </div>
+                </div>
+                <div class="px-12 py-8 bg-slate-50/80 border-t border-slate-100 flex items-center gap-4">
+                    <button type="submit" class="flex-1 btn-premium justify-center py-4">
+                        <svg class="w-4 h-4 fill-currentColor mr-2" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        {{ app()->getLocale() == 'ar' ? 'حفظ التعديلات' : 'Authorize Update' }}
+                    </button>
+                    <button type="button" onclick="closeEditModal()" class="px-10 py-4 glass-card rounded-2xl font-black uppercase text-xs tracking-widest text-slate-500 hover:bg-white transition-all">
+                        {{ app()->getLocale() == 'ar' ? 'إلغاء' : 'Abort' }}
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-
-    <script>
-        function openEditModal(taskId, content) {
-            const modal = document.getElementById('editTaskModal');
-            const form = document.getElementById('editTaskForm');
-            const textarea = document.getElementById('taskOriginalData');
-            
-            // Set form action
-            form.action = `/client/governance/tasks/${taskId}`;
-            
-            // Set content (unescape characters if needed)
-            textarea.value = content;
-            
-            // Show modal
-            modal.classList.remove('hidden');
-        }
-
-        function closeEditModal() {
-            document.getElementById('editTaskModal').classList.add('hidden');
-        }
-    </script>
-
 </div>
+
+<script>
+    function updateFileName(input) {
+        const display = document.getElementById('file-name-display');
+        if (input.files && input.files[0]) {
+            display.innerText = input.files[0].name;
+            display.classList.add('text-indigo-600');
+        }
+    }
+
+    function openEditModal(taskId, content) {
+        const modal = document.getElementById('editTaskModal');
+        document.getElementById('editTaskForm').action = `/client/governance/tasks/${taskId}`;
+        document.getElementById('taskOriginalData').value = content;
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editTaskModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+</script>
+
 @endsection
