@@ -232,6 +232,8 @@ class GovernanceDashboardController extends Controller
                             $arabicNums = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
                             $englishNums = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
                             $caseNumber = str_replace($arabicNums, $englishNums, $caseNumber);
+                            // Normalize case number by removing any non-numeric characters (dots, dashes, etc)
+                            $caseNumber = preg_replace('/[^0-9]/', '', $caseNumber);
                         }
 
                         $year = $assoc['year'] ?? '';
@@ -239,9 +241,20 @@ class GovernanceDashboardController extends Controller
 
                         $originalCaseText = null;
                         if ($caseNumber) {
-                            $originalTask = \App\Models\LegalTask::where('case_reference', 'LIKE', "%{$caseNumber}%")
+                            // Search using the clean numeric part to ensure match
+                            $originalTask = \App\Models\LegalTask::where('case_reference', 'REGEXP', '[[:<:]]' . $caseNumber . '[[:>:]]')
                                 ->where('status', 'completed')
+                                ->latest()
                                 ->first();
+                            
+                            if (!$originalTask) {
+                                // Fallback: try a simpler like search if REGEXP fails on some DB engines
+                                $originalTask = \App\Models\LegalTask::where('case_reference', 'LIKE', "%{$caseNumber}%")
+                                    ->where('status', 'completed')
+                                    ->latest()
+                                    ->first();
+                            }
+
                             if ($originalTask) {
                                 $originalCaseText = $originalTask->case_text;
                             }
@@ -265,13 +278,23 @@ class GovernanceDashboardController extends Controller
                             
                             $ordinal = $this->numberToArabicOrdinal((int)$articleNum);
                             
-                            // البحث عن المادة الدقيقة في الداتابيز باستخدام اللفظ العربي (مثلاً المادة التاسعة والعشرون)
+                            // Search with stricter system name matching
                             $exactArticle = \App\Models\LegalArticle::where('legislation_title', 'LIKE', "%{$sysName}%")
                                             ->where('article_title', 'LIKE', "%المادة {$ordinal}%")
+                                            ->orderByRaw("LENGTH(legislation_title) ASC") // Prefer shorter titles (closer matches)
                                             ->first();
+                            
+                            if (!$exactArticle) {
+                                // Fallback to digit search if ordinal words fail
+                                $exactArticle = \App\Models\LegalArticle::where('legislation_title', 'LIKE', "%{$sysName}%")
+                                            ->where('article_title', 'LIKE', "%المادة {$articleNum}%")
+                                            ->orderByRaw("LENGTH(legislation_title) ASC")
+                                            ->first();
+                            }
                             
                             if ($exactArticle) {
                                 $articleText = strip_tags($exactArticle->content);
+                                $sysName = $exactArticle->legislation_title; // Use the official title from DB
                             }
                         }
 

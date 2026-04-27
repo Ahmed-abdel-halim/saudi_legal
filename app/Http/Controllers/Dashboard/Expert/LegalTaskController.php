@@ -44,8 +44,8 @@ class LegalTaskController extends Controller
             $searchText = $currentTask->expert_comment . ' ' . $currentTask->question . ' ' . $currentTask->proposed_answer;
             $match = $linkingService->findBestMatch($searchText);
             
-            // إذا وجدنا ربطاً أفضل بنسبة ثقة عالية، نقوم بتحديث المهمة تلقائياً
-            if ($match['confidence'] >= 60 && $match['system_name'] !== $currentTask->law_system_name) {
+            // إذا وجدنا ربطاً أفضل بنسبة ثقة عالية جداً، نقوم بتحديث المهمة تلقائياً
+            if ($match['confidence'] >= 85 && $match['system_name'] !== $currentTask->law_system_name) {
                 $currentTask->update([
                     'law_system_name' => $match['system_name'],
                     'law_article_number' => $match['article_number'],

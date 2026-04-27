@@ -80,7 +80,19 @@ class LegalLinkingService
             }
         }
 
-        // 4. الربط بناءً على الكلمات المفتاحية (Contextual Matching)
+        // 4. استخراج رقم القضية من النص إذا وجد لمحاولة الربط بالحكم الأصلي
+        if (preg_match('/حكم\s+رقم\s+([0-9.]+)/u', $text, $caseMatches)) {
+            $caseNum = preg_replace('/[^0-9]/', '', $caseMatches[1]);
+            $originalTask = \App\Models\LegalTask::where('case_reference', 'LIKE', "%$caseNum%")
+                ->where('status', 'completed')
+                ->first();
+            if ($originalTask) {
+                $result['article_text'] = $originalTask->case_text;
+                // No confidence update here as we want to preserve article linking if found
+            }
+        }
+
+        // 5. الربط بناءً على الكلمات المفتاحية (Contextual Matching)
         foreach ($contextualRules as $lawName => $keywords) {
             foreach ($keywords as $keyword) {
                 if (mb_stripos($text, $keyword) !== false) {
@@ -95,7 +107,7 @@ class LegalLinkingService
                         $result['system_name'] = $article->legislation_title;
                         $result['article_number'] = $articleNum ?? '1';
                         $result['article_text'] = $article->content;
-                        $result['confidence'] = 60;
+                        $result['confidence'] = 85; // Raised from 60
                         return $result;
                     }
                 }
