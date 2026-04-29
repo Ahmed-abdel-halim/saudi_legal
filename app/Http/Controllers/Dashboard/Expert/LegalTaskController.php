@@ -38,25 +38,36 @@ class LegalTaskController extends Controller
             }
         }
 
-        // استخدام محرك الربط الذكي الجديد لاستخراج المواد القانونية من نص الحكم
+        // استخدام محرك الربط الذكي الجديد لاستخراج المواد القانونية 
         $mentionedArticles = collect();
         if ($currentTask) {
             $referenceService = new \App\Services\LegalReferenceService();
-            // نستخدم نص الحكم (case_text) كمصدر أساسي، مع تمرير بيانات المهمة كاحتياطي (fallback)
+            
+            // 1. البحث في الإجابة المقترحة أولاً (لأنها الأهم بالنسبة للخبير)
             $mentionedArticles = $referenceService->getMentionedArticles(
+                $currentTask->proposed_answer ?? '',
+                $currentTask->law_system_name,
+                $currentTask->law_article_number
+            );
+
+            // 2. البحث في نص الحكم
+            $caseArticles = $referenceService->getMentionedArticles(
                 $currentTask->case_text ?? '',
                 $currentTask->law_system_name,
                 $currentTask->law_article_number
             );
+            $mentionedArticles = $mentionedArticles->merge($caseArticles);
             
-            // إذا لم نجد في نص الحكم، نبحث في السؤال
-            if ($mentionedArticles->isEmpty()) {
-                $mentionedArticles = $referenceService->getMentionedArticles(
-                    $currentTask->question,
-                    $currentTask->law_system_name,
-                    $currentTask->law_article_number
-                );
-            }
+            // 3. البحث في السؤال
+            $questionArticles = $referenceService->getMentionedArticles(
+                $currentTask->question ?? '',
+                $currentTask->law_system_name,
+                $currentTask->law_article_number
+            );
+            $mentionedArticles = $mentionedArticles->merge($questionArticles);
+
+            // إزالة التكرارات
+            $mentionedArticles = $mentionedArticles->unique('id')->values();
         }
 
         if ($request->wantsJson()) {

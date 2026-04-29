@@ -56,8 +56,9 @@ class LegalReferenceService
         $numberPart = '([\(\)0-9٠-٩\/\-،\s+و]+)';
         $paragraphPart = '(?:\s+' . $prefix . 'الفقرة\s+[\(\)\w\p{L}]+)?';
         
-        // Smarter System Matcher: Stops at "الصادر" or "رقم" or "بتاريخ"
-        $systemMatcher = '((?:نظام|اللائحة|لائحة)\s+[\p{L}\s]+?)(?=\s+(?:الصادر|رقم|بتاريخ|لعام|تاريخ|وهو)|[\.\،\n\r]|$)';
+        // Smarter System Matcher: Stops at "الصادر" or "رقم" or "بتاريخ" and limits length to avoid matching entire sentences.
+        // It stops at space followed by common transition words: المحكمة, الفصل, بتضمين, إذا, حتى, بما, في, على, عن, من, أن, المتعلق, الخاصة
+        $systemMatcher = '((?:نظام|اللائحة|لائحة)\s+(?:(?!\s+(?:الصادر|رقم|بتاريخ|لعام|تاريخ|وهو|المحكمة|الفصل|بتضمين|إذا|حتى|بما|في|على|عن|من|أن|المتعلق|الخاصة))[\p{L}\s]){1,50}?)(?=\s+(?:الصادر|رقم|بتاريخ|لعام|تاريخ|وهو|المحكمة|الفصل|بتضمين|إذا|حتى|بما|في|على|عن|من|أن|المتعلق|الخاصة)|[\.\،\n\r]|$)';
 
         // 1. Explicit Pattern
         $explicitPattern = '/' . $prefix . $articleWord . '[:\s]+(?:رقم\s+)?' . $numberPart . $paragraphPart . '(?:\s+من\s+)?' . $systemMatcher . '/u';

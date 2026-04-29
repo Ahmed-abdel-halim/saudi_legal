@@ -102,7 +102,7 @@
 
                         <div class="bg-gray-50 p-6 md:p-8 rounded-2xl border border-gray-100">
                             <p class="text-gray-700 text-lg leading-relaxed text-center font-medium" id="ai-answer-text">
-                                {{ $task->proposed_answer }}
+                                {{ trim(preg_replace('/\(المصدر:[^\)]+نسبة تأكيد الربط:[^\)]+\)/u', '', $task->proposed_answer)) }}
                             </p>
                         </div>
                     </div>
