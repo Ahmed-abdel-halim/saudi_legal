@@ -84,20 +84,35 @@ class LegalTaskController extends Controller
             'task_id' => 'required|exists:legal_tasks,id',
             'is_correct' => 'required|boolean',
             'correct_answer' => 'required_if:is_correct,false|nullable|string',
-            'expert_comment' => 'nullable|string|max:1000'
+            'expert_comment' => 'nullable|string|max:1000',
+            'tags' => 'nullable|array'
         ]);
 
         $task = LegalTask::where('id', $request->task_id)
             ->where('expert_id', Auth::id())
             ->firstOrFail();
 
-        $task->update([
+        $updateData = [
             'is_correct' => $request->is_correct,
             'correct_answer' => $request->is_correct ? $task->proposed_answer : $request->correct_answer,
-            'expert_comment' => $request->expert_comment,
             'status' => 'completed',
             'completed_at' => now(),
-        ]);
+        ];
+
+        // التعامل مع الوسوم (Tags)
+        $tags = $request->tags ?? [];
+        
+        // التحقق من وجود العمود في قاعدة البيانات
+        if (\Illuminate\Support\Facades\Schema::hasColumn('legal_tasks', 'tags')) {
+            $updateData['tags'] = $tags;
+            $updateData['expert_comment'] = $request->expert_comment;
+        } else {
+            // حل بديل: تخزين الأوسمة داخل الملاحظات إذا لم يوجد العمود بعد
+            $tagsString = !empty($tags) ? "[Tags: " . implode(', ', $tags) . "] " : "";
+            $updateData['expert_comment'] = $tagsString . $request->expert_comment;
+        }
+
+        $task->update($updateData);
 
         return response()->json([
             'success' => true,

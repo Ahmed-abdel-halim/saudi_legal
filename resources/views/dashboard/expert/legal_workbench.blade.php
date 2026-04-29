@@ -17,16 +17,32 @@
         }
 
         .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
+            width: 12px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
+            background: #f8fafc;
+            border-radius: 10px;
         }
 
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+        .scrollbar-blue::-webkit-scrollbar-thumb {
+            background: #3b82f6;
             border-radius: 10px;
+            border: 3px solid #f8fafc;
+        }
+
+        .scrollbar-blue::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        .scrollbar-emerald::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 10px;
+            border: 3px solid #f8fafc;
+        }
+
+        .scrollbar-emerald::-webkit-scrollbar-thumb:hover {
+            background: #059669;
         }
     </style>
 </head>
@@ -91,62 +107,109 @@
                         </div>
                     </div>
 
-                    <!-- Primary Source -->
-                    <div
-                        class="text-center text-sm font-bold text-gray-500 bg-gray-50/50 py-3 rounded-xl border border-dashed border-gray-200">
-                        المصدر الأساسي: {{ $task->case_reference ?? 'حكم قضائي مرتبط بـ ' . $task->law_system_name }}
+                    <!-- Unified Source Labels (Vertical) -->
+                    <div class="space-y-3 py-5 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 text-center">
+                        @if($mentioned_articles && $mentioned_articles->count() > 0)
+                            @foreach($mentioned_articles as $article)
+                                <div class="text-sm font-black text-blue-600">
+                                    <i class="fa-solid fa-scale-balanced ml-1"></i>
+                                    المصدر القانون : {{ $article->legislation_title }} {{ $article->article_title }}
+                                </div>
+                            @endforeach
+                        @endif
+                        <div class="text-sm font-black text-emerald-600">
+                            <i class="fa-solid fa-gavel ml-1"></i>
+                            مصدر الحكم : {{ $task->case_reference ?? 'حكم قضائي مرتبط' }}
+                        </div>
                     </div>
 
                     <!-- Tags / Labels (Dynamic) -->
-                    <div class="border border-gray-100 rounded-2xl p-5">
-                        <div class="flex items-center justify-end gap-2 text-xs font-bold text-gray-400 mb-4">
-                            الوسوم المقترحة للربط <i class="fa-solid fa-tags"></i>
+                    <div class="border border-gray-100 rounded-2xl p-6 bg-white shadow-sm">
+                        <div class="flex items-center justify-between gap-2 mb-6">
+                            <div class="flex items-center gap-3">
+                                <button onclick="addNewTag()" class="px-4 py-2 border-2 border-rose-500 text-rose-500 rounded-xl font-black text-sm hover:bg-rose-50 transition">
+                                    اضف تاق جديد <i class="fa-solid fa-plus mr-1"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs font-black text-gray-400 uppercase tracking-widest">
+                                الوسوم المقترحة للربط <i class="fa-solid fa-tags text-blue-500"></i>
+                            </div>
                         </div>
-                        <div class="flex flex-wrap justify-center gap-3">
+                        <div class="flex flex-wrap justify-end gap-3" id="tags-container">
                             @php
-                                // Generate dynamic tags based on the task
-                                $keywords = [$task->law_system_name];
-                                $words = explode(' ', $task->question);
-                                foreach (array_slice($words, 0, 8) as $word) {
-                                    $cleanWord = trim(str_replace(['؟', '،', '.', 'هل', 'كيف', 'ما'], '', $word));
-                                    if (mb_strlen($cleanWord) > 3) {
-                                        $keywords[] = $cleanWord;
+                                // 1. استخراج الأوسمة المحفوظة مسبقاً (من قاعدة البيانات)
+                                $savedTags = [];
+                                if (isset($task->tags) && is_array($task->tags)) {
+                                    $savedTags = $task->tags;
+                                } elseif (!empty($task->expert_comment) && str_contains($task->expert_comment, '[Tags:')) {
+                                    // استخراج من النظام الاحتياطي في الملاحظات
+                                    preg_match('/\[Tags: (.*?)\]/', $task->expert_comment, $matches);
+                                    if (isset($matches[1])) {
+                                        $savedTags = array_map('trim', explode(',', $matches[1]));
                                     }
                                 }
-                                // Limit to 4 tags
-                                $keywords = array_slice(array_unique(array_filter($keywords)), 0, 4);
+
+                                // 2. توليد الأوسمة المقترحة ذكياً
+                                $suggestedKeywords = [$task->law_system_name];
+                                $words = explode(' ', $task->question);
+                                foreach (array_slice($words, 0, 10) as $word) {
+                                    $cleanWord = trim(str_replace(['؟', '،', '.', 'هل', 'كيف', 'ما'], '', $word));
+                                    if (mb_strlen($cleanWord) > 3) {
+                                        $suggestedKeywords[] = $cleanWord;
+                                    }
+                                }
+                                
+                                // دمج المجموعتين وحذف التكرار
+                                $allTags = array_unique(array_merge($savedTags, $suggestedKeywords));
+                                $allTags = array_slice(array_filter($allTags), 0, 10); // تحديد العدد الأقصى
                             @endphp
-                            @foreach($keywords as $keyword)
+                            
+                            @foreach($allTags as $keyword)
+                                @php 
+                                    // إذا لم تكن هناك أوسمة محفوظة بعد (مهمة جديدة)، نجعل المقترحات مختارة تلقائياً
+                                    // أما إذا كانت هناك أوسمة محفوظة، نختار المحفوظ منها فقط
+                                    $shouldBeChecked = empty($savedTags) ? true : in_array($keyword, $savedTags); 
+                                @endphp
                                 <label
-                                    class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition">
-                                    <span class="text-sm font-bold text-gray-600">{{ $keyword }}</span>
-                                    <input type="checkbox" checked
+                                    class="flex items-center gap-2 px-4 py-2 {{ $shouldBeChecked ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200' }} border rounded-xl cursor-pointer hover:bg-gray-50 transition">
+                                    <span class="text-sm font-bold {{ $shouldBeChecked ? 'text-blue-700' : 'text-gray-600' }}">{{ $keyword }}</span>
+                                    <input type="checkbox" {{ $shouldBeChecked ? 'checked' : '' }} name="tags[]" value="{{ $keyword }}"
                                         class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                                 </label>
                             @endforeach
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div id="action-buttons" class="grid grid-cols-2 gap-4 pt-4">
-                        <button onclick="toggleCorrection(true)"
-                            class="group flex flex-col items-center justify-center p-6 bg-rose-50 border border-rose-100 rounded-3xl hover:bg-rose-100 transition duration-300">
+                    <!-- Action Buttons (3-Button System) -->
+                    <div id="action-buttons" class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                        <button onclick="toggleCorrection(true, 'edit')"
+                            class="group flex flex-col items-center justify-center p-8 bg-rose-50 border border-rose-100 rounded-[2.5rem] hover:bg-rose-100 transition duration-300 shadow-sm">
                             <div
-                                class="w-12 h-12 bg-rose-500 text-white rounded-full flex items-center justify-center text-xl mb-3 shadow-md shadow-rose-200 group-hover:-translate-y-1 transition transform">
-                                <i class="fa-solid fa-pen"></i>
+                                class="w-16 h-16 bg-rose-500 text-white rounded-full flex items-center justify-center text-2xl mb-4 shadow-lg shadow-rose-200 group-hover:-translate-y-1 transition transform">
+                                <i class="fa-solid fa-pen-nib"></i>
                             </div>
-                            <span class="font-black text-rose-700 text-lg">تعديل</span>
-                            <span class="text-xs text-rose-500 font-bold mt-1">بها أخطاء، وتحتاج مراجعة</span>
+                            <span class="font-black text-rose-800 text-xl">تعديل</span>
+                            <span class="text-sm text-rose-600 font-bold mt-2">خاطئة تحتاج تعديل</span>
+                        </button>
+
+                        <button onclick="toggleCorrection(true, 'correct')"
+                            class="group flex flex-col items-center justify-center p-8 bg-amber-50 border border-amber-100 rounded-[2.5rem] hover:bg-amber-100 transition duration-300 shadow-sm">
+                            <div
+                                class="w-16 h-16 bg-amber-500 text-white rounded-full flex items-center justify-center text-2xl mb-4 shadow-lg shadow-amber-200 group-hover:-translate-y-1 transition transform">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </div>
+                            <span class="font-black text-amber-800 text-xl">تصحيح</span>
+                            <span class="text-sm text-amber-600 font-bold mt-2">غير دقيقة تحتاج تصحيح</span>
                         </button>
 
                         <button onclick="submitTask(true)"
-                            class="group flex flex-col items-center justify-center p-6 bg-emerald-50 border border-emerald-100 rounded-3xl hover:bg-emerald-100 transition duration-300">
+                            class="group flex flex-col items-center justify-center p-8 bg-emerald-50 border border-emerald-100 rounded-[2.5rem] hover:bg-emerald-100 transition duration-300 shadow-sm">
                             <div
-                                class="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xl mb-3 shadow-md shadow-emerald-200 group-hover:-translate-y-1 transition transform">
+                                class="w-16 h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center text-2xl mb-4 shadow-lg shadow-emerald-200 group-hover:-translate-y-1 transition transform">
                                 <i class="fa-solid fa-check-double"></i>
                             </div>
-                            <span class="font-black text-emerald-700 text-lg">صحيحة</span>
-                            <span class="text-xs text-emerald-500 font-bold mt-1">اعتماد ومتابعة</span>
+                            <span class="font-black text-emerald-800 text-xl">صحيحة</span>
+                            <span class="text-sm text-emerald-600 font-bold mt-2">اعتماد ومتابعة</span>
                         </button>
                     </div>
 
@@ -169,57 +232,64 @@
                     </div>
 
                     <hr class="border-gray-100">
-
-                    <!-- Reference Texts (Bottom Cards) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Right: Mada -->
-                        <div class="space-y-3 text-right">
-                            <div
-                                class="flex items-center justify-end gap-2 text-gray-400 font-bold text-xs uppercase tracking-widest">
-                                نص المادة <i class="fa-regular fa-file-lines"></i>
-                            </div>
-                            <div class="max-h-[500px] overflow-y-auto custom-scrollbar pr-1 space-y-6">
-                                @if($mentioned_articles && $mentioned_articles->count() > 0)
-                                    @foreach($mentioned_articles as $article)
-                                        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                                            <div
-                                                class="bg-gray-50 px-4 py-2 border-b border-gray-100 flex justify-between items-center">
-                                                <h4 class="font-black text-gray-800 text-xs">
-                                                    {{ $article->article_title }} من {{ $article->legislation_title }}
-                                                </h4>
-                                                <i class="fa-solid fa-bookmark text-blue-500 text-[10px]"></i>
+                    
+                    <!-- Full Reference Texts (Side-by-Side) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                        <!-- Right Column: Materials -->
+                        <div class="space-y-4">
+                            <div class="bg-blue-600 rounded-2xl overflow-hidden shadow-md">
+                                <div class="px-6 py-3 flex items-center justify-center gap-3 text-white font-black text-lg">
+                                    نص المادة <i class="fa-regular fa-file-lines"></i>
+                                </div>
+                                <div class="space-y-6 max-h-[700px] overflow-y-auto scrollbar-blue p-6 bg-white custom-scrollbar">
+                                    @if($mentioned_articles && $mentioned_articles->count() > 0)
+                                        @foreach($mentioned_articles as $article)
+                                            <div class="bg-blue-50/30 border border-blue-100 rounded-2xl overflow-hidden mb-6">
+                                                <div class="bg-blue-100/50 px-4 py-2 text-center">
+                                                    <h4 class="font-black text-blue-800 text-xs">
+                                                        {{ $article->legislation_title }} - {{ $article->article_title }}
+                                                    </h4>
+                                                </div>
+                                                <div class="p-6">
+                                                    <p class="text-xl text-gray-800 leading-loose font-bold text-center dir-rtl whitespace-pre-wrap">
+                                                        {{ strip_tags($article->content) }}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div class="p-4">
-                                                <p class="text-sm text-gray-600 leading-relaxed font-medium whitespace-pre-wrap">
-                                                    {{ strip_tags($article->content) }}
-                                                </p>
+                                        @endforeach
+                                    @else
+                                        <div class="text-center py-10">
+                                            <p class="text-sm text-gray-400 font-bold">لا توجد نصوص مواد متاحة</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Left Column: Judgment -->
+                        <div class="space-y-4">
+                            <div class="bg-emerald-600 rounded-2xl overflow-hidden shadow-md">
+                                <div class="px-6 py-3 flex items-center justify-center gap-3 text-white font-black text-lg">
+                                    نص الحكم <i class="fa-solid fa-gavel"></i>
+                                </div>
+                                <div class="p-6 bg-white">
+                                    <div class="bg-emerald-50/30 border border-emerald-100 rounded-2xl overflow-hidden">
+                                        <div class="bg-emerald-100/50 px-4 py-2 text-center">
+                                            <h4 class="font-black text-emerald-800 text-xs">
+                                                {{ $task->case_reference ?? 'حكم مرتبط' }}
+                                            </h4>
+                                        </div>
+                                        <div class="p-6">
+                                            <div class="text-xl text-gray-800 leading-loose font-bold text-center dir-rtl whitespace-pre-wrap max-h-[700px] overflow-y-auto scrollbar-emerald custom-scrollbar pr-3">
+                                                {{ $task->case_text ?? 'لا يتوفر نص سابقة قضائية لهذه المهمة.' }}
                                             </div>
                                         </div>
-                                    @endforeach
-                                @else
-                                    <div class="bg-gray-50 p-6 rounded-2xl border border-dashed border-gray-200 text-center">
-                                        <i class="fa-solid fa-magnifying-glass text-gray-300 text-3xl mb-3"></i>
-                                        <p class="text-sm text-gray-500 font-bold">لم يتم العثور على إشارات قانونية صريحة في نص
-                                            الحكم.</p>
-                                        <p class="text-xs text-gray-400 mt-1">المحرك الذكي لم يجد "المادة X" مذكورة في النص
-                                            الحالي.</p>
                                     </div>
-                                @endif
+                                </div>
                             </div>
-                        </div>
-
-                        <!-- Left: Hukm -->
-                        <div class="space-y-3 text-right">
-                            <div
-                                class="flex items-center justify-end gap-2 text-gray-400 font-bold text-xs uppercase tracking-widest">
-                                نص الحكم <i class="fa-solid fa-gavel"></i>
-                            </div>
-                            <p
-                                class="text-sm text-gray-600 leading-relaxed font-medium max-h-[500px] overflow-y-auto custom-scrollbar pl-2 whitespace-pre-wrap">
-                                {{ $task->case_text ?? 'لا يتوفر نص سابقة قضائية لهذه المهمة في قاعدة البيانات.' }}
-                            </p>
                         </div>
                     </div>
+
 
                 </div>
 
@@ -238,6 +308,32 @@
             </div>
 
         </main>
+
+        <!-- Custom Tag Modal -->
+        <div id="tag-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
+            <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden transform animate-in zoom-in-95 duration-300 border border-slate-100">
+                <div class="bg-slate-50 px-8 py-8 border-b border-slate-100 text-center">
+                    <div class="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-100 rotate-3">
+                        <i class="fa-solid fa-plus text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800">إضافة وسم جديد</h3>
+                    <p class="text-slate-400 text-xs font-bold mt-2">أدخل اسماً معبراً للتصنيف الجديد</p>
+                </div>
+                <div class="p-8 bg-white">
+                    <div class="space-y-4">
+                        <input type="text" id="new-tag-input" 
+                            class="w-full px-6 py-5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition font-bold text-slate-700 text-center text-lg"
+                            placeholder="مثلاً: تجاري، إثبات..."
+                            onkeydown="if(event.key === 'Enter') confirmAddTag()">
+                    </div>
+                    <div class="flex gap-4 mt-8">
+                        <button onclick="confirmAddTag()" class="flex-[2] px-6 py-5 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 active:scale-95">إضافة الآن</button>
+                        <button onclick="closeTagModal()" class="flex-1 px-6 py-5 bg-slate-100 text-slate-500 font-black rounded-2xl hover:bg-slate-200 transition active:scale-95">إلغاء</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     @else
         <main class="flex-1 flex items-center justify-center">
             <div class="text-center p-12 bg-white rounded-[3rem] shadow-sm border border-gray-100 max-w-md w-full">
@@ -257,18 +353,58 @@
     @endif
 
     <script>
-        function toggleCorrection(show) {
+        function toggleCorrection(show, mode = 'edit') {
             const area = document.getElementById('correction-area');
             const buttons = document.getElementById('action-buttons');
+            const textarea = document.getElementById('correct_answer');
 
             if (show) {
                 area.classList.remove('hidden');
                 buttons.classList.add('hidden');
-                document.getElementById('correct_answer').value = document.getElementById('ai-answer-text').innerText.trim();
-                document.getElementById('correct_answer').focus();
+                textarea.value = document.getElementById('ai-answer-text').innerText.trim();
+                
+                // Change placeholder based on mode
+                if (mode === 'correct') {
+                    textarea.placeholder = "اكتب التصحيح اللازم هنا...";
+                    document.getElementById('btn-submit-edit').innerHTML = 'حفظ التصحيح <i class="fa-solid fa-paper-plane"></i>';
+                } else {
+                    textarea.placeholder = "اكتب التعديل الصحيح هنا...";
+                    document.getElementById('btn-submit-edit').innerHTML = 'حفظ التعديل <i class="fa-solid fa-paper-plane"></i>';
+                }
+                
+                textarea.focus();
             } else {
                 area.classList.add('hidden');
                 buttons.classList.remove('hidden');
+            }
+        }
+
+        function addNewTag() {
+            const modal = document.getElementById('tag-modal');
+            const input = document.getElementById('new-tag-input');
+            modal.classList.remove('hidden');
+            input.value = '';
+            setTimeout(() => input.focus(), 100);
+        }
+
+        function closeTagModal() {
+            document.getElementById('tag-modal').classList.add('hidden');
+        }
+
+        function confirmAddTag() {
+            const input = document.getElementById('new-tag-input');
+            const tagName = input.value.trim();
+            
+            if (tagName) {
+                const container = document.getElementById('tags-container');
+                const newLabel = document.createElement('label');
+                newLabel.className = "flex items-center gap-2 px-4 py-2 bg-blue-50 border-blue-200 border rounded-xl cursor-pointer hover:bg-gray-50 transition animate-in zoom-in duration-300 shadow-sm";
+                newLabel.innerHTML = `
+                    <span class="text-sm font-bold text-blue-700">${tagName}</span>
+                    <input type="checkbox" checked name="tags[]" value="${tagName}" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                `;
+                container.prepend(newLabel);
+                closeTagModal();
             }
         }
 
@@ -276,10 +412,13 @@
             const taskId = "{{ $task->id ?? '' }}";
             if (!taskId) return;
 
+            const selectedTags = Array.from(document.querySelectorAll('input[name="tags[]"]:checked')).map(cb => cb.value);
+
             const data = {
                 task_id: taskId,
                 is_correct: isCorrect,
                 correct_answer: isCorrect ? null : document.getElementById('correct_answer').value,
+                tags: selectedTags,
                 _token: "{{ csrf_token() }}"
             };
 

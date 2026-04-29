@@ -26,6 +26,7 @@ class LegalTask extends Model
         'case_text',
         'is_correct',
         'expert_comment',
+        'tags',
         'domain',
         'source_file',
         'row_number'
@@ -62,6 +63,7 @@ class LegalTask extends Model
         'assigned_at' => 'datetime',
         'completed_at' => 'datetime',
         'is_correct' => 'boolean',
+        'tags' => 'array',
     ];
 
     /**
