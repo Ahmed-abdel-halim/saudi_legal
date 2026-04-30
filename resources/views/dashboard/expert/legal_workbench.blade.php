@@ -44,6 +44,10 @@
         .scrollbar-emerald::-webkit-scrollbar-thumb:hover {
             background: #059669;
         }
+
+        html {
+            scroll-behavior: smooth;
+        }
     </style>
 </head>
 
@@ -81,9 +85,8 @@
                         <span>تحقق من صحة العبارة</span>
                     </div>
 
-                    <!-- The Question -->
                     <div class="text-center">
-                        <h2 class="text-2xl md:text-3xl font-black text-gray-800 leading-tight">
+                        <h2 class="text-2xl md:text-3xl font-bold text-slate-600 leading-tight">
                             {{ $task->question }}
                         </h2>
                     </div>
@@ -107,21 +110,51 @@
                         </div>
                     </div>
 
-                    <!-- Unified Source Labels (Vertical) -->
-                    <div class="space-y-3 py-5 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 text-center">
+                    <!-- Interactive Source Accordions (FAQ Style) -->
+                    <div class="space-y-4" dir="rtl">
                         @if($mentioned_articles && $mentioned_articles->count() > 0)
                             @foreach($mentioned_articles as $article)
-                                <div class="text-sm font-black text-blue-600">
-                                    <i class="fa-solid fa-scale-balanced ml-1"></i>
-                                    المصدر القانون : {{ $article->legislation_title }} {{ $article->article_title }}
+                                <div class="border border-gray-100 rounded-[1.5rem] bg-white overflow-hidden shadow-sm transition-all duration-300 hover:border-blue-200">
+                                    <button onclick="toggleAccordion('article-{{ $article->id }}', this)" 
+                                        class="w-full relative px-6 py-5 text-right focus:outline-none bg-white">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                                <i class="fa-solid fa-scale-balanced text-sm"></i>
+                                            </div>
+                                            <span class="font-black text-blue-700 text-sm">
+                                                المصدر القانوني : {{ $article->legislation_title }} {{ $article->article_title }}
+                                            </span>
+                                        </div>
+                                        <i class="fa-solid fa-chevron-down absolute left-6 top-1/2 -translate-y-1/2 text-blue-300 text-[10px] transition-transform duration-300"></i>
+                                    </button>
+                                    <div id="article-{{ $article->id }}" class="hidden px-6 pb-6 bg-blue-50/30 border-t border-blue-50">
+                                        <div dir="rtl" style="text-align: right !important;" class="text-gray-800 text-lg leading-loose font-bold w-full pt-6 whitespace-pre-wrap">{{ trim(strip_tags($article->content)) }}</div>
+                                    </div>
                                 </div>
                             @endforeach
                         @endif
-                        <div class="text-sm font-black text-emerald-600">
-                            <i class="fa-solid fa-gavel ml-1"></i>
-                            مصدر الحكم : {{ $task->case_reference ?? 'حكم قضائي مرتبط' }}
+
+                        <!-- Judgment Accordion -->
+                        <div class="border border-gray-100 rounded-[1.5rem] bg-white overflow-hidden shadow-sm transition-all duration-300 hover:border-emerald-200">
+                            <button onclick="toggleAccordion('judgment-accordion', this)" 
+                                class="w-full relative px-6 py-5 text-right focus:outline-none bg-white">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                        <i class="fa-solid fa-gavel text-sm"></i>
+                                    </div>
+                                    <span class="font-black text-emerald-700 text-sm">
+                                        مصدر الحكم : {{ $task->case_reference ?? 'حكم قضائي مرتبط' }}
+                                    </span>
+                                </div>
+                                <i class="fa-solid fa-chevron-down absolute left-6 top-1/2 -translate-y-1/2 text-emerald-300 text-[10px] transition-transform duration-300"></i>
+                            </button>
+                            <div id="judgment-accordion" class="hidden px-6 pb-6 bg-emerald-50/30 border-t border-emerald-50">
+                                <div dir="rtl" style="text-align: right !important;" class="text-gray-800 text-lg leading-loose font-bold w-full pt-6 whitespace-pre-wrap max-h-[500px] overflow-y-auto custom-scrollbar scrollbar-emerald px-4">{{ trim($task->case_text) ?? 'لا يتوفر نص سابقة قضائية لهذه المهمة.' }}</div>
+                            </div>
                         </div>
                     </div>
+
+                    <hr class="border-gray-100">
 
                     <!-- Tags / Labels (Dynamic) -->
                     <div class="border border-gray-100 rounded-2xl p-6 bg-white shadow-sm">
@@ -231,62 +264,6 @@
                         </div>
                     </div>
 
-                    <hr class="border-gray-100">
-                    
-                    <!-- Full Reference Texts (Side-by-Side) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                        <!-- Right Column: Materials -->
-                        <div class="space-y-4">
-                            <div class="bg-blue-600 rounded-2xl overflow-hidden shadow-md">
-                                <div class="px-6 py-3 flex items-center justify-center gap-3 text-white font-black text-lg">
-                                    نص المادة <i class="fa-regular fa-file-lines"></i>
-                                </div>
-                                <div class="space-y-6 max-h-[700px] overflow-y-auto scrollbar-blue p-6 bg-white custom-scrollbar">
-                                    @if($mentioned_articles && $mentioned_articles->count() > 0)
-                                        @foreach($mentioned_articles as $article)
-                                            <div class="bg-blue-50/30 border border-blue-100 rounded-2xl overflow-hidden mb-6">
-                                                <div class="bg-blue-100/50 px-4 py-2 text-center">
-                                                    <h4 class="font-black text-blue-800 text-xs">
-                                                        {{ $article->legislation_title }} - {{ $article->article_title }}
-                                                    </h4>
-                                                </div>
-                                                <div class="p-6">
-                                                    <p class="text-xl text-gray-800 leading-loose font-bold text-center dir-rtl whitespace-pre-wrap">
-                                                        {{ strip_tags($article->content) }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    @else
-                                        <div class="text-center py-10">
-                                            <p class="text-sm text-gray-400 font-bold">لا توجد نصوص مواد متاحة</p>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Left Column: Judgment -->
-                        <div class="space-y-4">
-                            <div class="bg-emerald-600 rounded-2xl overflow-hidden shadow-md">
-                                <div class="px-6 py-3 flex items-center justify-center gap-3 text-white font-black text-lg">
-                                    نص الحكم <i class="fa-solid fa-gavel"></i>
-                                </div>
-                                <div class="p-6 bg-white">
-                                    <div class="bg-emerald-50/30 border border-emerald-100 rounded-2xl overflow-hidden">
-                                        <div class="bg-emerald-100/50 px-4 py-2 text-center">
-                                            <h4 class="font-black text-emerald-800 text-xs">
-                                                {{ $task->case_reference ?? 'حكم مرتبط' }}
-                                            </h4>
-                                        </div>
-                                        <div class="p-6">
-                                            <div class="text-xl text-gray-800 leading-loose font-bold text-center dir-rtl whitespace-pre-wrap max-h-[700px] overflow-y-auto scrollbar-emerald custom-scrollbar pr-3">
-                                                {{ $task->case_text ?? 'لا يتوفر نص سابقة قضائية لهذه المهمة.' }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -460,6 +437,32 @@
                 });
                 animateAndReload(true);
             } catch (error) { console.error('Error:', error); }
+        }
+
+        function toggleAccordion(id, btn) {
+            const content = document.getElementById(id);
+            const icon = btn.querySelector('i.fa-chevron-down');
+            const isHidden = content.classList.contains('hidden');
+            
+            // Close all other accordions first (optional, but cleaner)
+            document.querySelectorAll('[id^="article-"], #judgment-accordion').forEach(el => {
+                if (el.id !== id) {
+                    el.classList.add('hidden');
+                    const otherBtn = document.querySelector(`button[onclick*="'${el.id}'"]`);
+                    if (otherBtn) {
+                        const otherIcon = otherBtn.querySelector('i.fa-chevron-down');
+                        if (otherIcon) otherIcon.style.transform = 'rotate(0deg)';
+                    }
+                }
+            });
+
+            if (isHidden) {
+                content.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
         }
 
         function animateAndReload(isPrevious = false) {
