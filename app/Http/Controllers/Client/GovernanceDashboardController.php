@@ -47,8 +47,10 @@ class GovernanceDashboardController extends Controller
         \Log::info('Task upload request received', ['user_id' => auth()->id()]);
 
         try {
+            // Simplified validation: just check it's a file and within size
+            // The MIME check often fails on servers for .jsonl files
             $request->validate([
-                'csv_file' => 'required|file|mimes:xlsx,xls,csv,txt,jsonl,json|max:204800' // 200MB
+                'csv_file' => 'required|file|max:204800' // 200MB
             ]);
 
             if (!$request->hasFile('csv_file')) {
