@@ -28,6 +28,7 @@ return [
     'INDUSTRY_CX' => 'Customer Experience (CX)',
     'INDUSTRY_FINANCE' => 'Financial Consulting',
     'INDUSTRY_MARKETING' => 'Digital Marketing',
+    'INDUSTRY_LAW' => 'Law & Legal Consulting',
     'INDUSTRY_OTHER' => 'Other',
 
     // Company Sizes

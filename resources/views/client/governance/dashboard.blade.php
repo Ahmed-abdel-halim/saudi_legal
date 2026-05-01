@@ -196,20 +196,36 @@
                             ? 'قم برفع ملف البيانات (CSV) لبدء توزيع المهام آلياً على الخبراء وتفعيل خوارزميات كشف التلاعب.' 
                             : 'Upload your dataset to begin automated distribution and activate manipulation detection algorithms.' }}
                     </p>
-                    <form action="{{ route('client.governance.upload') }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row gap-4">
+                    <form id="upload-form" action="{{ route('client.governance.upload') }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row gap-4">
                         @csrf
                         <div class="flex-1 relative group/input">
-                            <input type="file" name="csv_file" id="csv_file" accept=".csv,.txt" class="hidden" onchange="updateFileName(this)"/>
+                            <input type="file" name="csv_file" id="csv_file" accept=".csv,.txt,.jsonl" class="hidden" onchange="updateFileName(this)"/>
                             <label for="csv_file" class="flex items-center gap-4 px-6 py-4 bg-white/50 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:border-indigo-400 hover:bg-white transition-all">
                                 <svg class="svg-icon text-slate-400 group-hover/input:text-indigo-500" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-                                <span id="file-name-display" class="text-slate-600 font-bold">{{ app()->getLocale() == 'ar' ? 'اختر ملف CSV...' : 'Select CSV file...' }}</span>
+                                <span id="file-name-display" class="text-slate-600 font-bold">{{ app()->getLocale() == 'ar' ? 'اختر ملف (CSV, JSONL)...' : 'Select file (CSV, JSONL)...' }}</span>
                             </label>
                         </div>
-                        <button type="submit" class="btn-premium px-10">
+                        <button type="submit" id="submit-btn" class="btn-premium px-10">
                             <svg class="svg-icon" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
-                            {{ app()->getLocale() == 'ar' ? 'بدء المعالجة' : 'Launch Batch' }}
+                            <span id="btn-text">{{ app()->getLocale() == 'ar' ? 'بدء المعالجة' : 'Launch Batch' }}</span>
                         </button>
                     </form>
+
+                    <!-- Progress Bar (Hidden by default) -->
+                    <div id="progress-container" class="mt-6 hidden">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-black text-indigo-600 uppercase tracking-widest">{{ app()->getLocale() == 'ar' ? 'جاري الرفع...' : 'Uploading...' }}</span>
+                            <span id="progress-percent" class="text-xs font-black text-indigo-600">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200 p-0.5">
+                            <div id="progress-bar" class="bg-indigo-500 h-full rounded-full transition-all duration-300 shadow-sm" style="width: 0%"></div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2 italic">
+                            {{ app()->getLocale() == 'ar' 
+                                ? 'يتم الآن نقل الملف إلى الخادم. يرجى عدم إغلاق الصفحة.' 
+                                : 'Transferring file to server. Please do not close this page.' }}
+                        </p>
+                    </div>
                 </div>
                 <div class="lg:w-1/3 flex justify-center">
                     <div class="relative w-48 h-48 bg-indigo-50 rounded-full flex items-center justify-center border-4 border-white shadow-xl overflow-hidden">
@@ -602,6 +618,56 @@
 </div>
 
 <script>
+    document.getElementById('upload-form').addEventListener('submit', function(e) {
+        const fileInput = document.getElementById('csv_file');
+        if (!fileInput.files || fileInput.files.length === 0) return;
+
+        e.preventDefault();
+        
+        const form = this;
+        const formData = new FormData(form);
+        const xhr = new XMLHttpRequest();
+        
+        const btn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('btn-text');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercent = document.getElementById('progress-percent');
+
+        // UI Updates
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        btnText.innerText = '{{ app()->getLocale() == "ar" ? "جاري البدء..." : "Starting..." }}';
+        progressContainer.classList.remove('hidden');
+
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                progressBar.style.width = percent + '%';
+                progressPercent.innerText = percent + '%';
+                btnText.innerText = '{{ app()->getLocale() == "ar" ? "جاري الرفع... " : "Uploading... " }}' + percent + '%';
+            }
+        });
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200 || xhr.status === 201 || xhr.status === 302) {
+                    // Success - Redirect manually or reload
+                    window.location.href = '{{ route("client.governance.dashboard") }}';
+                } else {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btnText.innerText = '{{ app()->getLocale() == "ar" ? "فشل الرفع - حاول ثانية" : "Upload Failed - Retry" }}';
+                    alert('Error: ' + xhr.statusText);
+                }
+            }
+        };
+
+        xhr.open('POST', form.action, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.send(formData);
+    });
+
     function updateFileName(input) {
         const display = document.getElementById('file-name-display');
         if (input.files && input.files[0]) {

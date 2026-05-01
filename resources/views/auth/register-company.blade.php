@@ -480,6 +480,9 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                                     <option value="تقنية المعلومات" @selected(old('industry')==='تقنية المعلومات' )>
                                         {{ __('auth.INDUSTRY_IT', [], $currentLang) }}
                                     </option>
+                                    <option value="law" @selected(old('industry')==='law' )>
+                                        {{ __('auth.INDUSTRY_LAW', [], $currentLang) }}
+                                    </option>
                                     <option value="تصميم واجهات (UI)" @selected(old('industry')==='تصميم واجهات (UI)' )>
                                         {{ __('auth.INDUSTRY_UI', [], $currentLang) }}
                                     </option>

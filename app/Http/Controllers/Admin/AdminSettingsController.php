@@ -37,6 +37,11 @@ class AdminSettingsController extends Controller
             'mail_from_address'    => 'no-reply@radiif.com',
             'mail_notifications'   => '1',
 
+            // Task Rewards
+            'price_per_ai_task'    => 5.00,
+            'price_per_legal_task' => 5.00,
+            'price_per_linguistic_task' => 0.25,
+
             // Security
             'session_timeout'      => 120,
             'max_login_attempts'   => 5,
@@ -130,6 +135,19 @@ class AdminSettingsController extends Controller
                     'lockout_minutes'    => $request->lockout_minutes,
                     'admin_2fa'          => $request->has('admin_2fa') ? '1' : '0',
                     'ip_whitelist'       => $request->ip_whitelist,
+                ]);
+                break;
+
+            case 'rewards':
+                $request->validate([
+                    'price_per_ai_task'         => 'required|numeric|min:0',
+                    'price_per_legal_task'      => 'required|numeric|min:0',
+                    'price_per_linguistic_task' => 'required|numeric|min:0',
+                ]);
+                SiteSetting::setMany([
+                    'price_per_ai_task'         => $request->price_per_ai_task,
+                    'price_per_legal_task'      => $request->price_per_legal_task,
+                    'price_per_linguistic_task' => $request->price_per_linguistic_task,
                 ]);
                 break;
 

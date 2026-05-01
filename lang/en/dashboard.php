@@ -77,6 +77,7 @@ return [
         'finance' => 'Finance & Business',
         'healthcare' => 'Healthcare',
         'education' => 'Education',
+        'law' => 'Law & Legal Consulting',
         'other' => 'Other',
     ],
     'sizes' => [
@@ -116,7 +117,12 @@ return [
     'status_active' => 'Active',
     'status_pending' => 'Pending',
     'btn_edit' => 'Edit',
+    'btn_delete' => 'Delete',
     'no_members' => 'No team members found.',
+
+    // Edit Modal
+    'modal_edit_title' => 'Edit Member Details',
+    'modal_save' => 'Save Changes',
     
     // Invite Modal
     'modal_title' => 'Invite New Member',

@@ -194,11 +194,11 @@
 
     <div class="container mx-auto px-4 py-8 max-w-6xl">
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
                 <div>
                     <p class="text-slate-500 text-sm font-medium mb-1">{{ __('expert_dashboard.total_balance') }}</p>
-                    <h2 class="text-3xl font-bold text-slate-800">{{ number_format($total_balance, 2) }} <span class="text-sm text-slate-400 font-normal">{{ __('expert_dashboard.currency') }}</span></h2>
+                    <h2 class="text-2xl font-bold text-slate-800">{{ number_format($total_balance, 2) }} <span class="text-sm text-slate-400 font-normal">{{ __('expert_dashboard.currency') }}</span></h2>
                 </div>
                 <div class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-xl">
                     <i class="fa-solid fa-wallet"></i>
@@ -208,7 +208,7 @@
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
                 <div>
                     <p class="text-slate-500 text-sm font-medium mb-1">{{ __('expert_dashboard.today_earnings') }}</p>
-                    <h2 class="text-3xl font-bold text-slate-800">{{ number_format($today_balance, 2) }} <span class="text-sm text-slate-400 font-normal">{{ __('expert_dashboard.currency') }}</span></h2>
+                    <h2 class="text-2xl font-bold text-slate-800">{{ number_format($today_balance, 2) }} <span class="text-sm text-slate-400 font-normal">{{ __('expert_dashboard.currency') }}</span></h2>
                 </div>
                 <div class="w-12 h-12 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center text-xl">
                     <i class="fa-solid fa-coins"></i>
@@ -218,10 +218,20 @@
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
                 <div>
                     <p class="text-slate-500 text-sm font-medium mb-1">{{ __('expert_dashboard.completed_tasks') }}</p>
-                    <h2 class="text-3xl font-bold text-slate-800">{{ $total_tasks }} <span class="text-sm text-slate-400 font-normal">{{ __('expert_dashboard.task_unit') }}</span></h2>
+                    <h2 class="text-2xl font-bold text-slate-800">{{ $total_tasks }} <span class="text-sm text-slate-400 font-normal">{{ __('expert_dashboard.task_unit') }}</span></h2>
                 </div>
                 <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
                     <i class="fa-solid fa-list-check"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                <div>
+                    <p class="text-slate-500 text-sm font-medium mb-1">المهام المتبقية</p>
+                    <h2 class="text-2xl font-bold text-slate-800">{{ $legal_pending_count ?? 0 }} <span class="text-sm text-slate-400 font-normal">مهمة</span></h2>
+                </div>
+                <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-hourglass-half"></i>
                 </div>
             </div>
         </div>
@@ -298,30 +308,13 @@
             <div class="lg:col-span-2 space-y-6">
 
                 
-                <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden group">
-                    <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
-                    
-                    <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div>
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded">{{ __('expert_dashboard.live_badge') }}</span>
-                                @if($pending_count > 0)
-                                    <span class="text-green-300 text-sm font-bold animate-pulse">{{ __('expert_dashboard.pending_tasks_msg', ['count' => $pending_count]) }}</span>
-                                @else
-                                    <span class="text-slate-400 text-sm">{{ __('expert_dashboard.no_tasks_msg') }}</span>
-                                @endif
-                            </div>
-                            <h2 class="text-3xl font-bold mb-2">{{ __('expert_dashboard.workbench_title') }}</h2>
-                            <p class="text-slate-300 text-sm max-w-md">{{ __('expert_dashboard.workbench_desc') }}</p>
-                        </div>
-                        
-                        <a href="{{ route('dashboard.expert.workbench') }}" class="bg-green-600 hover:bg-green-500 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-green-900/50 transition transform hover:-translate-y-1 flex items-center gap-3">
-                            <i class="fa-solid fa-play rtl:rotate-180"></i> {{ __('expert_dashboard.start_audit') }}
-                        </a>
-                    </div>
-                </div>
-
-                @if($user->expert_domain == 'law')
+                @php
+                    $isLawDomain = $user->expert_domain == 'law';
+                    if (!$isLawDomain && $user->company) {
+                        $isLawDomain = in_array(strtolower($user->company->industry), ['law', 'legal', 'قانون', 'محاماة']);
+                    }
+                @endphp
+                @if($isLawDomain)
                 {{-- SAUDI LEGAL SPECIAL CARDS --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {{-- Workbench Card --}}
@@ -334,9 +327,9 @@
                                 </div>
                                 <span class="bg-yellow-400 text-blue-900 text-[10px] font-black px-2 py-0.5 rounded uppercase">Legal Expert</span>
                             </div>
-                            <h2 class="text-xl font-black mb-1">تنقيح المساعد القانوني</h2>
-                            <p class="text-blue-100/70 text-[11px] leading-relaxed mb-4">راجع إجابات الـ AI بناءً على الأنظمة السعودية.</p>
-                            <a href="{{ route('dashboard.expert.legal_workbench') }}" class="inline-flex items-center gap-2 bg-white text-blue-800 px-5 py-2.5 rounded-xl font-black text-xs shadow-xl transition transform hover:-translate-y-1">
+                            <h2 class="text-2xl font-black mb-2">تنقيح المساعد القانوني</h2>
+                            <p class="text-blue-100/80 text-sm leading-relaxed mb-6">راجع إجابات الذكاء الاصطناعي بناءً على الأنظمة السعودية وقم بتنقيحها لرفع جودة المحرك.</p>
+                            <a href="{{ route('dashboard.expert.legal_workbench') }}" class="inline-flex items-center gap-3 bg-white text-blue-800 px-6 py-3 rounded-xl font-black text-sm shadow-xl transition transform hover:-translate-y-1">
                                 ابدأ التنقيح <i class="fa-solid fa-arrow-left rtl:rotate-180"></i>
                             </a>
                         </div>
@@ -352,9 +345,9 @@
                                 </div>
                                 <span class="bg-emerald-400 text-teal-900 text-[10px] font-black px-2 py-0.5 rounded uppercase">NEW RAG ENGINE</span>
                             </div>
-                            <h2 class="text-xl font-black mb-1">المساعد القانوني الذكي</h2>
-                            <p class="text-emerald-100/70 text-[11px] leading-relaxed mb-4">اسأل الذكاء الاصطناعي وسيجيبك من 15,954 مادة قانونية.</p>
-                            <a href="{{ route('dashboard.expert.legal_assistant') }}" class="inline-flex items-center gap-2 bg-white text-emerald-800 px-5 py-2.5 rounded-xl font-black text-xs shadow-xl transition transform hover:-translate-y-1">
+                            <h2 class="text-2xl font-black mb-2">المساعد القانوني الذكي</h2>
+                            <p class="text-emerald-100/80 text-sm leading-relaxed mb-6">اسأل الذكاء الاصطناعي وسيجيبك من 15,954 مادة قانونية بفضل محرك البحث السيادي المتقدم.</p>
+                            <a href="{{ route('legal_assistant.public') }}" class="inline-flex items-center gap-3 bg-white text-emerald-800 px-6 py-3 rounded-xl font-black text-sm shadow-xl transition transform hover:-translate-y-1">
                                 اسأل المساعد <i class="fa-solid fa-comment-dots"></i>
                             </a>
                         </div>

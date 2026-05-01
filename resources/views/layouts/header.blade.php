@@ -116,6 +116,10 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
 
                 {{-- Desktop Navigation --}}
                 <div class="hidden md:flex items-center gap-8">
+                    <a href="{{ route('legal_assistant.public') }}"
+                        class="text-brand-primary font-bold transition whitespace-nowrap bg-brand-primary/10 px-3 py-1.5 rounded-full flex items-center gap-2 border border-brand-primary/20 hover:bg-brand-primary hover:text-white group">
+                        <i class="fa-solid fa-robot group-hover:animate-bounce"></i> {{ $currentLang === 'en' ? 'AI Legal Assistant' : 'المساعد القانوني' }}
+                    </a>
                     <a href="{{ route('how-it-works') }}"
                         class="text-gray-600 hover:text-brand-primary font-bold transition whitespace-nowrap">
                         {{ __('header.NAV_HOW_IT_WORKS', [], $currentLang) }}
@@ -307,6 +311,10 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 x-transition:leave-end="opacity-0 transform scale-95"
                 class="md:hidden mt-4 pb-4 border-t pt-4">
                 <div class="flex flex-col gap-4">
+                    <a href="{{ route('legal_assistant.public') }}"
+                        class="text-brand-primary font-bold flex items-center gap-2 bg-brand-primary/10 p-2 rounded-lg border border-brand-primary/20">
+                        <i class="fa-solid fa-robot"></i> {{ $currentLang === 'en' ? 'AI Legal Assistant' : 'المساعد القانوني' }}
+                    </a>
                     <a href="{{ route('how-it-works') }}"
                         class="text-gray-600 font-bold">
                         {{ __('header.NAV_HOW_IT_WORKS', [], $currentLang) }}

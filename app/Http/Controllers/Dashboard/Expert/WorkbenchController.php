@@ -376,7 +376,7 @@ class WorkbenchController extends Controller
      */
     private function calculateReward(int $confidence): float
     {
-        $baseReward = 5; // SAR
+        $baseReward = \App\Models\SiteSetting::get('price_per_ai_task', 5.00);
         $confidenceBonus = ($confidence / 10) * 2;
 
         return round($baseReward + $confidenceBonus, 2);

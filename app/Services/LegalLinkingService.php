@@ -10,6 +10,11 @@ class LegalLinkingService
     /**
      * محاولة إيجاد أفضل مادة قانونية مطابقة بناءً على النص
      */
+    private static $lawsCache = [];
+
+    /**
+     * محاولة إيجاد أفضل مادة قانونية مطابقة بناءً على النص
+     */
     public function findBestMatch($text)
     {
         $result = [
@@ -18,6 +23,9 @@ class LegalLinkingService
             'article_text' => 'يرجى مراجعة نص المادة يدوياً.',
             'confidence' => 0
         ];
+
+        if (empty($text))
+            return $result;
 
         // 1. استخراج رقم المادة (يدعم الأرقام)
         $articleNum = null;
@@ -38,78 +46,88 @@ class LegalLinkingService
         // 3. التحقق مما إذا كان هناك نظام مذكور صراحة في النص (مثل "نظام الإثبات")
         foreach ($contextualRules as $lawName => $keywords) {
             if (mb_stripos($text, "نظام $lawName") !== false || mb_stripos($text, "النظام $lawName") !== false) {
+                // استخدام الكاش لتقليل الاستعلامات
+                $cacheKey = "exact_{$lawName}_{$articleNum}";
+                if (isset(self::$lawsCache[$cacheKey])) {
+                    return self::$lawsCache[$cacheKey];
+                }
+
                 $query = LegalArticle::where('legislation_title', 'LIKE', "%$lawName%");
-                
+
                 if ($articleNum) {
                     $article = (clone $query)->where('article_title', 'LIKE', "%$articleNum%")->first();
                     if ($article) {
-                        return [
+                        $match = [
                             'system_name' => $article->legislation_title,
                             'article_number' => $articleNum,
                             'article_text' => $article->content,
                             'confidence' => 100
                         ];
+                        self::$lawsCache[$cacheKey] = $match;
+                        return $match;
                     }
                 }
-                
-                // إذا لم نجد رقم المادة، نحاول البحث بالكلمات المفتاحية داخل هذا النظام
-                $article = (clone $query)->where(function($q) use ($text) {
-                    $keywords = ['اليمين الحاسمة', 'الشخصية الاعتبارية', 'الشركات', 'الشرط الجزائي', 'فسخ العقد'];
-                    foreach ($keywords as $word) {
-                        if (mb_stripos($text, $word) !== false) {
-                            $q->orWhere('content', 'LIKE', "%$word%");
-                        }
-                    }
-                })->first();
 
-                if ($article) {
-                    $result['system_name'] = $article->legislation_title;
-                    $result['article_number'] = $article->article_title;
-                    $result['article_text'] = $article->content;
-                    $result['confidence'] = 90;
-                    return $result;
-                }
-                
-                // fallback to first article
-                $article = $query->first();
+                // Fallback to basic keyword search if no article num found or matching
+                $article = $query->limit(1)->first();
                 if ($article) {
                     $result['system_name'] = $article->legislation_title;
                     $result['article_text'] = $article->content;
                     $result['confidence'] = 80;
+                    // No return here, keep searching for better match
                 }
             }
         }
 
-        // 4. استخراج رقم القضية من النص إذا وجد لمحاولة الربط بالحكم الأصلي
+        // 4. استخراج رقم القضية من النص (تم تعطيله لمنع تداخل الأحكام مع النصوص النظامية)
+        /*
         if (preg_match('/حكم\s+رقم\s+([0-9.]+)/u', $text, $caseMatches)) {
             $caseNum = preg_replace('/[^0-9]/', '', $caseMatches[1]);
             $originalTask = \App\Models\LegalTask::where('case_reference', 'LIKE', "%$caseNum%")
-                ->where('status', 'completed')
+                ->whereNotNull('case_text')
+                ->limit(1)
                 ->first();
             if ($originalTask) {
                 $result['article_text'] = $originalTask->case_text;
-                // No confidence update here as we want to preserve article linking if found
             }
         }
+        */
 
         // 5. الربط بناءً على الكلمات المفتاحية (Contextual Matching)
+        // نقوم بجمع الكلمات المفتاحية الموجودة في النص أولاً لتجنب الاستعلامات غير الضرورية
         foreach ($contextualRules as $lawName => $keywords) {
+            $keywordFound = false;
             foreach ($keywords as $keyword) {
                 if (mb_stripos($text, $keyword) !== false) {
-                    $query = LegalArticle::where('legislation_title', 'LIKE', "%$lawName%");
-                    
-                    if ($articleNum) {
-                        $query->where('article_title', 'LIKE', "%$articleNum%");
-                    }
-                    
-                    $article = $query->first();
-                    if ($article) {
-                        $result['system_name'] = $article->legislation_title;
-                        $result['article_number'] = $articleNum ?? '1';
-                        $result['article_text'] = $article->content;
-                        $result['confidence'] = 85; // Raised from 60
-                        return $result;
-                    }
+                    $keywordFound = true;
+                    break;
+                }
+            }
+
+            if ($keywordFound) {
+                $cacheKey = "context_{$lawName}_{$articleNum}";
+                if (isset(self::$lawsCache[$cacheKey])) {
+                    $cached = self::$lawsCache[$cacheKey];
+                    if ($cached['confidence'] >= 85)
+                        return $cached;
+                    continue;
+                }
+
+                $query = LegalArticle::where('legislation_title', 'LIKE', "%$lawName%");
+                if ($articleNum) {
+                    $query->where('article_title', 'LIKE', "%$articleNum%");
+                }
+
+                $article = $query->first();
+                if ($article) {
+                    $match = [
+                        'system_name' => $article->legislation_title,
+                        'article_number' => $articleNum ?? '1',
+                        'article_text' => $article->content,
+                        'confidence' => 85,
+                    ];
+                    self::$lawsCache[$cacheKey] = $match;
+                    return $match;
                 }
             }
         }

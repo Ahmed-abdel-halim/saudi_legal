@@ -17,6 +17,10 @@ use App\Http\Controllers\Auth\SuperAdminLoginController;
 // Home Route
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// SAUDI LEGAL AI Assistant Public Routes (Temporary)
+Route::get('/legal-assistant', [\App\Http\Controllers\LegalAiController::class, 'index'])->name('legal_assistant.public');
+Route::post('/legal-assistant/ask', [\App\Http\Controllers\LegalAiController::class, 'ask'])->name('legal_assistant.public.ask');
+
 // Careers Route
 Route::get('/careers', [App\Http\Controllers\CareerController::class, 'index'])->name('careers');
 
@@ -116,10 +120,6 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/legal-workbench/skip', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'skip'])->name('.legal_workbench.skip');
             Route::post('/legal-workbench/previous', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'previous'])->name('.legal_workbench.previous');
 
-            // SAUDI LEGAL AI Assistant Routes
-            Route::get('/legal-assistant', [\App\Http\Controllers\LegalAiController::class, 'index'])->name('.legal_assistant');
-            Route::post('/legal-assistant/ask', [\App\Http\Controllers\LegalAiController::class, 'ask'])->name('.legal_assistant.ask');
-
             Route::get('/settings', [ExpertDashboardController::class, 'settings'])->name('.settings');
             Route::post('/purchase/{id}/accept', [ExpertDashboardController::class, 'acceptPurchase'])->name('.purchase.accept');
             Route::post('/settings', [ExpertDashboardController::class, 'settings']);
@@ -148,6 +148,8 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/dashboard/projects', [App\Http\Controllers\ProjectController::class, 'store'])->name('dashboard.projects.store');
             Route::get('/dashboard/team', [DashboardController::class, 'team'])->name('dashboard.team');
             Route::post('/dashboard/team/invite', [DashboardController::class, 'inviteMember'])->name('dashboard.team.invite');
+            Route::put('/dashboard/team/{id}', [DashboardController::class, 'updateMember'])->name('dashboard.team.update');
+            Route::delete('/dashboard/team/{id}', [DashboardController::class, 'deleteMember'])->name('dashboard.team.delete');
 
             // Client Governance Dashboard
             Route::get('/client/governance', [\App\Http\Controllers\Client\GovernanceDashboardController::class, 'index'])->name('client.governance.dashboard');
@@ -293,12 +295,14 @@ Route::middleware(['superadmin'])->prefix('admin')->name('admin.')->group(functi
     Route::post('/disputes/{type}/{id}/resolve-expert', [App\Http\Controllers\Admin\DisputeController::class, 'resolveForExpert'])->name('disputes.resolve-expert');
     Route::post('/disputes/{type}/{id}/message', [App\Http\Controllers\Admin\DisputeController::class, 'sendMessage'])->name('disputes.message');
 
-    // Sentiment Analysis Task Tracker
-    Route::get('/sentiment/tasks', [App\Http\Controllers\Admin\SentimentTaskController::class, 'index'])->name('sentiment.index');
-
     // Dataset Upload for Intelligent Routing System
     Route::get('/dataset/upload', [App\Http\Controllers\Dashboard\DatasetUploadController::class, 'index'])->name('dataset.upload');
     Route::post('/dataset/upload', [App\Http\Controllers\Dashboard\DatasetUploadController::class, 'upload'])->name('dataset.upload.store');
+
+    // Sentiment Tasks
+    Route::get('/sentiment/tasks', [App\Http\Controllers\Admin\SentimentTaskController::class, 'index'])->name('sentiment.index');
+    Route::delete('/sentiment/tasks/delete-all', [App\Http\Controllers\Admin\SentimentTaskController::class, 'destroyAll'])->name('sentiment.delete-all');
+    Route::delete('/sentiment/tasks/{id}', [App\Http\Controllers\Admin\SentimentTaskController::class, 'destroy'])->name('sentiment.destroy');
 
     // Services Board
     Route::get('/services', [\App\Http\Controllers\Admin\AdminServiceController::class, 'index'])->name('services.index');

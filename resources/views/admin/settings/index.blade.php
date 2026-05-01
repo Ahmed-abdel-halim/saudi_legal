@@ -45,6 +45,13 @@
                 </div>
                 <i class="fa-solid fa-chevron-right tab-chevron text-xs text-slate-300 transition rtl:rotate-180"></i>
             </a>
+
+            <a href="#" data-tab="rewards" class="tab-link bg-white text-slate-600 font-bold px-5 py-4 rounded-xl hover:bg-slate-50 border border-slate-200 text-sm flex items-center justify-between group transition shadow-sm hover:shadow-md hover:border-slate-300">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-coins tab-icon text-slate-400 transition text-lg w-5 text-center"></i> {!! __('admin.task_rewards') ?? 'Task Rewards' !!}
+                </div>
+                <i class="fa-solid fa-chevron-right tab-chevron text-xs text-slate-300 transition rtl:rotate-180"></i>
+            </a>
             
             
         </nav>
@@ -306,7 +313,6 @@
                 </div>
             </form>
         </div>
-
         {{-- Security & Access Tab --}}
         <div id="tab-security" class="tab-content hidden bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
             <div class="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
@@ -363,6 +369,61 @@
                 </div>
                 <div class="mt-10 flex justify-end">
                     <button type="submit" class="text-white bg-red-500 hover:bg-red-600 font-bold rounded-xl text-sm px-8 py-3.5 shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-save"></i> {!! __('admin.save_settings') ?? 'Save Configuration Changes' !!}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+
+        {{-- Task Rewards Tab --}}
+        <div id="tab-rewards" class="tab-content hidden bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800">{!! __('admin.task_rewards') ?? 'Task Rewards' !!}</h3>
+                    <p class="text-sm text-slate-500 mt-1">{!! __('admin.task_rewards_desc') ?? 'Define the amounts experts receive for each type of task.' !!}</p>
+                </div>
+                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center border border-slate-200 shadow-sm">
+                    <i class="fa-solid fa-coins text-xl text-amber-500 block"></i>
+                </div>
+            </div>
+            <form action="{{ route('admin.settings.update') }}" method="POST" class="p-8">
+                @csrf @method('PUT')
+                <input type="hidden" name="tab" value="rewards">
+                <div class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block mb-2 text-sm font-bold text-slate-700">{!! __('admin.price_per_ai_task') ?? 'AI Task Reward' !!}</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 flex items-center pl-4 rtl:pr-4 pointer-events-none">
+                                    <i class="fa-solid fa-robot text-slate-400"></i>
+                                </div>
+                                <input type="number" step="0.01" name="price_per_ai_task" value="{{ old('price_per_ai_task', $settings['price_per_ai_task']) }}" class="bg-slate-50 border border-slate-200 text-slate-800 font-bold focus:bg-white rounded-xl focus:ring-primary focus:border-primary block w-full pl-12 rtl:pr-12 rtl:pl-4 p-3.5 transition outline-none shadow-inner" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-bold text-slate-700">{!! __('admin.price_per_legal_task') ?? 'Legal Assistant Task Reward' !!}</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 flex items-center pl-4 rtl:pr-4 pointer-events-none">
+                                    <i class="fa-solid fa-gavel text-slate-400"></i>
+                                </div>
+                                <input type="number" step="0.01" name="price_per_legal_task" value="{{ old('price_per_legal_task', $settings['price_per_legal_task']) }}" class="bg-slate-50 border border-slate-200 text-slate-800 font-bold focus:bg-white rounded-xl focus:ring-primary focus:border-primary block w-full pl-12 rtl:pr-12 rtl:pl-4 p-3.5 transition outline-none shadow-inner" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-bold text-slate-700">{!! __('admin.price_per_linguistic_task') ?? 'Refining / Linguistic Task Reward' !!}</label>
+                        <div class="relative max-w-md">
+                            <div class="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 flex items-center pl-4 rtl:pr-4 pointer-events-none">
+                                <i class="fa-solid fa-pen-nib text-slate-400"></i>
+                            </div>
+                            <input type="number" step="0.01" name="price_per_linguistic_task" value="{{ old('price_per_linguistic_task', $settings['price_per_linguistic_task']) }}" class="bg-slate-50 border border-slate-200 text-slate-800 font-bold focus:bg-white rounded-xl focus:ring-primary focus:border-primary block w-full pl-12 rtl:pr-12 rtl:pl-4 p-3.5 transition outline-none shadow-inner" required>
+                        </div>
+                        <p class="mt-2 text-xs text-slate-500"><i class="fa-solid fa-info-circle mr-1"></i> This reward applies to Sentiment Analysis and Sentence Correction tasks.</p>
+                    </div>
+                </div>
+                <div class="mt-10 flex justify-end">
+                    <button type="submit" class="text-white bg-amber-500 hover:bg-amber-600 font-bold rounded-xl text-sm px-8 py-3.5 shadow-md transition flex items-center gap-2">
                         <i class="fa-solid fa-save"></i> {!! __('admin.save_settings') ?? 'Save Configuration Changes' !!}
                     </button>
                 </div>

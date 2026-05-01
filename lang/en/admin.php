@@ -248,6 +248,14 @@ return [
     'require_2fa' => 'Require 2FA for Admins',
     'require_2fa_desc' => 'Force all admin panel users to enable two-factor authentication.',
 
+    // Task Rewards
+    'task_rewards' => 'Task Rewards',
+    'task_rewards_desc' => 'Define the amounts experts receive for each type of task.',
+    'price_per_ai_task' => 'AI Task Reward',
+    'price_per_legal_task' => 'Legal Assistant Task Reward',
+    'price_per_linguistic_task' => 'Refining / Linguistic Task Reward',
+    'reward_settings_saved' => 'Reward settings saved successfully.',
+
     // Tracker
     'tasks_tracker' => 'Tasks Tracker',
     'tasks_tracker_desc' => 'Monitor all imported tasks across dataset files.',

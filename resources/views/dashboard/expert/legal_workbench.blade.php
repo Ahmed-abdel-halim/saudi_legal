@@ -53,19 +53,66 @@
 
 <body class="bg-gray-50 overflow-y-auto custom-scrollbar flex flex-col min-h-screen">
 
-    <!-- Simple Header -->
-    <header class="flex items-center justify-between px-8 py-5 bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('dashboard.expert') }}" class="text-gray-400 hover:text-gray-800 transition">
-                <i class="fa-solid fa-arrow-right rtl:rotate-180"></i>
-            </a>
-            <h1 class="text-lg font-black text-gray-800 tracking-wide">Radiif <span class="text-blue-600">Legal
-                    AI</span></h1>
-        </div>
-        <div class="flex items-center gap-4 text-sm font-bold">
-            <span class="text-gray-500">المنجز اليوم: <span
-                    class="text-emerald-600">{{ $stats['completed_today'] }}</span></span>
-            <span class="text-gray-500">متبقي: <span class="text-blue-600">{{ $stats['pending_tasks'] }}</span></span>
+    <!-- Stats Header -->
+    <header class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <a href="{{ route('dashboard.expert') }}" class="text-gray-400 hover:text-emerald-600 transition text-xl p-2" title="خروج">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </a>
+        
+        <div class="flex items-center gap-3 md:gap-4">
+            <!-- User Info -->
+            <div class="flex items-center gap-3 pl-4 border-l border-gray-200">
+                <div class="hidden md:flex flex-col items-end">
+                    <span class="text-sm font-bold text-gray-800">{{ Auth::user()->full_name ?? Auth::user()->name }}</span>
+                    <span class="text-[11px] text-emerald-600 font-bold">خبير معتمد</span>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold border-2 border-white shadow-sm overflow-hidden">
+                    @if(Auth::user()->avatar_path)
+                        <img src="{{ asset('uploads/' . Auth::user()->avatar_path) }}" class="w-full h-full object-cover">
+                    @else
+                        {{ mb_substr(Auth::user()->name ?? 'U', 0, 1) }}
+                    @endif
+                </div>
+            </div>
+
+            <!-- Completed Tasks -->
+            @php $total_tasks = \App\Models\LegalTask::where('expert_id', Auth::id())->where('status', 'completed')->count(); @endphp
+            <div class="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-[12px] font-bold text-gray-700">
+                <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                <span class="opacity-70">المنجز كلياً:</span>
+                <span>{{ $total_tasks }}</span>
+            </div>
+
+            <!-- Today's Tasks -->
+            <div class="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-[12px] font-bold text-gray-700">
+                <i class="fa-solid fa-calendar-day text-blue-500"></i>
+                <span class="opacity-70">إنجاز اليوم:</span>
+                <span>{{ $stats['completed_today'] }}</span>
+            </div>
+
+            <!-- Remaining Tasks -->
+            <div class="flex items-center gap-2 bg-rose-50 border border-rose-100 px-3 py-1.5 rounded-xl text-[12px] font-bold text-rose-700">
+                <i class="fa-solid fa-hourglass-half text-rose-500 animate-pulse"></i>
+                <span class="opacity-80">المتبقي:</span>
+                <span class="text-sm">{{ $stats['pending_tasks'] }}</span>
+            </div>
+
+            <!-- Timer -->
+            <div class="hidden lg:flex items-center gap-1.5 text-slate-400 font-bold text-[12px] mx-1">
+                <span id="timer">00:00</span>
+                <i class="fa-regular fa-clock"></i>
+            </div>
+
+            <!-- Earnings -->
+            @php 
+                $price_per_task = 0.25; // Forced to 0.25 as requested
+                $earnings_today = $stats['completed_today'] * $price_per_task; 
+            @endphp
+            <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl text-[12px] font-bold text-amber-700">
+                <span class="opacity-80">الرصيد:</span>
+                <span class="text-sm">{{ number_format($earnings_today, 2) }} ريال</span>
+                <i class="fa-solid fa-coins text-amber-600"></i>
+            </div>
         </div>
     </header>
 
@@ -112,6 +159,7 @@
 
                     <!-- Interactive Source Accordions (FAQ Style) -->
                     <div class="space-y-4" dir="rtl">
+                        <!-- Legal Articles (Primary - Shown First) -->
                         @if($mentioned_articles && $mentioned_articles->count() > 0)
                             @foreach($mentioned_articles as $article)
                                 <div class="border border-gray-100 rounded-[1.5rem] bg-white overflow-hidden shadow-sm transition-all duration-300 hover:border-blue-200">
@@ -125,7 +173,7 @@
                                                 المصدر القانوني : {{ $article->legislation_title }} {{ $article->article_title }}
                                             </span>
                                         </div>
-                                        <i class="fa-solid fa-chevron-down absolute left-6 top-1/2 -translate-y-1/2 text-blue-300 text-[10px] transition-transform duration-300"></i>
+                                        <i class="fa-solid fa-chevron-down absolute left-6 top-1/2 -translate-y-1/2 text-blue-600 text-lg font-bold transition-transform duration-300"></i>
                                     </button>
                                     <div id="article-{{ $article->id }}" class="hidden px-6 pb-6 bg-blue-50/30 border-t border-blue-50">
                                         <div dir="rtl" style="text-align: right !important;" class="text-gray-800 text-lg leading-loose font-bold w-full pt-6 whitespace-pre-wrap">{{ trim(strip_tags($article->content)) }}</div>
@@ -134,7 +182,7 @@
                             @endforeach
                         @endif
 
-                        <!-- Judgment Accordion -->
+                        <!-- Judgment Accordion (Secondary - Shown Second) -->
                         <div class="border border-gray-100 rounded-[1.5rem] bg-white overflow-hidden shadow-sm transition-all duration-300 hover:border-emerald-200">
                             <button onclick="toggleAccordion('judgment-accordion', this)" 
                                 class="w-full relative px-6 py-5 text-right focus:outline-none bg-white">
@@ -146,10 +194,10 @@
                                         مصدر الحكم : {{ $task->case_reference ?? 'حكم قضائي مرتبط' }}
                                     </span>
                                 </div>
-                                <i class="fa-solid fa-chevron-down absolute left-6 top-1/2 -translate-y-1/2 text-emerald-300 text-[10px] transition-transform duration-300"></i>
+                                <i class="fa-solid fa-chevron-down absolute left-6 top-1/2 -translate-y-1/2 text-emerald-600 text-lg font-bold transition-transform duration-300"></i>
                             </button>
                             <div id="judgment-accordion" class="hidden px-6 pb-6 bg-emerald-50/30 border-t border-emerald-50">
-                                <div dir="rtl" style="text-align: right !important;" class="text-gray-800 text-lg leading-loose font-bold w-full pt-6 whitespace-pre-wrap max-h-[500px] overflow-y-auto custom-scrollbar scrollbar-emerald px-4">{{ trim($task->case_text) ?? 'لا يتوفر نص سابقة قضائية لهذه المهمة.' }}</div>
+                                <div dir="rtl" style="text-align: right !important;" class="text-gray-800 text-lg leading-loose font-bold w-full pt-6 whitespace-pre-wrap max-h-[500px] overflow-y-auto custom-scrollbar scrollbar-emerald px-4">{{ trim($task->case_text) ?: 'لا يتوفر نص سابقة قضائية لهذه المهمة. يمكنك إضافة مرجع جديد عبر التصحيح.' }}</div>
                             </div>
                         </div>
                     </div>
@@ -249,6 +297,28 @@
                     <!-- Hidden Correction Form -->
                     <div id="correction-area"
                         class="hidden space-y-4 pt-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                        
+                        <!-- NEW SECTION: Add Legal Reference -->
+                        <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-blue-100/50 -mr-8 -mt-8 rounded-full blur-xl"></div>
+                            <div class="relative z-10">
+                                <label class="block text-sm font-black text-blue-800 mb-3 flex items-center gap-2">
+                                    <i class="fa-solid fa-book-section text-blue-500"></i> إضافة مرجع قانوني للتصحيح (اختياري)
+                                </label>
+                                <div class="flex flex-col md:flex-row gap-4">
+                                    <div class="flex-1">
+                                        <input type="text" id="correct_law_system" class="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="النظام (مثال: نظام الإثبات)">
+                                    </div>
+                                    <div class="flex-1">
+                                        <input type="text" id="correct_law_article" class="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="المادة (مثال: المادة الأولى)">
+                                    </div>
+                                </div>
+                                <p class="text-xs text-blue-600/80 mt-3 font-bold flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-info"></i> سيتم ربط هذا النظام والمادة بالإجابة الصحيحة لتطوير الذكاء الاصطناعي.
+                                </p>
+                            </div>
+                        </div>
+
                         <div class="p-1 bg-rose-50 rounded-2xl border border-rose-100">
                             <textarea id="correct_answer"
                                 class="w-full h-40 p-5 bg-transparent border-none focus:ring-0 outline-none text-lg font-bold text-gray-800 resize-none"
@@ -330,6 +400,18 @@
     @endif
 
     <script>
+        // Timer Logic
+        let seconds = 0;
+        const timerEl = document.getElementById('timer');
+        if (timerEl) {
+            setInterval(() => {
+                seconds++;
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                timerEl.textContent = `${m}:${s}`;
+            }, 1000);
+        }
+
         function toggleCorrection(show, mode = 'edit') {
             const area = document.getElementById('correction-area');
             const buttons = document.getElementById('action-buttons');
@@ -395,6 +477,8 @@
                 task_id: taskId,
                 is_correct: isCorrect,
                 correct_answer: isCorrect ? null : document.getElementById('correct_answer').value,
+                correct_law_system: isCorrect ? null : document.getElementById('correct_law_system').value,
+                correct_law_article: isCorrect ? null : document.getElementById('correct_law_article').value,
                 tags: selectedTags,
                 _token: "{{ csrf_token() }}"
             };

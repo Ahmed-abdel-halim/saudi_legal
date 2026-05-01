@@ -28,6 +28,7 @@ return [
     'INDUSTRY_CX' => 'تجربة العميل (CX)',
     'INDUSTRY_FINANCE' => 'استشارات مالية',
     'INDUSTRY_MARKETING' => 'التسويق الرقمي',
+    'INDUSTRY_LAW' => 'محاماة واستشارات قانونية',
     'INDUSTRY_OTHER' => 'أخرى',
 
     // Company Sizes

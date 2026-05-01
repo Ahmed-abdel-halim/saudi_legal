@@ -19,19 +19,25 @@ class RequestController extends Controller
         // Get filter parameters
         $filterSearch = $request->get('search', '');
         $filterMaxRate = $request->get('max_rate', '');
+        $filterIndustries = $request->get('industry', []);
+        if (!is_array($filterIndustries)) {
+            $filterIndustries = $filterIndustries ? [$filterIndustries] : [];
+        }
 
         try {
             // Fetch from database using Eloquent
             $query = Project::with(['requester', 'skills'])
-                ->where('status', 'posted')
-                ->orderBy('created_at', 'desc');
+                ->join('companies as c', 'projects.requester_company_id', '=', 'c.company_id')
+                ->where('projects.status', 'posted')
+                ->select('projects.*') // Ensure we only get project columns
+                ->orderBy('projects.created_at', 'desc');
 
             // Apply search filter
             if (!empty($filterSearch)) {
                 $searchTerm = '%' . $filterSearch . '%';
                 $query->where(function ($q) use ($searchTerm) {
-                    $q->where('title', 'LIKE', $searchTerm)
-                      ->orWhere('scope_description', 'LIKE', $searchTerm)
+                    $q->where('projects.title', 'LIKE', $searchTerm)
+                      ->orWhere('projects.scope_description', 'LIKE', $searchTerm)
                       ->orWhereHas('skills', function ($k) use ($searchTerm) {
                             $k->where('name', 'LIKE', $searchTerm)
                               ->orWhere('name_ar', 'LIKE', $searchTerm);
@@ -41,7 +47,12 @@ class RequestController extends Controller
 
             // Apply max rate filter
             if (!empty($filterMaxRate)) {
-                $query->where('max_hourly_rate', '<=', $filterMaxRate);
+                $query->where('projects.max_hourly_rate', '<=', $filterMaxRate);
+            }
+
+            // Apply industry filter
+            if (!empty($filterIndustries)) {
+                $query->whereIn('c.industry', $filterIndustries);
             }
 
             $projects = $query->get();
@@ -79,6 +90,7 @@ class RequestController extends Controller
             'requests' => $requests,
             'filterSearch' => $filterSearch,
             'filterMaxRate' => $filterMaxRate,
+            'filterIndustries' => $filterIndustries,
             'currentLang' => $currentLang,
         ]);
     }

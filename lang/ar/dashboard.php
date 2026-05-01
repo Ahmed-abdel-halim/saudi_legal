@@ -77,6 +77,7 @@ return [
         'finance' => 'المالية والأعمال',
         'healthcare' => 'الرعاية الصحية',
         'education' => 'التعليم',
+        'law' => 'محاماة واستشارات قانونية',
         'other' => 'أخرى',
     ],
     'sizes' => [
@@ -116,7 +117,12 @@ return [
     'status_active' => 'نشط',
     'status_pending' => 'معلق',
     'btn_edit' => 'تعديل',
+    'btn_delete' => 'حذف',
     'no_members' => 'لم يتم العثور على أعضاء في الفريق.',
+
+    // Edit Modal
+    'modal_edit_title' => 'تعديل بيانات العضو',
+    'modal_save' => 'حفظ التغييرات',
 
     // Invite Modal
     'modal_title' => 'دعوة عضو جديد',

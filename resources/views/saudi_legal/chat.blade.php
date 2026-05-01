@@ -64,7 +64,7 @@
     <nav class="relative z-10 glass-panel border-b border-white/60 px-6 py-4 flex items-center justify-between">
         <!-- Right: Logo & Title -->
         <div class="flex items-center gap-4">
-            <a href="{{ route('dashboard.expert.legal_workbench') }}" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition shadow-sm">
+            <a href="{{ url('/') }}" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition shadow-sm">
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
             <div class="flex items-center gap-3">
@@ -207,7 +207,7 @@
             mainContainer.scrollTop = mainContainer.scrollHeight;
 
             try {
-                const response = await fetch("{{ route('dashboard.expert.legal_assistant.ask') }}", {
+                const response = await fetch("{{ route('legal_assistant.public.ask') }}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

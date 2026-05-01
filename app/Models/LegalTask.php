@@ -46,7 +46,7 @@ class LegalTask extends Model
                     $linkingService = new \App\Services\LegalLinkingService();
                     $searchText = $model->expert_comment . ' ' . $model->question . ' ' . $model->proposed_answer;
                     $match = $linkingService->findBestMatch($searchText);
-                    
+
                     if ($match['confidence'] > 50) {
                         $model->law_system_name = $match['system_name'];
                         $model->law_article_number = $match['article_number'];

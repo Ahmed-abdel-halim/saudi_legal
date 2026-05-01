@@ -159,6 +159,7 @@ class DashboardController extends Controller
         $validated = $request->validate([
             'email' => 'required|email|unique:users,email',
             'name' => 'required|string|max:255',
+            'role' => 'required|string|in:expert,supplier,admin',
             'phone' => 'nullable|string|max:20',
         ]);
 
@@ -169,7 +170,13 @@ class DashboardController extends Controller
         $member->phone = $validated['phone'] ?? null;
         $member->password = \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(16)); // Random password
         $member->company_id = $company->company_id;
-        $member->role = 'expert'; // Default role
+        $member->role = $validated['role']; // Use selected role
+        
+        // Inherit domain if it's a law firm
+        if ($user->expert_domain == 'law' || in_array(strtolower($company->industry), ['law', 'legal', 'قانون', 'محاماة'])) {
+            $member->expert_domain = 'law';
+        }
+
         $member->is_active = false; // Pending
         $member->save();
 
@@ -184,6 +191,39 @@ class DashboardController extends Controller
         \Illuminate\Support\Facades\Mail::to($member->email)->send(new \App\Mail\InviteEmployee($member, $activationUrl));
 
         return back()->with('success', __('dashboard.invite_sent_success'));
+    }
+
+    public function updateMember(Request $request, $id)
+    {
+        $user = Auth::user();
+        $member = User::where('id', $id)->where('company_id', $user->company_id)->firstOrFail();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'role' => 'required|string|in:expert,supplier,admin',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $member->name = $validated['name'];
+        $member->role = $validated['role'];
+        $member->phone = $validated['phone'];
+        $member->save();
+
+        return back()->with('success', 'Member updated successfully.');
+    }
+
+    public function deleteMember($id)
+    {
+        $user = Auth::user();
+        
+        if ($user->id == $id) {
+            return back()->with('error', 'You cannot delete yourself.');
+        }
+
+        $member = User::where('id', $id)->where('company_id', $user->company_id)->firstOrFail();
+        $member->delete();
+
+        return back()->with('success', 'Member deleted successfully.');
     }
     public function tasks()
     {

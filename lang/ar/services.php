@@ -23,6 +23,7 @@ return [
         'Design'     => 'تصميم وإبداع',
         'Marketing'  => 'تسويق',
         'Consulting' => 'استشارات',
+        'Auditing'   => 'تدقيق ومراجعة',
         'Other'      => 'أخرى',
     ],
     

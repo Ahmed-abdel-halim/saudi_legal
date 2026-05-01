@@ -80,6 +80,40 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                             class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand-primary focus:border-transparent transition"
                             placeholder="0.00">
                     </div>
+
+                    {{-- Category Filter --}}
+                    @php
+                        $categoryLabels = __('services.CATEGORY_LABELS', [], $currentLang);
+                        if (!is_array($categoryLabels)) {
+                            $categoryLabels = [
+                                'Tech'       => 'Tech & Programming',
+                                'Design'     => 'Design & Creative',
+                                'Marketing'  => 'Marketing',
+                                'Consulting' => 'Consulting',
+                                'Auditing'   => 'Auditing & Review',
+                                'Other'      => 'Other',
+                            ];
+                        }
+                    @endphp
+                    <div class="mb-6">
+                        <h4 class="font-semibold text-gray-800 mb-3 text-sm">
+                            {{ __('services.SERVICES_FILTER_CATEGORY', [], $currentLang) }}
+                        </h4>
+                        <ul class="space-y-2 text-sm">
+                            @foreach($categoryLabels as $dbValue => $label)
+                            <li>
+                                <label class="flex items-center gap-2 cursor-pointer hover:text-brand-primary transition">
+                                    <input type="checkbox"
+                                        name="industry[]"
+                                        value="{{ $dbValue }}"
+                                        class="text-brand-teal focus:ring-brand-teal rounded border-gray-300"
+                                        {{ in_array($dbValue, $filterIndustries ?? []) ? 'checked' : '' }}>
+                                    <span>{{ $label }}</span>
+                                </label>
+                            </li>
+                            @endforeach
+                        </ul>
+                    </div>
                     
                     {{-- Apply Button --}}
                     <button type="submit" 
@@ -88,7 +122,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                     </button>
                     
                     {{-- Clear Filters Link --}}
-                    @if(!empty($filterSearch) || !empty($filterMaxRate))
+                    @if(!empty($filterSearch) || !empty($filterMaxRate) || !empty($filterIndustries))
                     <a href="{{ route('requests.browse') }}" 
                         class="block text-center text-sm text-gray-500 hover:text-brand-primary mt-3 transition">
                         {{ $direction === 'rtl' ? 'مسح الفلاتر' : 'Clear Filters' }}

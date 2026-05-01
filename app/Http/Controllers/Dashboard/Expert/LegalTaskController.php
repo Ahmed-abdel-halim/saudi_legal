@@ -96,7 +96,9 @@ class LegalTaskController extends Controller
             'is_correct' => 'required|boolean',
             'correct_answer' => 'required_if:is_correct,false|nullable|string',
             'expert_comment' => 'nullable|string|max:1000',
-            'tags' => 'nullable|array'
+            'tags' => 'nullable|array',
+            'correct_law_system' => 'nullable|string|max:255',
+            'correct_law_article' => 'nullable|string|max:255'
         ]);
 
         $task = LegalTask::where('id', $request->task_id)
@@ -121,6 +123,18 @@ class LegalTaskController extends Controller
             // حل بديل: تخزين الأوسمة داخل الملاحظات إذا لم يوجد العمود بعد
             $tagsString = !empty($tags) ? "[Tags: " . implode(', ', $tags) . "] " : "";
             $updateData['expert_comment'] = $tagsString . $request->expert_comment;
+        }
+
+        // إضافة المرجع القانوني الجديد (إذا لم نقم بعمل migrate بعد نحفظها في الملاحظات)
+        if (\Illuminate\Support\Facades\Schema::hasColumn('legal_tasks', 'correct_law_system')) {
+            $updateData['correct_law_system'] = $request->correct_law_system;
+            $updateData['correct_law_article'] = $request->correct_law_article;
+        } else {
+            if ($request->correct_law_system || $request->correct_law_article) {
+                $refString = "[Reference: " . ($request->correct_law_system ?? 'غير محدد') . " - " . ($request->correct_law_article ?? '') . "] \n";
+                // Append to comment if not a proper column
+                $updateData['expert_comment'] = $refString . ($updateData['expert_comment'] ?? '');
+            }
         }
 
         $task->update($updateData);

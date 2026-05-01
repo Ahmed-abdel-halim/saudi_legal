@@ -23,6 +23,7 @@ return [
         'Design'     => 'Design & Creative',
         'Marketing'  => 'Marketing',
         'Consulting' => 'Consulting',
+        'Auditing'   => 'Auditing & Review',
         'Other'      => 'Other',
     ],
     

@@ -33,10 +33,38 @@ class ExpertDashboardController extends Controller
             $tasks_today = 0;
         }
 
+        // Include Legal Tasks in Stats
+        try {
+            $legalStats = DB::table('legal_tasks')
+                ->select(DB::raw('count(*) as total_tasks'))
+                ->selectRaw("SUM(CASE WHEN DATE(completed_at) = CURDATE() THEN 1 ELSE 0 END) as tasks_today")
+                ->where('expert_id', $user->id)
+                ->where('status', 'completed')
+                ->first();
+
+            $total_tasks += $legalStats->total_tasks ?? 0;
+            $tasks_today += $legalStats->tasks_today ?? 0;
+        } catch (\Exception $e) {}
+
         // 3. Financials
-        $price_per_task = 5;
-        $total_balance = $total_tasks * $price_per_task;
-        $today_balance = $tasks_today * $price_per_task;
+        $price_ai = \App\Models\SiteSetting::get('price_per_ai_task', 5.00);
+        $price_legal = 0.25; // Forced to 0.25
+        $price_linguistic = \App\Models\SiteSetting::get('price_per_linguistic_task', 0.25);
+
+        // Calculate total tasks per type (approximate for display)
+        $ai_count = DB::table('ai_responses_v2')->where('expert_id', $user->id)->count();
+        $legal_count = DB::table('legal_tasks')->where('expert_id', $user->id)->where('status', 'completed')->count();
+        $linguistic_count = DB::table('linguistic_tasks')->where('expert_id', $user->id)->where('status', 'completed')->count();
+
+        $total_balance = ($ai_count * $price_ai) + ($legal_count * $price_legal) + ($linguistic_count * $price_linguistic);
+        
+        // Today's balance
+        $ai_today = DB::table('ai_responses_v2')->where('expert_id', $user->id)->whereDate('created_at', now())->count();
+        $legal_today = DB::table('legal_tasks')->where('expert_id', $user->id)->where('status', 'completed')->whereDate('completed_at', now())->count();
+        $linguistic_today = DB::table('linguistic_tasks')->where('expert_id', $user->id)->where('status', 'completed')->whereDate('completed_at', now())->count();
+
+        $today_balance = ($ai_today * $price_ai) + ($legal_today * $price_legal) + ($linguistic_today * $price_linguistic);
+        $price_per_task = $price_ai; // Legacy fallback for history table if needed
 
         // 4. Level Logic
         $expert_level = __('expert_dashboard.level_new');
@@ -79,15 +107,30 @@ class ExpertDashboardController extends Controller
                 ->count();
         }
 
+        // 5.b Legal Pending Count (Specific for Saudi Legal)
+        $legal_pending_count = \App\Models\LegalTask::where('status', 'pending')
+            ->where('domain', 'law')
+            ->count();
+
         // 6. History
         $history = collect([]);
         try {
-            $history = DB::table('ai_responses_v2')
+            $historyV2 = DB::table('ai_responses_v2')
                 ->where('expert_id', $user->id)
-                ->orderBy('id', 'desc')
+                ->select('id as task_id', 'created_at')
+                ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->get();
-        } catch (\Exception $e) {
+                
+            $historyLegal = DB::table('legal_tasks')
+                ->where('expert_id', $user->id)
+                ->where('status', 'completed')
+                ->select('id as task_id', 'completed_at as created_at')
+                ->orderBy('completed_at', 'desc')
+                ->limit(5)
+                ->get();
+                
+            $history = collect($historyV2)->merge($historyLegal)->sortByDesc('created_at')->take(5);
         } catch (\Exception $e) {
             $history = collect([]);
         }
@@ -109,8 +152,7 @@ class ExpertDashboardController extends Controller
             'badge_color',
             'badge_icon',
             'pending_count',
-            'history',
-            'pending_count',
+            'legal_pending_count',
             'history',
             'price_per_task',
             'received_requests'
@@ -373,7 +415,7 @@ class ExpertDashboardController extends Controller
             ->whereDate('created_at', $today_date)
             ->count();
             
-        $price_per_task = 5;
+        $price_per_task = \App\Models\SiteSetting::get('price_per_ai_task', 5.00);
         $earnings_today = $tasks_today * $price_per_task;
         
         // 2. Fetch one pending task (random or next available)
