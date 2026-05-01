@@ -14,6 +14,7 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 window.Pusher = Pusher;
 
+/* 
 window.Echo = new Echo({
     broadcaster: 'pusher',
     key: import.meta.env.VITE_PUSHER_APP_KEY,
@@ -24,6 +25,7 @@ window.Echo = new Echo({
     forceTLS: (import.meta.env.VITE_PUSHER_SCHEME ?? 'https') === 'https',
     enabledTransports: ['ws', 'wss'],
 });
+*/
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
@@ -31,4 +33,4 @@ window.Echo = new Echo({
  * allow your team to quickly build robust real-time web applications.
  */
 
-import './echo';
+// import './echo';
