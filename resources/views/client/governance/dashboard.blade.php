@@ -658,9 +658,25 @@
                     btn.disabled = false;
                     btn.classList.remove('opacity-50', 'cursor-not-allowed');
                     btnText.innerText = '{{ app()->getLocale() == "ar" ? "فشل الرفع - حاول ثانية" : "Upload Failed - Retry" }}';
-                    alert('Error: ' + xhr.statusText);
+                    
+                    let errorMsg = xhr.statusText || 'Unknown Server Error';
+                    try {
+                        const resp = JSON.parse(xhr.responseText);
+                        if (resp.message) errorMsg = resp.message;
+                    } catch(e) {
+                        console.error('Could not parse error response', e);
+                    }
+                    
+                    alert('Error: ' + errorMsg);
                 }
             }
+        };
+
+        xhr.onerror = function() {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnText.innerText = '{{ app()->getLocale() == "ar" ? "فشل الاتصال" : "Connection Failed" }}';
+            alert('Connection failed. Please check your internet or server limits.');
         };
 
         xhr.open('POST', form.action, true);

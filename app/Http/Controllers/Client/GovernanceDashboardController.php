@@ -44,18 +44,31 @@ class GovernanceDashboardController extends Controller
      */
     public function uploadTasks(Request $request)
     {
-        $request->validate([
-            'csv_file' => 'required|file|mimes:xlsx,xls,csv,txt,jsonl,json|max:204800' // 200MB
-        ]);
-
-        $user = auth()->user();
-        $file = $request->file('csv_file');
-        $originalName = $file->getClientOriginalName();
-        
-        // حفظ الملف بشكل مؤقت للمعالجة في الخلفية
-        $path = $file->storeAs('temp_uploads', time() . '_' . $originalName);
+        \Log::info('Task upload request received', ['user_id' => auth()->id()]);
 
         try {
+            $request->validate([
+                'csv_file' => 'required|file|mimes:xlsx,xls,csv,txt,jsonl,json|max:204800' // 200MB
+            ]);
+
+            if (!$request->hasFile('csv_file')) {
+                \Log::warning('Upload attempt without csv_file field');
+                return response()->json(['success' => false, 'message' => 'No file field detected.'], 400);
+            }
+
+            $user = auth()->user();
+            $file = $request->file('csv_file');
+            $originalName = $file->getClientOriginalName();
+            
+            \Log::info('File details', [
+                'name' => $originalName,
+                'size' => $file->getSize(),
+                'mime' => $file->getMimeType()
+            ]);
+
+            // حفظ الملف بشكل مؤقت للمعالجة في الخلفية
+            $path = $file->storeAs('temp_uploads', time() . '_' . $originalName);
+
             // إرسال المهمة للمعالجة في الخلفية
             \App\Jobs\ProcessTaskUploadJob::dispatch(
                 $path,
@@ -64,6 +77,8 @@ class GovernanceDashboardController extends Controller
                 $originalName
             );
 
+            \Log::info('Job dispatched for file: ' . $originalName);
+
             if ($request->ajax()) {
                 return response()->json(['success' => true, 'message' => "بدأت عملية معالجة الملف في الخلفية."]);
             }
@@ -71,9 +86,15 @@ class GovernanceDashboardController extends Controller
             return redirect()->route('client.governance.dashboard')
                 ->with('success', "بدأت عملية معالجة الملف في الخلفية. ستظهر المهام هنا تدريجياً خلال دقائق قليلة.");
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::warning('Validation failed for upload', $e->errors());
+            return response()->json(['success' => false, 'message' => 'خطأ في التحقق: ' . implode(', ', collect($e->errors())->flatten()->toArray())], 422);
         } catch (\Exception $e) {
-            Log::error("Upload Dispatch Error: " . $e->getMessage());
-            return back()->with('error', 'خطأ في بدء عملية الرفع: ' . $e->getMessage());
+            \Log::error("Upload Error: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'خطأ في السيرفر: ' . $e->getMessage()], 500);
+            }
+            return back()->with('error', 'خطأ في السيرفر: ' . $e->getMessage());
         }
     }
 
