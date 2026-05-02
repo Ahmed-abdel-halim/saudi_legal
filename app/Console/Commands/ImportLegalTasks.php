@@ -25,10 +25,8 @@ class ImportLegalTasks extends Command
         $handle = fopen($filePath, 'r');
         $count = 0;
         $batch = [];
-        $batchSize = 500; // زيادة حجم الـ Batch لسرعة أكبر
+        $batchSize = 50;
         
-        $linkingService = new \App\Services\LegalLinkingService();
-
         while (($line = fgets($handle)) !== false) {
             $data = json_decode($line, true);
             if (!$data) continue;
@@ -43,20 +41,6 @@ class ImportLegalTasks extends Command
                 if ($msg['role'] === 'assistant') $answer = $msg['content'];
             }
 
-            // الربط اليدوي قبل الإدخال المجمع لضمان سرعة الأداء مع الحفاظ على الربط
-            $articleNum = 'غير محدد';
-            $sysName = 'نظام سعودي';
-            $articleText = 'يرجى مراجعة نص المادة يدوياً.';
-            
-            try {
-                $match = $linkingService->findBestMatch($question . ' ' . $answer);
-                if ($match['confidence'] > 50) {
-                    $articleNum = $match['article_number'];
-                    $sysName = $match['system_name'];
-                    $articleText = $match['article_text'];
-                }
-            } catch (\Exception $e) {}
-
             $batch[] = [
                 'task_type' => 'consultation',
                 'status' => 'completed',
@@ -64,9 +48,6 @@ class ImportLegalTasks extends Command
                 'correct_answer' => $answer,
                 'case_reference' => isset($metadata['case_number']) ? "حكم رقم {$metadata['case_number']} لعام {$metadata['year']}هـ" : null,
                 'case_text' => $answer,
-                'law_article_number' => $articleNum,
-                'law_system_name' => $sysName,
-                'law_article_text' => $articleText,
                 'domain' => 'law',
                 'source_file' => basename($filePath),
                 'created_at' => now(),
