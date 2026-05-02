@@ -89,6 +89,7 @@
                     <th class="px-5 py-4 font-bold tracking-wider">{!! __('admin.user_details_col') !!}</th>
                     <th class="px-5 py-4 font-bold tracking-wider">{!! __('admin.domain_col') ?? 'Domain' !!}</th>
                     <th class="px-5 py-4 font-bold tracking-wider">{{ __('admin.trust_score_col') ?? 'Trust Score' }}</th>
+                    <th class="px-5 py-4 font-bold tracking-wider">{{ __('admin.performance') ?? 'الإنتاجية' }}</th>
                     <th class="px-5 py-4 font-bold tracking-wider">{{ __('admin.hire_col') ?? 'For Hire' }}</th>
                     <th class="px-5 py-4 font-bold tracking-wider">{!! __('admin.status_col') !!}</th>
                     <th class="px-5 py-4 font-bold tracking-wider text-right rtl:text-left">{!! __('admin.actions_col') !!}</th>
@@ -139,6 +140,20 @@
                         </div>
                     </td>
 
+                    {{-- Performance (Tasks Audited) --}}
+                    <td class="px-5 py-4">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-blue-50/50 border border-blue-100 rounded-md px-1.5 py-0.5 w-fit" title="مهام قانونية تم تدقيقها">
+                                <i class="fa-solid fa-scale-balanced text-blue-500"></i>
+                                <span>{{ number_format($expert->legal_tasks_count) }}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-amber-50/50 border border-amber-100 rounded-md px-1.5 py-0.5 w-fit" title="مهام ذكاء اصطناعي">
+                                <i class="fa-solid fa-robot text-amber-500"></i>
+                                <span>{{ number_format($expert->ai_responses_count) }}</span>
+                            </div>
+                        </div>
+                    </td>
+
                     {{-- For Hire --}}
                     <td class="px-5 py-4">
                         @if($expert->is_active_for_hire)
@@ -170,6 +185,13 @@
                     {{-- Actions --}}
                     <td class="px-5 py-4 text-right rtl:text-left">
                         <div class="flex items-center justify-end gap-2">
+                            {{-- View Tasks History --}}
+                            <a href="{{ route('admin.experts.tasks', $expert->id) }}" 
+                                class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition shadow-sm"
+                                title="عرض تفاصيل الإنجاز">
+                                <i class="fa-solid fa-list-check text-xs"></i>
+                            </a>
+
                             {{-- Impersonate Expert --}}
                             @if(auth()->user()->role === 'superadmin' && $expert->is_active)
                                 <form action="{{ route('admin.impersonate.start', $expert->id) }}" method="POST" class="inline-block">

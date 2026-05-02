@@ -201,9 +201,9 @@ class LegalTaskController extends Controller
                 ->update(['status' => 'pending', 'expert_id' => null]);
             
             // إعادة المهمة السابقة لتكون قيد التنفيذ
+            // ملاحظة: لا نمسح completed_at هنا لنحافظ على الرصيد ثابتاً أثناء المراجعة
             $lastTask->update([
-                'status' => 'in_progress',
-                'completed_at' => null
+                'status' => 'in_progress'
             ]);
         }
         
@@ -217,7 +217,13 @@ class LegalTaskController extends Controller
     {
         return [
             'completed_today' => LegalTask::where('expert_id', $expert->id)
-                ->where('status', 'completed')
+                ->where(function($q) {
+                    $q->where('status', 'completed')
+                      ->orWhere(function($sq) {
+                          $sq->where('status', 'in_progress')
+                            ->whereNotNull('completed_at');
+                      });
+                })
                 ->whereDate('completed_at', Carbon::today())
                 ->count(),
             'pending_tasks' => LegalTask::where('status', 'pending')

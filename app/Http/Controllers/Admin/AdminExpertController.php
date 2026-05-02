@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\LegalTask;
+use App\Models\AiResponse;
 use Illuminate\Http\Request;
 
 class AdminExpertController extends Controller
@@ -34,7 +36,12 @@ class AdminExpertController extends Controller
             $query->where('is_active_for_hire', $request->hire === 'yes' ? 1 : 0);
         }
 
-        $experts = $query->orderBy('rating_average', 'desc')->paginate(20);
+        $experts = $query->withCount([
+            'legalTasks' => function ($q) {
+                $q->where('status', 'completed');
+            },
+            'aiResponses'
+        ])->orderBy('rating_average', 'desc')->paginate(20);
 
         $totalExperts     = User::where('role', 'expert')->count();
         $activeExperts    = User::where('role', 'expert')->where('is_active', 1)->count();
@@ -45,6 +52,26 @@ class AdminExpertController extends Controller
         return view('admin.experts.index', compact(
             'experts', 'totalExperts', 'activeExperts', 'forHireExperts', 'domains'
         ));
+    }
+
+    /**
+     * عرض تفاصيل تدقيق الخبير
+     */
+    public function tasks($id)
+    {
+        $expert = User::where('role', 'expert')->findOrFail($id);
+
+        $legalTasks = LegalTask::where('expert_id', $id)
+            ->where('status', 'completed')
+            ->orderBy('completed_at', 'desc')
+            ->paginate(15, ['*'], 'legal_page');
+
+        $aiResponses = AiResponse::where('expert_id', $id)
+            ->with('task')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15, ['*'], 'ai_page');
+
+        return view('admin.experts.tasks', compact('expert', 'legalTasks', 'aiResponses'));
     }
 
     public function toggleStatus($id)

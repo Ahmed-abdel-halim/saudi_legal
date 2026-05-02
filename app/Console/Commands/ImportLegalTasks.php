@@ -41,6 +41,11 @@ class ImportLegalTasks extends Command
                 if ($msg['role'] === 'assistant') $answer = $msg['content'];
             }
 
+            // [NEW] Prevent Duplicate Imports
+            if (LegalTask::where('question', $question)->exists()) {
+                continue;
+            }
+
             $batch[] = [
                 'task_type' => 'consultation',
                 'status' => 'completed',

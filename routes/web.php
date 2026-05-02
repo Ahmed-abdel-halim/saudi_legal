@@ -282,6 +282,7 @@ Route::middleware(['superadmin'])->prefix('admin')->name('admin.')->group(functi
 
     // Experts Management
     Route::get('/experts', [\App\Http\Controllers\Admin\AdminExpertController::class, 'index'])->name('experts.index');
+    Route::get('/experts/{id}/tasks', [\App\Http\Controllers\Admin\AdminExpertController::class, 'tasks'])->name('experts.tasks');
     Route::patch('/experts/{id}/toggle-status', [\App\Http\Controllers\Admin\AdminExpertController::class, 'toggleStatus'])->name('experts.toggle-status');
     Route::delete('/experts/{id}', [\App\Http\Controllers\Admin\AdminExpertController::class, 'destroy'])->name('experts.destroy');
 

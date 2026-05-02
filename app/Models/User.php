@@ -151,4 +151,20 @@ class User extends Authenticatable
     {
         $this->notify(new \App\Notifications\CustomResetPasswordNotification($token));
     }
+
+    /**
+     * Get the legal tasks audited by the user.
+     */
+    public function legalTasks()
+    {
+        return $this->hasMany(LegalTask::class, 'expert_id');
+    }
+
+    /**
+     * Get the AI responses submitted by the user.
+     */
+    public function aiResponses()
+    {
+        return $this->hasMany(AiResponse::class, 'expert_id');
+    }
 }
