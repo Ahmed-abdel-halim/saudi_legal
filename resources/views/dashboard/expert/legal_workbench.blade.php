@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         body {
             font-family: 'Tajawal', sans-serif;
@@ -51,14 +52,84 @@
     </style>
 </head>
 
-<body class="bg-gray-50 overflow-y-auto custom-scrollbar flex flex-col min-h-screen">
+<body class="bg-gray-50 overflow-y-auto custom-scrollbar flex flex-col min-h-screen" x-data="{ mobileMenu: false }">
+
+    @php 
+        $price_per_task = 0.25; 
+        $earnings_today = $stats['completed_today'] * $price_per_task; 
+    @endphp
 
     <!-- Stats Header -->
-    <header class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <a href="{{ route('dashboard.expert') }}" class="text-gray-400 hover:text-emerald-600 transition text-xl p-2" title="خروج">
+    <header class="flex items-center justify-between px-4 md:px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <!-- Desktop Logout -->
+        <a href="{{ route('dashboard.expert') }}" class="hidden md:flex text-gray-400 hover:text-emerald-600 transition text-xl p-2" title="خروج">
             <i class="fa-solid fa-arrow-right-from-bracket"></i>
         </a>
+
+        <!-- Mobile Hamburger Menu (3 Bars) -->
+        <button @click="mobileMenu = true" class="flex md:hidden text-gray-600 hover:text-emerald-600 transition text-2xl p-2">
+            <i class="fa-solid fa-bars"></i>
+        </button>
         
+        <!-- Mobile Menu Overlay -->
+        <div x-show="mobileMenu" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-x-full"
+             x-transition:enter-end="opacity-100 translate-x-0"
+             x-transition:leave="transition ease-in duration-300"
+             x-transition:leave-start="opacity-100 translate-x-0"
+             x-transition:leave-end="opacity-0 translate-x-full"
+             class="fixed inset-0 z-[100] md:hidden">
+            
+            <!-- Backdrop -->
+            <div @click="mobileMenu = false" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+            
+            <!-- Menu Content -->
+            <div class="absolute right-0 top-0 bottom-0 w-80 bg-white shadow-2xl flex flex-col">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-emerald-700 text-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold border border-white/30">
+                            {{ mb_substr(Auth::user()->name ?? 'U', 0, 1) }}
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold">{{ Auth::user()->name }}</span>
+                            <span class="text-[10px] opacity-80 text-white font-bold uppercase tracking-wider">خبير معتمد</span>
+                        </div>
+                    </div>
+                    <button @click="mobileMenu = false" class="text-2xl opacity-70 hover:opacity-100 transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2 mb-4">قائمة التنقل</p>
+                    
+                    <a href="{{ route('dashboard.expert.legal_history') }}" class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl text-gray-700 font-bold hover:bg-emerald-50 hover:border-emerald-200 transition group">
+                        <i class="fa-solid fa-clock-rotate-left text-emerald-600 group-hover:scale-110 transition"></i>
+                        <span>سجل المراجعات القانونية</span>
+                    </a>
+
+                    <div class="grid grid-cols-2 gap-2 pt-4">
+                        <div class="p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+                            <span class="block text-[10px] font-black text-blue-400 uppercase mb-1">إنجاز اليوم</span>
+                            <span class="text-xl font-black text-blue-700">{{ $stats['completed_today'] }}</span>
+                        </div>
+                        <div class="p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+                            <span class="block text-[10px] font-black text-amber-400 uppercase mb-1">الرصيد اليومي</span>
+                            <span class="text-xl font-black text-amber-700">{{ number_format($earnings_today, 2) }} <small class="text-[10px]">ر.س</small></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 border-t border-gray-100 bg-gray-50">
+                    <a href="{{ route('dashboard.expert') }}" class="flex items-center justify-center gap-3 w-full p-4 bg-rose-50 text-rose-600 border border-rose-100 rounded-2xl font-black hover:bg-rose-600 hover:text-white transition shadow-sm">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        <span>تسجيل الخروج من المنصة</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <div class="flex items-center gap-3 md:gap-4">
             <!-- User Info -->
             <div class="flex items-center gap-3 pl-4 border-l border-gray-200">
@@ -75,13 +146,13 @@
                 </div>
             </div>
 
-            <!-- Completed Tasks -->
-            @php $total_tasks = \App\Models\LegalTask::where('expert_id', Auth::id())->where('status', 'completed')->count(); @endphp
-            <div class="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-[12px] font-bold text-gray-700">
-                <i class="fa-solid fa-circle-check text-emerald-500"></i>
+            <!-- Completed Tasks (Linked to History) -->
+            @php $total_tasks = \App\Models\LegalQaPair::where('reviewer_id', Auth::id())->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])->count(); @endphp
+            <a href="{{ route('dashboard.expert.legal_history') }}" class="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-[12px] font-bold text-gray-700 hover:bg-white hover:border-emerald-500 transition shadow-sm group">
+                <i class="fa-solid fa-circle-check text-emerald-500 group-hover:scale-110 transition"></i>
                 <span class="opacity-70">المنجز كلياً:</span>
                 <span>{{ $total_tasks }}</span>
-            </div>
+            </a>
 
             <!-- Today's Tasks -->
             <div class="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-[12px] font-bold text-gray-700">
@@ -104,10 +175,6 @@
             </div>
 
             <!-- Earnings -->
-            @php 
-                $price_per_task = 0.25; // Forced to 0.25 as requested
-                $earnings_today = $stats['completed_today'] * $price_per_task; 
-            @endphp
             <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl text-[12px] font-bold text-amber-700">
                 <span class="opacity-80">الرصيد:</span>
                 <span class="text-sm">{{ number_format($earnings_today, 2) }} ريال</span>
@@ -262,35 +329,35 @@
                     </div>
 
                     <!-- Action Buttons (3-Button System) -->
-                    <div id="action-buttons" class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                    <div id="action-buttons" class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 pt-4">
                         <button onclick="toggleCorrection(true, 'edit')"
-                            class="group flex flex-col items-center justify-center p-8 bg-rose-50 border border-rose-100 rounded-[2.5rem] hover:bg-rose-100 transition duration-300 shadow-sm">
+                            class="group flex flex-col items-center justify-center p-4 md:p-8 bg-rose-50 border border-rose-100 rounded-3xl md:rounded-[2.5rem] hover:bg-rose-100 transition duration-300 shadow-sm">
                             <div
-                                class="w-16 h-16 bg-rose-500 text-white rounded-full flex items-center justify-center text-2xl mb-4 shadow-lg shadow-rose-200 group-hover:-translate-y-1 transition transform">
+                                class="w-12 h-12 md:w-16 md:h-16 bg-rose-500 text-white rounded-full flex items-center justify-center text-xl md:text-2xl mb-2 md:mb-4 shadow-lg shadow-rose-200 group-hover:-translate-y-1 transition transform">
                                 <i class="fa-solid fa-pen-nib"></i>
                             </div>
-                            <span class="font-black text-rose-800 text-xl">تعديل</span>
-                            <span class="text-sm text-rose-600 font-bold mt-2">خاطئة تحتاج تعديل</span>
+                            <span class="font-black text-rose-800 text-lg md:text-xl">تعديل</span>
+                            <span class="text-[10px] md:text-sm text-rose-600 font-bold mt-1 md:mt-2">خاطئة تحتاج تعديل</span>
                         </button>
 
                         <button onclick="toggleCorrection(true, 'correct')"
-                            class="group flex flex-col items-center justify-center p-8 bg-amber-50 border border-amber-100 rounded-[2.5rem] hover:bg-amber-100 transition duration-300 shadow-sm">
+                            class="group flex flex-col items-center justify-center p-4 md:p-8 bg-amber-50 border border-amber-100 rounded-3xl md:rounded-[2.5rem] hover:bg-amber-100 transition duration-300 shadow-sm">
                             <div
-                                class="w-16 h-16 bg-amber-500 text-white rounded-full flex items-center justify-center text-2xl mb-4 shadow-lg shadow-amber-200 group-hover:-translate-y-1 transition transform">
+                                class="w-12 h-12 md:w-16 md:h-16 bg-amber-500 text-white rounded-full flex items-center justify-center text-xl md:text-2xl mb-2 md:mb-4 shadow-lg shadow-amber-200 group-hover:-translate-y-1 transition transform">
                                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                             </div>
-                            <span class="font-black text-amber-800 text-xl">تصحيح</span>
-                            <span class="text-sm text-amber-600 font-bold mt-2">غير دقيقة تحتاج تصحيح</span>
+                            <span class="font-black text-amber-800 text-lg md:text-xl">تصحيح</span>
+                            <span class="text-[10px] md:text-sm text-amber-600 font-bold mt-1 md:mt-2">غير دقيقة تحتاج تصحيح</span>
                         </button>
 
                         <button onclick="submitTask(true)"
-                            class="group flex flex-col items-center justify-center p-8 bg-emerald-50 border border-emerald-100 rounded-[2.5rem] hover:bg-emerald-100 transition duration-300 shadow-sm">
+                            class="group flex flex-col items-center justify-center p-4 md:p-8 bg-emerald-50 border border-emerald-100 rounded-3xl md:rounded-[2.5rem] hover:bg-emerald-100 transition duration-300 shadow-sm">
                             <div
-                                class="w-16 h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center text-2xl mb-4 shadow-lg shadow-emerald-200 group-hover:-translate-y-1 transition transform">
+                                class="w-12 h-12 md:w-16 md:h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xl md:text-2xl mb-2 md:mb-4 shadow-lg shadow-emerald-200 group-hover:-translate-y-1 transition transform">
                                 <i class="fa-solid fa-check-double"></i>
                             </div>
-                            <span class="font-black text-emerald-800 text-xl">صحيحة</span>
-                            <span class="text-sm text-emerald-600 font-bold mt-2">اعتماد ومتابعة</span>
+                            <span class="font-black text-emerald-800 text-lg md:text-xl">صحيحة</span>
+                            <span class="text-[10px] md:text-sm text-emerald-600 font-bold mt-1 md:mt-2">اعتماد ومتابعة</span>
                         </button>
                     </div>
 

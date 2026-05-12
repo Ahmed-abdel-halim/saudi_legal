@@ -116,6 +116,7 @@ Route::middleware(['auth'])->group(function () {
 
             // SAUDI LEGAL Routes
             Route::get('/legal-workbench', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'index'])->name('.legal_workbench');
+            Route::get('/legal-history', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'history'])->name('.legal_history');
             Route::post('/legal-workbench/submit', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'submit'])->name('.legal_workbench.submit');
             Route::post('/legal-workbench/skip', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'skip'])->name('.legal_workbench.skip');
             Route::post('/legal-workbench/previous', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'previous'])->name('.legal_workbench.previous');
@@ -271,6 +272,8 @@ Route::middleware(['superadmin'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('dashboard');
 
     // User Management
+    Route::get('/legal-records', [\App\Http\Controllers\Admin\LegalManagementController::class, 'index'])->name('legal.index');
+    Route::get('/legal-records/{id}', [\App\Http\Controllers\Admin\LegalManagementController::class, 'show'])->name('legal.show');
     Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('users.index');
     Route::patch('/users/{id}/toggle-status', [\App\Http\Controllers\Admin\AdminUserController::class, 'toggleStatus'])->name('users.toggle-status');
     Route::delete('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'destroy'])->name('users.destroy');

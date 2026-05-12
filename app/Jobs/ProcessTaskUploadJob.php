@@ -14,6 +14,9 @@ use App\Models\AiTask;
 use App\Models\LegalTask;
 use App\Models\ClientQuestion;
 use App\Models\LegalArticle;
+use App\Models\LegalRecord;
+use App\Models\LegalQaPair;
+use App\Models\LegalCitation;
 use App\Services\DomainDetectionService;
 use App\Services\LegalLinkingService;
 use App\Services\LegalReferenceService;
@@ -154,7 +157,15 @@ class ProcessTaskUploadJob implements ShouldQueue
                     } else {
                         $assoc = $hasKnownHeaders ? array_combine(array_slice($headers, 0, count($row)), array_slice($row, 0, count($headers))) : [];
                     }
+
+                    // --- NEW: Check for Golden 5k Structured Format (JSONL with qa_pairs) ---
+                    if (isset($assoc['qa_pairs']) && is_array($assoc['qa_pairs'])) {
+                        $this->processStructuredLegalRecord($assoc, $referenceService, $linkingService);
+                        $count++;
+                        continue;
+                    }
                     
+                    // --- Standard Processing (Legacy/Simple CSV) ---
                     // Pick content
                     $content = null;
                     if ($isAssoc) {
@@ -259,5 +270,86 @@ class ProcessTaskUploadJob implements ShouldQueue
         } catch (\Exception $e) {
             Log::error("Job failure: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Process a structured legal record from Golden 5k JSONL
+     */
+    private function processStructuredLegalRecord(array $data, LegalReferenceService $referenceService, LegalLinkingService $linkingService): void
+    {
+        DB::transaction(function () use ($data, $referenceService, $linkingService) {
+            $metadata = $data['metadata'] ?? [];
+            $fullText = $data['full_case_text'] ?? '';
+            $caseReference = $metadata['case_number'] ?? ($data['id'] ?? 'N/A');
+            
+            // 1. Create Legal Record
+            $record = LegalRecord::create([
+                'record_id'        => uniqid('rec_'),
+                'source_type'      => 'court_judgment',
+                'source_reference' => $caseReference,
+                'full_text'        => $fullText,
+                'case_summary'     => $data['case_summary'] ?? null,
+                'tags'             => $data['tags'] ?? [],
+                'sub_domain'       => $data['domain_data'] ?? null,
+                'domain'           => 'law',
+                'upload_date'      => now(),
+            ]);
+
+            // 2. Process QA Pairs
+            foreach (($data['qa_pairs'] ?? []) as $qa) {
+                // Create Structured QA Pair
+                $qaPair = LegalQaPair::create([
+                    'legal_record_id'  => $record->id,
+                    'question'         => $qa['question'],
+                    'generated_answer' => $qa['answer'],
+                    'review_status'    => 'Pending',
+                    'qa_id'            => uniqid('qa_'),
+                ]);
+
+                // Create Legacy AI Task and Legal Task for workbench compatibility
+                $aiTask = \App\Models\AiTask::create([
+                    'task_type'         => 'legal_verification',
+                    'original_data'     => $qa['question'],
+                    'ai_suggestion'     => $qa['answer'],
+                    'client_id'         => $this->userId,
+                    'status'            => 'pending',
+                    'consensus_status'  => 'pending',
+                    'required_responses'=> 3,
+                    'task_domain'       => 'law',
+                    'allow_all_roles'   => true
+                ]);
+
+                // Create LegalTask (Linking table)
+                $legalTask = \App\Models\LegalTask::create([
+                    'task_id'            => $aiTask->id,
+                    'source_type'        => 'legal_qa_pair',
+                    'source_id'          => $qaPair->id,
+                    'task_type'          => 'verification',
+                    'status'             => 'pending',
+                    'question'           => $qa['question'],
+                    'proposed_answer'    => $qa['answer'],
+                    'case_text'          => $fullText,
+                    'case_reference'     => $caseReference,
+                    'domain'             => 'law',
+                    'source_file'        => $this->originalFileName,
+                    // These will be filled by the LegalLinkingService via boot or manually below
+                ]);
+
+                // Associate Citation for this QA pair based on its 'legal_articles'
+                $mentionedInQa = $qa['legal_articles'] ?? [];
+                foreach ($mentionedInQa as $articleName) {
+                    // Try to find the article in our database
+                    $match = $linkingService->findBestMatch($articleName);
+                    
+                    LegalCitation::create([
+                        'legal_record_id'   => $record->id,
+                        'legal_article_id'  => $match['confidence'] > 50 ? $match['article_id'] : null,
+                        'system_name'       => $match['system_name'] ?? 'غير محدد',
+                        'article_number'    => $match['article_number'] ?? null,
+                        'citation_source'   => 'law',
+                    ]);
+                }
+            }
+        });
     }
 }

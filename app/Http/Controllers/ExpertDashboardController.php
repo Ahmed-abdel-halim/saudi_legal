@@ -33,13 +33,12 @@ class ExpertDashboardController extends Controller
             $tasks_today = 0;
         }
 
-        // Include Legal Tasks in Stats
+        // Include Legal Tasks (New Schema) in Stats
         try {
-            $legalStats = DB::table('legal_tasks')
-                ->select(DB::raw('count(*) as total_tasks'))
-                ->selectRaw("SUM(CASE WHEN DATE(completed_at) = CURDATE() THEN 1 ELSE 0 END) as tasks_today")
-                ->where('expert_id', $user->id)
-                ->where('status', 'completed')
+            $legalStats = \App\Models\LegalQaPair::where('reviewer_id', $user->id)
+                ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
+                ->selectRaw('count(*) as total_tasks')
+                ->selectRaw("SUM(CASE WHEN DATE(reviewed_at) = CURDATE() THEN 1 ELSE 0 END) as tasks_today")
                 ->first();
 
             $total_tasks += $legalStats->total_tasks ?? 0;
@@ -53,14 +52,19 @@ class ExpertDashboardController extends Controller
 
         // Calculate total tasks per type (approximate for display)
         $ai_count = DB::table('ai_responses_v2')->where('expert_id', $user->id)->count();
-        $legal_count = DB::table('legal_tasks')->where('expert_id', $user->id)->where('status', 'completed')->count();
+        $legal_count = \App\Models\LegalQaPair::where('reviewer_id', $user->id)
+            ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
+            ->count();
         $linguistic_count = DB::table('linguistic_tasks')->where('expert_id', $user->id)->where('status', 'completed')->count();
 
         $total_balance = ($ai_count * $price_ai) + ($legal_count * $price_legal) + ($linguistic_count * $price_linguistic);
         
         // Today's balance
         $ai_today = DB::table('ai_responses_v2')->where('expert_id', $user->id)->whereDate('created_at', now())->count();
-        $legal_today = DB::table('legal_tasks')->where('expert_id', $user->id)->where('status', 'completed')->whereDate('completed_at', now())->count();
+        $legal_today = \App\Models\LegalQaPair::where('reviewer_id', $user->id)
+            ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
+            ->whereDate('reviewed_at', now())
+            ->count();
         $linguistic_today = DB::table('linguistic_tasks')->where('expert_id', $user->id)->where('status', 'completed')->whereDate('completed_at', now())->count();
 
         $today_balance = ($ai_today * $price_ai) + ($legal_today * $price_legal) + ($linguistic_today * $price_linguistic);
@@ -107,9 +111,8 @@ class ExpertDashboardController extends Controller
                 ->count();
         }
 
-        // 5.b Legal Pending Count (Specific for Saudi Legal)
-        $legal_pending_count = \App\Models\LegalTask::where('status', 'pending')
-            ->where('domain', 'law')
+        // 5.b Legal Pending Count (New Structured QA Pairs)
+        $legal_pending_count = \App\Models\LegalQaPair::where('review_status', 'Pending')
             ->count();
 
         // 6. History
@@ -122,11 +125,10 @@ class ExpertDashboardController extends Controller
                 ->limit(5)
                 ->get();
                 
-            $historyLegal = DB::table('legal_tasks')
-                ->where('expert_id', $user->id)
-                ->where('status', 'completed')
-                ->select('id as task_id', 'completed_at as created_at')
-                ->orderBy('completed_at', 'desc')
+            $historyLegal = \App\Models\LegalQaPair::where('reviewer_id', $user->id)
+                ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
+                ->select('id as task_id', 'reviewed_at as created_at')
+                ->orderBy('reviewed_at', 'desc')
                 ->limit(5)
                 ->get();
                 

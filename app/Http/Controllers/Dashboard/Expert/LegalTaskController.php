@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Dashboard\Expert;
 
 use App\Http\Controllers\Controller;
-use App\Models\LegalTask;
+use App\Models\LegalQaPair;
+use App\Models\LegalRecord;
+use App\Models\LegalCitation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -11,223 +13,216 @@ use Carbon\Carbon;
 class LegalTaskController extends Controller
 {
     /**
-     * عرض المهمة القانونية الحالية للخبير
+     * Display the current legal QA pair for review.
+     * Transitioned from LegalTask to LegalQaPair (Structured Data).
      */
     public function index(Request $request)
     {
         $expert = Auth::user();
-        
-        // البحث عن مهمة قيد التنفيذ لهذا الخبير
-        $currentTask = LegalTask::where('expert_id', $expert->id)
-            ->where('status', 'in_progress')
+
+        // 1. Look for a QA pair currently being processed by this expert
+        $currentQA = LegalQaPair::where('reviewer_id', $expert->id)
+            ->where('review_status', 'Processing')
+            ->with(['record.citations.article'])
             ->first();
 
-        // إذا لم توجد مهمة، نقوم بتعيين واحدة جديدة من المهام المتاحة (بناءً على مجال المحاماة)
-        if (!$currentTask) {
-            $currentTask = LegalTask::where('status', 'pending')
-                ->whereNull('expert_id')
-                ->where('domain', 'law')
+        // 2. If no active task, fetch a new Pending one
+        if (!$currentQA) {
+            $currentQA = LegalQaPair::where('review_status', 'Pending')
+                ->whereNull('reviewer_id')
+                ->with(['record.citations.article'])
                 ->first();
-            
-            if ($currentTask) {
-                $currentTask->update([
-                    'expert_id' => $expert->id,
-                    'status' => 'in_progress',
-                    'assigned_at' => now(),
+
+            if ($currentQA) {
+                $currentQA->update([
+                    'reviewer_id' => $expert->id,
+                    'review_status' => 'Processing',
                 ]);
             }
         }
 
-        // استخدام محرك الربط الذكي الجديد لاستخراج المواد القانونية 
+        // 3. Data mapping for the view (keeping the variable names compatible if possible)
+        $task = null;
         $mentionedArticles = collect();
-        if ($currentTask) {
-            $referenceService = new \App\Services\LegalReferenceService();
-            
-            // 1. البحث في الإجابة المقترحة أولاً (لأنها الأهم بالنسبة للخبير)
-            $mentionedArticles = $referenceService->getMentionedArticles(
-                $currentTask->proposed_answer ?? '',
-                $currentTask->law_system_name,
-                $currentTask->law_article_number
-            );
 
-            // 2. البحث في نص الحكم
-            $caseArticles = $referenceService->getMentionedArticles(
-                $currentTask->case_text ?? '',
-                $currentTask->law_system_name,
-                $currentTask->law_article_number
-            );
-            $mentionedArticles = $mentionedArticles->merge($caseArticles);
-            
-            // 3. البحث في السؤال
-            $questionArticles = $referenceService->getMentionedArticles(
-                $currentTask->question ?? '',
-                $currentTask->law_system_name,
-                $currentTask->law_article_number
-            );
-            $mentionedArticles = $mentionedArticles->merge($questionArticles);
+        if ($currentQA) {
+            // Map LegalQaPair + LegalRecord to a virtual "Task" object for the Blade view
+            $task = (object) [
+                'id'              => $currentQA->id,
+                'qa_id'           => $currentQA->qa_id,
+                'question'        => $currentQA->question,
+                'proposed_answer' => $currentQA->generated_answer,
+                'case_text'       => $currentQA->record->full_text ?? '',
+                'case_reference'  => $currentQA->record->source_reference ?? 'مرجع قضائي',
+                'tags'            => $currentQA->record->tags ?? [],
+                'sub_domain'      => $currentQA->record->sub_domain ?? 'قانون عام',
+                // Keep these for compatibility even if empty, as we now use citations table
+                'law_system_name'   => '', 
+                'law_article_number'=> '',
+            ];
 
-            // إزالة التكرارات
-            $mentionedArticles = $mentionedArticles->unique('id')->values();
+            // Get citations from the new relational table
+            $mentionedArticles = $currentQA->record->citations
+                ->filter(fn($c) => $c->legal_article_id !== null)
+                ->map(fn($c) => $c->article)
+                ->unique('id');
         }
+
+        $stats = $this->getExpertStats($expert);
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'task' => $currentTask,
+                'task' => $task,
                 'mentioned_articles' => $mentionedArticles,
-                'stats' => $this->getExpertStats($expert)
+                'stats' => $stats
             ]);
         }
 
         return view('dashboard.expert.legal_workbench', [
-            'task' => $currentTask,
+            'task' => $task,
             'mentioned_articles' => $mentionedArticles,
-            'stats' => $this->getExpertStats($expert)
+            'stats' => $stats
         ]);
     }
 
     /**
-     * تقديم نتائج تنقيح البيانات (RLHF)
+     * Display all legal records reviewed by this expert.
+     */
+    public function history(Request $request)
+    {
+        $expert = Auth::user();
+
+        $reviews = LegalQaPair::where('reviewer_id', $expert->id)
+            ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
+            ->with(['record.citations.article'])
+            ->orderBy('reviewed_at', 'desc')
+            ->paginate(15);
+
+        return view('dashboard.expert.legal_history', compact('reviews'));
+    }
+
+    /**
+     * Submit human review results (Approved / Modified / Rejected)
      */
     public function submit(Request $request)
     {
         $request->validate([
-            'task_id' => 'required|exists:legal_tasks,id',
-            'is_correct' => 'required|boolean',
-            'correct_answer' => 'required_if:is_correct,false|nullable|string',
-            'expert_comment' => 'nullable|string|max:1000',
-            'tags' => 'nullable|array',
-            'correct_law_system' => 'nullable|string|max:255',
-            'correct_law_article' => 'nullable|string|max:255'
+            'task_id'         => 'required|exists:legal_qa_pairs,id',
+            'is_correct'      => 'required|boolean',
+            'correct_answer'  => 'required_if:is_correct,false|nullable|string',
+            'expert_comment'  => 'nullable|string|max:1000',
+            'tags'            => 'nullable|array',
         ]);
 
-        $task = LegalTask::where('id', $request->task_id)
-            ->where('expert_id', Auth::id())
+        $qa = LegalQaPair::where('id', $request->task_id)
+            ->where('reviewer_id', Auth::id())
             ->firstOrFail();
 
-        $updateData = [
-            'is_correct' => $request->is_correct,
-            'correct_answer' => $request->is_correct ? $task->proposed_answer : $request->correct_answer,
-            'status' => 'completed',
-            'completed_at' => now(),
-        ];
+        $status = $request->is_correct ? 'Approved' : 'Modified';
 
-        // التعامل مع الوسوم (Tags)
-        $tags = $request->tags ?? [];
-        
-        // التحقق من وجود العمود في قاعدة البيانات
-        if (\Illuminate\Support\Facades\Schema::hasColumn('legal_tasks', 'tags')) {
-            $updateData['tags'] = $tags;
-            $updateData['expert_comment'] = $request->expert_comment;
-        } else {
-            // حل بديل: تخزين الأوسمة داخل الملاحظات إذا لم يوجد العمود بعد
-            $tagsString = !empty($tags) ? "[Tags: " . implode(', ', $tags) . "] " : "";
-            $updateData['expert_comment'] = $tagsString . $request->expert_comment;
+        $qa->update([
+            'review_status'    => $status,
+            'corrected_answer' => $request->is_correct ? null : $request->correct_answer,
+            'reviewed_at'      => now(),
+        ]);
+
+        // Optional: Update record tags if they changed
+        if ($request->has('tags')) {
+            $qa->record->update(['tags' => $request->tags]);
         }
-
-        // إضافة المرجع القانوني الجديد (إذا لم نقم بعمل migrate بعد نحفظها في الملاحظات)
-        if (\Illuminate\Support\Facades\Schema::hasColumn('legal_tasks', 'correct_law_system')) {
-            $updateData['correct_law_system'] = $request->correct_law_system;
-            $updateData['correct_law_article'] = $request->correct_law_article;
-        } else {
-            if ($request->correct_law_system || $request->correct_law_article) {
-                $refString = "[Reference: " . ($request->correct_law_system ?? 'غير محدد') . " - " . ($request->correct_law_article ?? '') . "] \n";
-                // Append to comment if not a proper column
-                $updateData['expert_comment'] = $refString . ($updateData['expert_comment'] ?? '');
-            }
-        }
-
-        $task->update($updateData);
 
         return response()->json([
-            'success' => true,
-            'message' => 'تم حفظ التنقيح بنجاح، شكراً لك.',
+            'success'  => true,
+            'message'  => 'تم حفظ المراجعة بنجاح، شكراً لك.',
             'next_url' => route('dashboard.expert.legal_workbench')
         ]);
     }
 
     /**
-     * تخطي المهمة الحالية
+     * Skip the current task (Return to Pending and find another)
      */
     public function skip(Request $request)
     {
-        $task = LegalTask::where('id', $request->task_id)
-            ->where('expert_id', Auth::id())
+        $expert = Auth::user();
+        $currentId = $request->task_id;
+
+        // 1. Return current task to Pending
+        $qa = LegalQaPair::where('id', $currentId)
+            ->where('reviewer_id', $expert->id)
             ->first();
 
-        if ($task) {
-            // تحويل الحالة إلى متخطاة حتى لا تعود لنفس الشخص
-            $task->update([
-                'status' => 'skipped',
+        if ($qa) {
+            $qa->update([
+                'review_status' => 'Pending',
+                'reviewer_id'   => null
             ]);
         }
-        
-        return response()->json(['success' => true]);
-    }
 
-    /**
-     * حذف المهمة الحالية (للمهام الفارغة أو غير الصالحة)
-     */
-    public function delete(Request $request)
-    {
-        $task = LegalTask::where('id', $request->task_id)
-            ->where('expert_id', Auth::id())
+        // 2. Try to find the NEXT task (ID > currentId) to avoid showing the same one
+        $nextQA = LegalQaPair::where('review_status', 'Pending')
+            ->whereNull('reviewer_id')
+            ->where('id', '>', $currentId)
             ->first();
 
-        if ($task) {
-            $task->delete();
+        // 3. If no "Next" one, just take any available Pending one that isn't the one we just skipped
+        if (!$nextQA) {
+            $nextQA = LegalQaPair::where('review_status', 'Pending')
+                ->whereNull('reviewer_id')
+                ->where('id', '!=', $currentId)
+                ->first();
         }
-        
+
+        // 4. Lock the new one for this expert
+        if ($nextQA) {
+            $nextQA->update([
+                'reviewer_id'   => $expert->id,
+                'review_status' => 'Processing',
+            ]);
+        }
+
         return response()->json(['success' => true]);
     }
 
     /**
-     * العودة للمهمة السابقة
+     * Previous task navigation (Simplified for QA Pairs)
      */
     public function previous(Request $request)
     {
         $expert = Auth::user();
-        
-        // البحث عن آخر مهمة تم إنجازها أو تخطيها
-        $lastTask = LegalTask::where('expert_id', $expert->id)
-            ->whereIn('status', ['completed', 'skipped'])
-            ->orderBy('updated_at', 'desc')
+
+        // Find last reviewed item
+        $lastQA = LegalQaPair::where('reviewer_id', $expert->id)
+            ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
+            ->orderBy('reviewed_at', 'desc')
             ->first();
 
-        if ($lastTask) {
-            // إرجاع المهمة الحالية (التي لم تنجز بعد) لقائمة الانتظار
-            LegalTask::where('expert_id', $expert->id)
-                ->where('status', 'in_progress')
-                ->update(['status' => 'pending', 'expert_id' => null]);
-            
-            // إعادة المهمة السابقة لتكون قيد التنفيذ
-            // ملاحظة: لا نمسح completed_at هنا لنحافظ على الرصيد ثابتاً أثناء المراجعة
-            $lastTask->update([
-                'status' => 'in_progress'
+        if ($lastQA) {
+            // Return current processing item to Pending
+            LegalQaPair::where('reviewer_id', $expert->id)
+                ->where('review_status', 'Processing')
+                ->update(['review_status' => 'Pending', 'reviewer_id' => null]);
+
+            // Re-open the last one
+            $lastQA->update([
+                'review_status' => 'Processing'
             ]);
         }
-        
+
         return response()->json(['success' => true]);
     }
 
     /**
-     * إحصائيات الخبير لليوم
+     * Expert statistics for today
      */
     private function getExpertStats($expert)
     {
         return [
-            'completed_today' => LegalTask::where('expert_id', $expert->id)
-                ->where(function($q) {
-                    $q->where('status', 'completed')
-                      ->orWhere(function($sq) {
-                          $sq->where('status', 'in_progress')
-                            ->whereNotNull('completed_at');
-                      });
-                })
-                ->whereDate('completed_at', Carbon::today())
+            'completed_today' => LegalQaPair::where('reviewer_id', $expert->id)
+                ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
+                ->whereDate('reviewed_at', Carbon::today())
                 ->count(),
-            'pending_tasks' => LegalTask::where('status', 'pending')
-                ->where('domain', 'law')
+            'pending_tasks' => LegalQaPair::where('review_status', 'Pending')
                 ->count(),
         ];
     }

@@ -82,6 +82,10 @@
                     <div class="mt-6 mb-2">
                         <p class="px-4 text-xs font-bold tracking-wider text-slate-500 uppercase">{!! __('admin.users_identity') !!}</p>
                     </div>
+                    <a class="flex items-center px-4 py-2.5 {{ request()->routeIs('admin.legal.*') ? 'text-white bg-sidebar-hover' : 'text-slate-400 hover:bg-sidebar-hover hover:text-white' }} rounded-lg transition group" href="{{ route('admin.legal.index') }}">
+                        <i class="fa-solid fa-file-contract w-6 text-center group-hover:text-white transition {{ request()->routeIs('admin.legal.*') ? 'text-white' : '' }}"></i>
+                        <span class="mx-3 font-medium">الإدارة القانونية</span>
+                    </a>
                     <a class="flex items-center px-4 py-2.5 {{ request()->routeIs('admin.users.*') ? 'text-white bg-sidebar-hover' : 'text-slate-400 hover:bg-sidebar-hover hover:text-white' }} rounded-lg transition group" href="{{ route('admin.users.index') }}">
                         <i class="fa-solid fa-users w-6 text-center group-hover:text-white transition {{ request()->routeIs('admin.users.*') ? 'text-white' : '' }}"></i>
                         <span class="mx-3 font-medium">{!! __('admin.all_users') !!}</span>

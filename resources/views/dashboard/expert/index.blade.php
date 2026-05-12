@@ -329,9 +329,15 @@
                             </div>
                             <h2 class="text-2xl font-black mb-2">تنقيح المساعد القانوني</h2>
                             <p class="text-blue-100/80 text-sm leading-relaxed mb-6">راجع إجابات الذكاء الاصطناعي بناءً على الأنظمة السعودية وقم بتنقيحها لرفع جودة المحرك.</p>
-                            <a href="{{ route('dashboard.expert.legal_workbench') }}" class="inline-flex items-center gap-3 bg-white text-blue-800 px-6 py-3 rounded-xl font-black text-sm shadow-xl transition transform hover:-translate-y-1">
-                                ابدأ التنقيح <i class="fa-solid fa-arrow-left rtl:rotate-180"></i>
-                            </a>
+                            <div class="flex flex-col gap-3">
+                                <a href="{{ route('dashboard.expert.legal_workbench') }}" class="w-full inline-flex items-center justify-center gap-3 bg-white text-blue-800 px-6 py-4 rounded-2xl font-black text-lg shadow-xl transition transform hover:-translate-y-1">
+                                    ابدأ التنقيح <i class="fa-solid fa-arrow-left rtl:rotate-180"></i>
+                                </a>
+                                <a href="{{ route('dashboard.expert.legal_history') }}" class="w-full inline-flex items-center justify-center gap-2 bg-blue-900/30 text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-900/50 transition border border-white/10">
+                                    <i class="fa-solid fa-clock-rotate-left"></i>
+                                    <span>عرض سجل مراجعاتي القانونية</span>
+                                </a>
+                            </div>
                         </div>
                     </div>
 
@@ -346,7 +352,7 @@
                                 <span class="bg-emerald-400 text-teal-900 text-[10px] font-black px-2 py-0.5 rounded uppercase">NEW RAG ENGINE</span>
                             </div>
                             <h2 class="text-2xl font-black mb-2">المساعد القانوني الذكي</h2>
-                            <p class="text-emerald-100/80 text-sm leading-relaxed mb-6">اسأل الذكاء الاصطناعي وسيجيبك من 15,954 مادة قانونية بفضل محرك البحث السيادي المتقدم.</p>
+                            <p class="text-emerald-100/80 text-sm leading-relaxed mb-6">اسأل الذكاء الاصطناعي وسيجيبك من {{ number_format(\App\Models\LegalArticle::count()) }} مادة قانونية بفضل محرك البحث السيادي المتقدم.</p>
                             <a href="{{ route('legal_assistant.public') }}" class="inline-flex items-center gap-3 bg-white text-emerald-800 px-6 py-3 rounded-xl font-black text-sm shadow-xl transition transform hover:-translate-y-1">
                                 اسأل المساعد <i class="fa-solid fa-comment-dots"></i>
                             </a>
