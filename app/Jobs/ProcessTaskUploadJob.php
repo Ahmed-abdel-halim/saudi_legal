@@ -14,6 +14,7 @@ use App\Models\AiTask;
 use App\Models\LegalTask;
 use App\Models\ClientQuestion;
 use App\Models\LegalArticle;
+use App\Models\User;
 use App\Models\LegalRecord;
 use App\Models\LegalQaPair;
 use App\Models\LegalCitation;
@@ -179,7 +180,10 @@ class ProcessTaskUploadJob implements ShouldQueue
                     if (!$content) continue;
 
                     $targetCompanyId = $assoc['company_id'] ?? ($this->companyId ?? 1);
-                    if (!DB::table('companies')->where('company_id', $targetCompanyId)->exists()) $targetCompanyId = 1;
+                    $firstCompanyId = DB::table('companies')->value('company_id');
+                    if (!DB::table('companies')->where('company_id', $targetCompanyId)->exists()) {
+                        $targetCompanyId = $firstCompanyId ?? 1;
+                    }
 
                     $detectedDomain = $domainDetector->detectDomain($content);
                     
@@ -196,7 +200,8 @@ class ProcessTaskUploadJob implements ShouldQueue
 
                     $aiTask = AiTask::create([
                         'task_type' => $assoc['task_type'] ?? 'text_analysis', 'original_data' => $content, 'ai_suggestion' => $suggestion,
-                        'client_id' => $this->userId, 'status' => 'pending', 'consensus_status' => 'pending', 'required_responses' => 3,
+                        'client_id' => $this->userId ?: (User::where('role', 'client')->first()?->id ?? User::first()?->id), 
+                        'status' => 'pending', 'consensus_status' => 'pending', 'required_responses' => 3,
                         'task_domain' => $detectedDomain, 'sentiment' => $sentiment, 'allow_all_roles' => true
                     ]);
 
@@ -307,11 +312,12 @@ class ProcessTaskUploadJob implements ShouldQueue
                 ]);
 
                 // Create Legacy AI Task and Legal Task for workbench compatibility
+                $fallbackUserId = User::where('role', 'client')->first()?->id ?? User::first()?->id;
                 $aiTask = \App\Models\AiTask::create([
                     'task_type'         => 'legal_verification',
                     'original_data'     => $qa['question'],
                     'ai_suggestion'     => $qa['answer'],
-                    'client_id'         => $this->userId,
+                    'client_id'         => $this->userId ?: $fallbackUserId,
                     'status'            => 'pending',
                     'consensus_status'  => 'pending',
                     'required_responses'=> 3,

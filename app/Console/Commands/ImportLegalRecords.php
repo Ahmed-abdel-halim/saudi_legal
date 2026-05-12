@@ -6,6 +6,10 @@ use App\Models\LegalArticle;
 use App\Models\LegalCitation;
 use App\Models\LegalQaPair;
 use App\Models\LegalRecord;
+use App\Models\User;
+use App\Models\AiTask;
+use App\Models\LegalTask;
+use App\Models\ClientQuestion;
 use App\Services\LegalReferenceService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -251,12 +255,17 @@ class ImportLegalRecords extends Command
                 'reviewed_at'      => null,
             ]);
 
+            // Find a valid client/admin user to own these tasks
+            $clientId = User::where('role', 'client')->first()?->id 
+                        ?? User::where('role', 'admin')->first()?->id 
+                        ?? User::first()?->id;
+
             // Create Legacy AI Task and Legal Task for workbench compatibility
             $aiTask = \App\Models\AiTask::create([
                 'task_type'         => 'legal_verification',
                 'original_data'     => $qa['question'] ?? '',
                 'ai_suggestion'     => $qa['answer']   ?? '',
-                'client_id'         => 1, // Default Admin Client
+                'client_id'         => $clientId,
                 'status'            => 'pending',
                 'consensus_status'  => 'pending',
                 'required_responses'=> 3,
