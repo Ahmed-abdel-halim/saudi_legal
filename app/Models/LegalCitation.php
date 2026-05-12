@@ -9,6 +9,7 @@ class LegalCitation extends Model
 {
     protected $fillable = [
         'legal_record_id',
+        'legal_qa_pair_id',
         'system_name',
         'article_number',
         'citation_source',   // 'law' | 'contract' | 'religious' | 'other'
@@ -29,6 +30,11 @@ class LegalCitation extends Model
     public function article(): BelongsTo
     {
         return $this->belongsTo(LegalArticle::class, 'legal_article_id');
+    }
+
+    public function qaPair(): BelongsTo
+    {
+        return $this->belongsTo(LegalQaPair::class, 'legal_qa_pair_id');
     }
 
     // ── Accessor: article_text (from legal_articles.content) ──

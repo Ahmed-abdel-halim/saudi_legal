@@ -52,6 +52,9 @@ class ImportLegalRecords extends Command
 
     public function handle(): int
     {
+        ini_set('memory_limit', '-1');
+        set_time_limit(0);
+
         $file  = $this->argument('file') ?? base_path('Radiif_Golden_5k_Abstract_QA_Fixed.jsonl');
         $limit = $this->option('limit') ? (int) $this->option('limit') : null;
 
@@ -70,6 +73,9 @@ class ImportLegalRecords extends Command
             $this->info('Tables cleared.');
         }
 
+        // Prevent memory leaks from query logging during massive inserts
+        \Illuminate\Support\Facades\DB::disableQueryLog();
+
         $totalLines = $limit ?? $this->countLines($file);
         $this->info("Starting import — {$totalLines} records expected.");
 
@@ -80,6 +86,11 @@ class ImportLegalRecords extends Command
         $bar->setMessage(0, 'errors');
         $bar->start();
 
+        // Find a valid client/admin user to own these tasks (cached once)
+        $clientId = User::where('role', 'client')->first()?->id 
+                    ?? User::where('role', 'admin')->first()?->id 
+                    ?? User::first()?->id;
+
         LazyCollection::make(function () use ($file) {
             $handle = fopen($file, 'r');
             while (($line = fgets($handle)) !== false) {
@@ -89,21 +100,26 @@ class ImportLegalRecords extends Command
         })
         ->filter(fn($line) => !empty($line))
         ->when($limit, fn($col) => $col->take($limit))
-        ->each(function (string $line) use ($bar) {
+        ->each(function (string $line) use ($bar, $clientId) {
             try {
                 $data = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
-                $this->importRecord($data);
+                $this->importRecord($data, $clientId);
+                unset($data);
             } catch (\Throwable $e) {
                 $this->errors++;
                 $bar->setMessage($this->errors, 'errors');
-                // Log first 200 chars of failed line for debugging
+                // Log first 100 chars of failed line for debugging (safe fallback)
                 $this->newLine();
-                $this->error("Error: " . $e->getMessage() . " | Line: " . mb_substr($line, 0, 100));
+                $safeLine = substr($line, 0, 100);
+                $this->error("Error: " . $e->getMessage() . " | Line: " . $safeLine);
             }
 
             $bar->setMessage($this->imported, 'imported');
             $bar->setMessage($this->skipped,  'skipped');
             $bar->advance();
+
+            // Force garbage collection to prevent OOM crashes on massive JSONL
+            gc_collect_cycles();
         });
 
         $bar->finish();
@@ -115,7 +131,7 @@ class ImportLegalRecords extends Command
 
     // ─────────────────────────────────────────────────────────────────────────
 
-    private function importRecord(array $data): void
+    private function importRecord(array $data, ?int $clientId): void
     {
         $meta      = $data['metadata'] ?? [];
         $caseNum   = trim($meta['case_number'] ?? '');
@@ -145,46 +161,35 @@ class ImportLegalRecords extends Command
             'case_summary'     => $data['case_summary'] ?? null,
         ]);
 
-        // ── Citations (collected & deduplicated from all qa_pairs) ────────────
-        $this->importCitations($record, $data['qa_pairs'] ?? []);
-
-        // ── Q&A Pairs ─────────────────────────────────────────────────────────
-        $this->importQaPairs($record, $data['qa_pairs'] ?? [], $caseNum, $fullText);
+        // ── Citations & Q&A Pairs ───────────────────────────────────────────
+        $this->importQaPairs($record, $data['qa_pairs'] ?? [], $caseNum, $fullText, $clientId);
 
         $this->imported++;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
 
-    private function importCitations(LegalRecord $record, array $qaPairs): void
+    private function importCitations(LegalRecord $record, LegalQaPair $qaPair, array $articles): void
     {
-        $seen = []; // deduplicate within one record
+        foreach ($articles as $rawCitation) {
+            if (empty($rawCitation)) continue;
 
-        foreach ($qaPairs as $qa) {
-            $articles = $qa['legal_articles'] ?? [];
-            foreach ($articles as $rawCitation) {
-                if (empty($rawCitation)) continue;
+            [$systemName, $articleNumber] = $this->parseCitationString($rawCitation);
+            $citationSource = $this->detectCitationSource($rawCitation);
 
-                [$systemName, $articleNumber] = $this->parseCitationString($rawCitation);
-                $citationSource = $this->detectCitationSource($rawCitation);
+            // Only search legal_articles for official law citations
+            $legalArticleId = ($citationSource === 'law')
+                ? $this->findLegalArticleId($articleNumber, $systemName)
+                : null;
 
-                $key = mb_strtolower("{$systemName}|{$articleNumber}");
-                if (isset($seen[$key])) continue;
-                $seen[$key] = true;
-
-                // Only search legal_articles for official law citations
-                $legalArticleId = ($citationSource === 'law')
-                    ? $this->findLegalArticleId($articleNumber, $systemName)
-                    : null;
-
-                LegalCitation::create([
-                    'legal_record_id'  => $record->id,
-                    'system_name'      => $systemName ?: $rawCitation,
-                    'article_number'   => $articleNumber,
-                    'citation_source'  => $citationSource,
-                    'legal_article_id' => $legalArticleId,
-                ]);
-            }
+            LegalCitation::create([
+                'legal_record_id'  => $record->id,
+                'legal_qa_pair_id' => $qaPair->id,
+                'system_name'      => $systemName ?: $rawCitation,
+                'article_number'   => $articleNumber,
+                'citation_source'  => $citationSource,
+                'legal_article_id' => $legalArticleId,
+            ]);
         }
     }
 
@@ -238,7 +243,7 @@ class ImportLegalRecords extends Command
         return 'other';
     }
 
-    private function importQaPairs(LegalRecord $record, array $qaPairs, string $caseReference, string $fullText): void
+    private function importQaPairs(LegalRecord $record, array $qaPairs, string $caseReference, string $fullText, ?int $clientId = null): void
     {
         foreach ($qaPairs as $i => $qa) {
             $num  = str_pad($i + 1, 3, '0', STR_PAD_LEFT); // 001, 002 ...
@@ -252,13 +257,10 @@ class ImportLegalRecords extends Command
                 'review_status'    => 'Pending',
                 'reviewer_id'      => null,
                 'corrected_answer' => null,
-                'reviewed_at'      => null,
             ]);
 
-            // Find a valid client/admin user to own these tasks
-            $clientId = User::where('role', 'client')->first()?->id 
-                        ?? User::where('role', 'admin')->first()?->id 
-                        ?? User::first()?->id;
+            // ── Import Citations specifically for THIS QA Pair ──────────────
+            $this->importCitations($record, $qaPair, $qa['legal_articles'] ?? []);
 
             // Create Legacy AI Task and Legal Task for workbench compatibility
             $aiTask = \App\Models\AiTask::create([
@@ -303,28 +305,42 @@ class ImportLegalRecords extends Command
     private function parseCitationString(string $raw): array
     {
         $raw = $this->convertArabicNumbers($raw);
+        $raw = $this->normalizeWrittenNumbers($raw);
 
-        // Extract article number: digits or Arabic textual numbers
         $articleNumber = null;
         if (preg_match('/المادة[^\d]*(\d+)/u', $raw, $m)) {
             $articleNumber = $m[1];
         }
 
-        // Extract system name: text after "من" or "في" or just the whole string
         $systemName = null;
+        // Logic: Extract system name after "من" or "في"
         if (preg_match('/(?:من|في|وفق|بموجب)\s+(.+)$/u', $raw, $m)) {
             $systemName = trim($m[1]);
         } elseif (! str_contains($raw, 'المادة')) {
-            // The whole string is just a system name
             $systemName = $raw;
-        } else {
-            // Fallback: extract system name as everything after article mention
-            if (preg_match('/المادة[^م]*\s+(.+)$/u', $raw, $m)) {
-                $systemName = trim($m[1]);
-            }
         }
 
         return [$systemName, $articleNumber];
+    }
+
+    private function normalizeWrittenNumbers(string $text): string
+    {
+        $map = [
+            'الحادية والثلاثون' => '31', 'الثانية والثلاثون' => '32',
+            'الحادية والعشرون' => '21', 'الثانية والعشرون' => '22', 'الثالثة والعشرون' => '23', 'الرابعة والعشرون' => '24', 'الخامسة والعشرون' => '25', 'السادسة والعشرون' => '26', 'السابعة والعشرون' => '27', 'الثامنة والعشرون' => '28', 'التاسعة والعشرون' => '29',
+            'الحادية عشرة' => '11', 'الثانية عشرة' => '12', 'الثالثة عشرة' => '13', 'الرابعة عشرة' => '14', 'الخامسة عشرة' => '15', 'السادسة عشرة' => '16', 'السابعة عشرة' => '17', 'الثامنة عشرة' => '18', 'التاسعة عشرة' => '19',
+            'الأولى' => '1', 'الثانية' => '2', 'الثالثة' => '3', 'الرابعة' => '4', 'الخامسة' => '5', 'السادسة' => '6', 'السابعة' => '7', 'الثامنة' => '8', 'التاسعة' => '9', 'العاشرة' => '10', 'العشرون' => '20', 'الثلاثون' => '30'
+        ];
+
+        // Sort by length descending to catch "التاسعة والعشرون" before "التاسعة"
+        uksort($map, fn($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+
+        foreach ($map as $word => $digit) {
+            if (str_contains($text, $word)) {
+                $text = str_replace($word, $digit, $text);
+            }
+        }
+        return $text;
     }
 
     /**
@@ -336,32 +352,56 @@ class ImportLegalRecords extends Command
 
         $query = LegalArticle::query();
 
-        if ($articleNumber) {
-            $query->where(function ($q) use ($articleNumber) {
-                $q->where('article_title', 'LIKE', "%{$articleNumber}%")
-                  ->orWhere('content',     'LIKE', "%المادة {$articleNumber}%");
+        if ($systemName) {
+            // Common Synonyms Map
+            $synonyms = [
+                'الإثبات' => ['نظام الإثبات', 'قانون الإثبات'],
+                'المحاكم التجارية' => ['نظام المحاكم التجارية'],
+                'المرافعات الشرعية' => ['نظام المرافعات الشرعية'],
+                'المعاملات المدنية' => ['نظام المعاملات المدنية'],
+            ];
+
+            $searchTerms = [$systemName];
+            foreach ($synonyms as $key => $names) {
+                if (str_contains($systemName, $key)) {
+                    $searchTerms = array_merge($searchTerms, $names);
+                }
+            }
+
+            // Priority 1: Match legislation title
+            $query->where(function($q) use ($searchTerms) {
+                foreach ($searchTerms as $term) {
+                    $q->orWhere('legislation_title', 'LIKE', "%{$term}%");
+                }
             });
         }
 
-        if ($systemName) {
-            // Use key words from system name (avoid short stop words)
-            $words = array_values(array_filter(
-                preg_split('/\s+/u', $systemName, -1, PREG_SPLIT_NO_EMPTY),
-                fn($w) => mb_strlen($w) > 3
-            ));
-            $topWords = array_slice($words, 0, 3);
+        if ($articleNumber) {
+            // Get the proper Arabic ordinal (e.g. 29 -> التاسعة والعشرون)
+            $textNum = is_numeric($articleNumber) ? $this->arabicOrdinal((int) $articleNumber) : null;
 
-            if (!empty($topWords)) {
-                // OR-match: any keyword hit is enough to identify the system
-                $query->where(function ($q) use ($topWords) {
-                    foreach ($topWords as $word) {
-                        $q->orWhere('legislation_title', 'LIKE', "%{$word}%");
-                    }
-                });
-            }
+            $query->where(function($q) use ($articleNumber, $textNum) {
+                $q->where('article_title', 'LIKE', "%{$articleNumber}%")
+                  ->orWhere('content', 'LIKE', "%المادة {$articleNumber}%");
+                
+                if ($textNum) {
+                    $q->orWhere('article_title', 'LIKE', "%{$textNum}%")
+                      ->orWhere('content', 'LIKE', "%المادة {$textNum}%");
+                }
+            });
         }
 
-        return $query->value('id');
+        $article = $query->first();
+
+        // Fallback: search in content if not found by title
+        if (!$article && $systemName) {
+            $cleaned = str_replace(['نظام', 'لائحة', 'قانون'], '', $systemName);
+            $article = LegalArticle::where('content', 'LIKE', "%{$cleaned}%")
+                ->when($articleNumber, fn($q) => $q->where('content', 'LIKE', "%المادة {$articleNumber}%"))
+                ->first();
+        }
+
+        return $article?->id;
     }
 
     private function buildRecordId(string $caseNumber): string
@@ -379,6 +419,47 @@ class ImportLegalRecords extends Command
             }
         }
         return 'General Law';
+    }
+
+    private function arabicOrdinal(int $number): string
+    {
+        $ones = [
+            1 => 'الأولى', 2 => 'الثانية', 3 => 'الثالثة', 4 => 'الرابعة', 5 => 'الخامسة',
+            6 => 'السادسة', 7 => 'السابعة', 8 => 'الثامنة', 9 => 'التاسعة', 10 => 'العاشرة',
+            11 => 'الحادية عشرة', 12 => 'الثانية عشرة', 13 => 'الثالثة عشرة', 14 => 'الرابعة عشرة',
+            15 => 'الخامسة عشرة', 16 => 'السادسة عشرة', 17 => 'السابعة عشرة', 18 => 'الثامنة عشرة', 19 => 'التاسعة عشرة'
+        ];
+        $tens = [
+            20 => 'العشرون', 30 => 'الثلاثون', 40 => 'الأربعون', 50 => 'الخمسون',
+            60 => 'الستون', 70 => 'السبعون', 80 => 'الثمانون', 90 => 'التسعون'
+        ];
+
+        if ($number <= 19) return $ones[$number] ?? '';
+        
+        if ($number < 100) {
+            $ten = (int) floor($number / 10) * 10;
+            $one = $number % 10;
+            if ($one === 0) return $tens[$ten];
+            if ($one === 1) return 'الحادية و' . $tens[$ten]; // 21, 31, 41...
+            return $ones[$one] . ' و' . $tens[$ten];
+        }
+
+        if ($number === 100) return 'المائة';
+        if ($number < 200) {
+            return $this->arabicOrdinal($number - 100) . ' بعد المائة';
+        }
+
+        if ($number === 200) return 'المائتين';
+        if ($number < 300) {
+            return $this->arabicOrdinal($number - 200) . ' بعد المائتين';
+        }
+
+        if ($number === 300) return 'الثلاثمائة';
+        if ($number < 400) {
+            return $this->arabicOrdinal($number - 300) . ' بعد الثلاثمائة';
+        }
+
+        return (string) $number;
     }
 
     private function parseDate(string $date): ?string

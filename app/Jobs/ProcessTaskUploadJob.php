@@ -341,20 +341,20 @@ class ProcessTaskUploadJob implements ShouldQueue
                     // These will be filled by the LegalLinkingService via boot or manually below
                 ]);
 
-                // Associate Citation for this QA pair based on its 'legal_articles'
-                $mentionedInQa = $qa['legal_articles'] ?? [];
-                foreach ($mentionedInQa as $articleName) {
-                    // Try to find the article in our database
-                    $match = $linkingService->findBestMatch($articleName);
-                    
-                    LegalCitation::create([
-                        'legal_record_id'   => $record->id,
-                        'legal_article_id'  => $match['confidence'] > 50 ? $match['article_id'] : null,
-                        'system_name'       => $match['system_name'] ?? 'غير محدد',
-                        'article_number'    => $match['article_number'] ?? null,
-                        'citation_source'   => 'law',
-                    ]);
-                }
+                    // Associate Citation for this QA pair specifically
+                    $mentionedInQa = $qa['legal_articles'] ?? [];
+                    foreach ($mentionedInQa as $articleName) {
+                        $match = $linkingService->findBestMatch($articleName);
+                        
+                        LegalCitation::create([
+                            'legal_record_id'   => $record->id,
+                            'legal_qa_pair_id'  => $qaPair->id,
+                            'legal_article_id'  => $match['confidence'] > 50 ? $match['article_id'] : null,
+                            'system_name'       => $match['system_name'] ?? 'غير محدد',
+                            'article_number'    => $match['article_number'] ?? null,
+                            'citation_source'   => 'law',
+                        ]);
+                    }
             }
         });
     }

@@ -34,6 +34,11 @@ class LegalQaPair extends Model
         return $this->belongsTo(User::class, 'reviewer_id');
     }
 
+    public function citations()
+    {
+        return $this->hasMany(LegalCitation::class, 'legal_qa_pair_id');
+    }
+
     // ── Scopes ─────────────────────────────────────────────
 
     public function scopePending($query)

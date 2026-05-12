@@ -23,14 +23,14 @@ class LegalTaskController extends Controller
         // 1. Look for a QA pair currently being processed by this expert
         $currentQA = LegalQaPair::where('reviewer_id', $expert->id)
             ->where('review_status', 'Processing')
-            ->with(['record.citations.article'])
+            ->with(['record', 'citations.article'])
             ->first();
 
         // 2. If no active task, fetch a new Pending one
         if (!$currentQA) {
             $currentQA = LegalQaPair::where('review_status', 'Pending')
                 ->whereNull('reviewer_id')
-                ->with(['record.citations.article'])
+                ->with(['record', 'citations.article'])
                 ->first();
 
             if ($currentQA) {
@@ -61,11 +61,22 @@ class LegalTaskController extends Controller
                 'law_article_number'=> '',
             ];
 
-            // Get citations from the new relational table
-            $mentionedArticles = $currentQA->record->citations
-                ->filter(fn($c) => $c->legal_article_id !== null)
-                ->map(fn($c) => $c->article)
-                ->unique('id');
+            // Get citations from the new relational table (specifically for this QA pair)
+            $citations = $currentQA->citations->count() > 0 
+                ? $currentQA->citations 
+                : $currentQA->record->citations;
+
+            $mentionedArticles = $citations->map(function($c) {
+                if ($c->article) return $c->article;
+                
+                // Fallback for unlinked citations: Create a virtual object
+                return (object) [
+                    'id' => 'temp-' . $c->id,
+                    'legislation_title' => $c->system_name,
+                    'article_title' => $c->article_number ? "المادة {$c->article_number}" : '',
+                    'content' => 'نص المادة غير متوفر في قاعدة البيانات الحالية. المرجع: ' . $c->system_name
+                ];
+            })->unique(fn($a) => is_object($a) ? ($a->id ?? $a->legislation_title) : $a);
         }
 
         $stats = $this->getExpertStats($expert);
@@ -82,7 +93,8 @@ class LegalTaskController extends Controller
         return view('dashboard.expert.legal_workbench', [
             'task' => $task,
             'mentioned_articles' => $mentionedArticles,
-            'stats' => $stats
+            'stats' => $stats,
+            'earnings_today' => $stats['earnings_today'] ?? 0
         ]);
     }
 
@@ -95,7 +107,7 @@ class LegalTaskController extends Controller
 
         $reviews = LegalQaPair::where('reviewer_id', $expert->id)
             ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
-            ->with(['record.citations.article'])
+            ->with(['record', 'citations.article'])
             ->orderBy('reviewed_at', 'desc')
             ->paginate(15);
 
@@ -217,12 +229,15 @@ class LegalTaskController extends Controller
      */
     private function getExpertStats($expert)
     {
+        $completedToday = LegalQaPair::where('reviewer_id', $expert->id)
+            ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
+            ->whereDate('reviewed_at', Carbon::today())
+            ->count();
+
         return [
-            'completed_today' => LegalQaPair::where('reviewer_id', $expert->id)
-                ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
-                ->whereDate('reviewed_at', Carbon::today())
-                ->count(),
-            'pending_tasks' => LegalQaPair::where('review_status', 'Pending')
+            'completed_today' => $completedToday,
+            'earnings_today'  => $completedToday * 2.00, // 2 SAR per question
+            'pending_tasks'   => LegalQaPair::where('review_status', 'Pending')
                 ->count(),
         ];
     }

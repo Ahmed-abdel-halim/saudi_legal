@@ -14,6 +14,10 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Auth\SuperAdminLoginController;
 
+Route::get('/debug-articles', function () {
+    return \App\Models\LegalArticle::take(5)->get();
+});
+
 // Home Route
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
