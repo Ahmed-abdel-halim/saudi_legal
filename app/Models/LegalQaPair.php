@@ -16,6 +16,7 @@ class LegalQaPair extends Model
         'reviewer_id',
         'corrected_answer',
         'reviewed_at',
+        'time_spent',
     ];
 
     protected $casts = [

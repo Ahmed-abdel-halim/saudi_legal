@@ -24,7 +24,8 @@ class LinguisticTask extends Model
         'is_correct',
         'domain',
         'csv_file',
-        'row_number'
+        'row_number',
+        'time_spent'
     ];
 
     protected $casts = [

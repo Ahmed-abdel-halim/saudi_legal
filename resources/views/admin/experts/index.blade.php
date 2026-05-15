@@ -151,6 +151,10 @@
                                 <i class="fa-solid fa-robot text-amber-500"></i>
                                 <span>{{ number_format($expert->ai_responses_count) }}</span>
                             </div>
+                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 bg-emerald-50/50 border border-emerald-100 rounded-md px-1.5 py-0.5 w-fit" title="إجمالي الوقت">
+                                <i class="fa-solid fa-clock text-emerald-500"></i>
+                                <span>{{ $expert->total_time_spent }}</span>
+                            </div>
                         </div>
                     </td>
 

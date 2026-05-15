@@ -15,6 +15,10 @@
                     <span class="text-gray-500 text-sm">التخصص:</span>
                     <span class="font-bold text-indigo-600">{{ Auth::user()->expert_domain ?? 'عام' }}</span>
                 </div>
+                <div class="bg-white px-4 py-2 rounded-lg shadow-sm flex items-center gap-2">
+                    <i class="fa-regular fa-clock text-gray-400"></i>
+                    <span class="font-bold text-gray-600" id="workbench-timer">00:00</span>
+                </div>
                 <div class="bg-white px-4 py-2 rounded-lg shadow-sm">
                     <span class="text-gray-500 text-sm">المنجز اليوم:</span>
                     <span class="font-bold text-green-600">{{ $completed_today ?? 0 }}</span>
@@ -68,15 +72,15 @@
                     
                     <div class="flex justify-center gap-4">
                         <button @click="markCorrect(true)" 
-                                class="flex-1 max-w-[150px] py-3 px-4 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center gap-2 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            <span>صحيح</span>
+                                class="flex-1 max-w-[100px] md:max-w-[150px] py-2 md:py-3 px-4 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center gap-2 transition-colors">
+                            <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span class="text-xs md:text-base">صحيح</span>
                         </button>
                         
                         <button @click="markCorrect(false)" 
-                                class="flex-1 max-w-[150px] py-3 px-4 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center gap-2 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            <span>خطأ</span>
+                                class="flex-1 max-w-[100px] md:max-w-[150px] py-2 md:py-3 px-4 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center gap-2 transition-colors">
+                            <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            <span class="text-xs md:text-base">خطأ</span>
                         </button>
                     </div>
                 </div>
@@ -145,7 +149,8 @@
                         body: JSON.stringify({
                             task_id: this.taskId,
                             is_correct: isCorrect,
-                            correct_classification: correctClassification
+                            correct_classification: correctClassification,
+                            time_spent: this.sec
                         })
                     });
 
@@ -163,6 +168,16 @@
                     alert('An error occurred while submitting.');
                     this.loading = false;
                 }
+            },
+            sec: 0,
+            init() {
+                setInterval(() => {
+                    this.sec++;
+                    const timerEl = document.getElementById('workbench-timer');
+                    if (timerEl) {
+                        timerEl.innerText = new Date(this.sec * 1000).toISOString().substr(14, 5);
+                    }
+                }, 1000);
             }
         };
     }

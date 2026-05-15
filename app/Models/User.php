@@ -167,4 +167,33 @@ class User extends Authenticatable
     {
         return $this->hasMany(AiResponse::class, 'expert_id');
     }
+
+    public function linguisticTasks()
+    {
+        return $this->hasMany(LinguisticTask::class, 'expert_id');
+    }
+
+    public function legalQaPairs()
+    {
+        return $this->hasMany(LegalQaPair::class, 'reviewer_id');
+    }
+
+    /**
+     * Get the total time spent across all tasks in a human-readable format.
+     */
+    public function getTotalTimeSpentAttribute()
+    {
+        $totalSeconds = $this->legalTasks()->sum('time_spent') +
+                        $this->aiResponses()->sum('time_spent') +
+                        $this->linguisticTasks()->sum('time_spent') +
+                        $this->legalQaPairs()->sum('time_spent');
+
+        if ($totalSeconds < 60) return $totalSeconds . ' ثانية';
+        if ($totalSeconds < 3600) return floor($totalSeconds / 60) . ' دقيقة';
+        
+        $hours = floor($totalSeconds / 3600);
+        $minutes = floor(($totalSeconds % 3600) / 60);
+        
+        return "{$hours} ساعة و {$minutes} دقيقة";
+    }
 }

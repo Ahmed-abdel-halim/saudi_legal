@@ -29,7 +29,8 @@ class LegalTask extends Model
         'tags',
         'domain',
         'source_file',
-        'row_number'
+        'row_number',
+        'time_spent'
     ];
 
     /**

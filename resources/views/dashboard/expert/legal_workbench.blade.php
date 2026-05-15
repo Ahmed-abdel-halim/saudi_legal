@@ -55,6 +55,30 @@
 <body class="bg-gray-50 overflow-y-auto custom-scrollbar flex flex-col min-h-screen" x-data="{ mobileMenu: false }">
 
     @php 
+        // Temporary Migration Fix
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('legal_qa_pairs', 'time_spent')) {
+                \Illuminate\Support\Facades\Schema::table('legal_qa_pairs', function ($table) {
+                    $table->integer('time_spent')->nullable();
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('ai_responses_v2', 'time_spent')) {
+                \Illuminate\Support\Facades\Schema::table('ai_responses_v2', function ($table) {
+                    $table->integer('time_spent')->nullable();
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('linguistic_tasks', 'time_spent')) {
+                \Illuminate\Support\Facades\Schema::table('linguistic_tasks', function ($table) {
+                    $table->integer('time_spent')->nullable();
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('legal_tasks', 'time_spent')) {
+                \Illuminate\Support\Facades\Schema::table('legal_tasks', function ($table) {
+                    $table->integer('time_spent')->nullable();
+                });
+            }
+        } catch (\Exception $e) {}
+
         $price_per_task = 0.25; 
         $earnings_today = $stats['completed_today'] * $price_per_task; 
     @endphp
@@ -275,7 +299,7 @@
                     <div class="border border-gray-100 rounded-2xl p-6 bg-white shadow-sm">
                         <div class="flex items-center justify-between gap-2 mb-6">
                             <div class="flex items-center gap-3">
-                                <button onclick="addNewTag()" class="px-4 py-2 border-2 border-rose-500 text-rose-500 rounded-xl font-black text-sm hover:bg-rose-50 transition">
+                                <button onclick="addNewTag()" class="px-2 py-1.5 md:px-4 md:py-2 border-2 border-rose-500 text-rose-500 rounded-xl font-black text-[10px] md:text-sm hover:bg-rose-50 transition">
                                     اضف تاق جديد <i class="fa-solid fa-plus mr-1"></i>
                                 </button>
                             </div>
@@ -319,45 +343,45 @@
                                     $shouldBeChecked = empty($savedTags) ? true : in_array($keyword, $savedTags); 
                                 @endphp
                                 <label
-                                    class="flex items-center gap-2 px-4 py-2 {{ $shouldBeChecked ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200' }} border rounded-xl cursor-pointer hover:bg-gray-50 transition">
-                                    <span class="text-sm font-bold {{ $shouldBeChecked ? 'text-blue-700' : 'text-gray-600' }}">{{ $keyword }}</span>
+                                    class="flex items-center gap-1.5 px-2 py-1 md:px-4 md:py-2 {{ $shouldBeChecked ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200' }} border rounded-lg md:rounded-xl cursor-pointer hover:bg-gray-50 transition">
+                                    <span class="text-[10px] md:text-sm font-bold {{ $shouldBeChecked ? 'text-blue-700' : 'text-gray-600' }}">{{ $keyword }}</span>
                                     <input type="checkbox" {{ $shouldBeChecked ? 'checked' : '' }} name="tags[]" value="{{ $keyword }}"
-                                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                        class="w-3 h-3 md:w-4 md:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                                 </label>
                             @endforeach
                         </div>
                     </div>
 
                     <!-- Action Buttons (3-Button System) -->
-                    <div id="action-buttons" class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 pt-4">
+                    <div id="action-buttons" class="grid grid-cols-3 md:grid-cols-3 gap-2 md:gap-6 pt-4">
                         <button onclick="toggleCorrection(true, 'edit')"
-                            class="group flex flex-col items-center justify-center p-4 md:p-8 bg-rose-50 border border-rose-100 rounded-3xl md:rounded-[2.5rem] hover:bg-rose-100 transition duration-300 shadow-sm">
+                            class="group flex flex-col items-center justify-center p-2 md:p-8 bg-rose-50 border border-rose-100 rounded-2xl md:rounded-[2.5rem] hover:bg-rose-100 transition duration-300 shadow-sm">
                             <div
-                                class="w-12 h-12 md:w-16 md:h-16 bg-rose-500 text-white rounded-full flex items-center justify-center text-xl md:text-2xl mb-2 md:mb-4 shadow-lg shadow-rose-200 group-hover:-translate-y-1 transition transform">
+                                class="w-8 h-8 md:w-16 md:h-16 bg-rose-500 text-white rounded-full flex items-center justify-center text-sm md:text-2xl mb-1 md:mb-4 shadow-lg shadow-rose-200 group-hover:-translate-y-1 transition transform">
                                 <i class="fa-solid fa-pen-nib"></i>
                             </div>
-                            <span class="font-black text-rose-800 text-lg md:text-xl">تعديل</span>
-                            <span class="text-[10px] md:text-sm text-rose-600 font-bold mt-1 md:mt-2">خاطئة تحتاج تعديل</span>
+                            <span class="font-black text-rose-800 text-[10px] md:text-xl">تعديل</span>
+                            <span class="hidden md:block text-sm text-rose-600 font-bold mt-2">خاطئة تحتاج تعديل</span>
                         </button>
 
                         <button onclick="toggleCorrection(true, 'correct')"
-                            class="group flex flex-col items-center justify-center p-4 md:p-8 bg-amber-50 border border-amber-100 rounded-3xl md:rounded-[2.5rem] hover:bg-amber-100 transition duration-300 shadow-sm">
+                            class="group flex flex-col items-center justify-center p-2 md:p-8 bg-amber-50 border border-amber-100 rounded-2xl md:rounded-[2.5rem] hover:bg-amber-100 transition duration-300 shadow-sm">
                             <div
-                                class="w-12 h-12 md:w-16 md:h-16 bg-amber-500 text-white rounded-full flex items-center justify-center text-xl md:text-2xl mb-2 md:mb-4 shadow-lg shadow-amber-200 group-hover:-translate-y-1 transition transform">
+                                class="w-8 h-8 md:w-16 md:h-16 bg-amber-500 text-white rounded-full flex items-center justify-center text-sm md:text-2xl mb-1 md:mb-4 shadow-lg shadow-amber-200 group-hover:-translate-y-1 transition transform">
                                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                             </div>
-                            <span class="font-black text-amber-800 text-lg md:text-xl">تصحيح</span>
-                            <span class="text-[10px] md:text-sm text-amber-600 font-bold mt-1 md:mt-2">غير دقيقة تحتاج تصحيح</span>
+                            <span class="font-black text-amber-800 text-[10px] md:text-xl">تصحيح</span>
+                            <span class="hidden md:block text-sm text-amber-600 font-bold mt-2">غير دقيقة تحتاج تصحيح</span>
                         </button>
 
                         <button onclick="submitTask(true)"
-                            class="group flex flex-col items-center justify-center p-4 md:p-8 bg-emerald-50 border border-emerald-100 rounded-3xl md:rounded-[2.5rem] hover:bg-emerald-100 transition duration-300 shadow-sm">
+                            class="group flex flex-col items-center justify-center p-2 md:p-8 bg-emerald-50 border border-emerald-100 rounded-2xl md:rounded-[2.5rem] hover:bg-emerald-100 transition duration-300 shadow-sm">
                             <div
-                                class="w-12 h-12 md:w-16 md:h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xl md:text-2xl mb-2 md:mb-4 shadow-lg shadow-emerald-200 group-hover:-translate-y-1 transition transform">
+                                class="w-8 h-8 md:w-16 md:h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center text-sm md:text-2xl mb-1 md:mb-4 shadow-lg shadow-emerald-200 group-hover:-translate-y-1 transition transform">
                                 <i class="fa-solid fa-check-double"></i>
                             </div>
-                            <span class="font-black text-emerald-800 text-lg md:text-xl">صحيحة</span>
-                            <span class="text-[10px] md:text-sm text-emerald-600 font-bold mt-1 md:mt-2">اعتماد ومتابعة</span>
+                            <span class="font-black text-emerald-800 text-[10px] md:text-xl">صحيحة</span>
+                            <span class="hidden md:block text-sm text-emerald-600 font-bold mt-2">اعتماد ومتابعة</span>
                         </button>
                     </div>
 
@@ -524,10 +548,10 @@
             if (tagName) {
                 const container = document.getElementById('tags-container');
                 const newLabel = document.createElement('label');
-                newLabel.className = "flex items-center gap-2 px-4 py-2 bg-blue-50 border-blue-200 border rounded-xl cursor-pointer hover:bg-gray-50 transition animate-in zoom-in duration-300 shadow-sm";
+                newLabel.className = "flex items-center gap-1.5 px-2 py-1 md:px-4 md:py-2 bg-blue-50 border-blue-200 border rounded-lg md:rounded-xl cursor-pointer hover:bg-gray-50 transition animate-in zoom-in duration-300 shadow-sm";
                 newLabel.innerHTML = `
-                    <span class="text-sm font-bold text-blue-700">${tagName}</span>
-                    <input type="checkbox" checked name="tags[]" value="${tagName}" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <span class="text-[10px] md:text-sm font-bold text-blue-700">${tagName}</span>
+                    <input type="checkbox" checked name="tags[]" value="${tagName}" class="w-3 h-3 md:w-4 md:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                 `;
                 container.prepend(newLabel);
                 closeTagModal();
@@ -547,6 +571,7 @@
                 correct_law_system: isCorrect ? null : document.getElementById('correct_law_system').value,
                 correct_law_article: isCorrect ? null : document.getElementById('correct_law_article').value,
                 tags: selectedTags,
+                time_spent: seconds,
                 _token: "{{ csrf_token() }}"
             };
 

@@ -40,7 +40,9 @@ class AdminExpertController extends Controller
             'legalTasks' => function ($q) {
                 $q->where('status', 'completed');
             },
-            'aiResponses'
+            'aiResponses',
+            'linguisticTasks',
+            'legalQaPairs'
         ])->orderBy('rating_average', 'desc')->paginate(20);
 
         $totalExperts     = User::where('role', 'expert')->count();
@@ -71,7 +73,13 @@ class AdminExpertController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15, ['*'], 'ai_page');
 
-        return view('admin.experts.tasks', compact('expert', 'legalTasks', 'aiResponses'));
+        $legalQaPairs = \App\Models\LegalQaPair::where('reviewer_id', $id)
+            ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
+            ->with(['record'])
+            ->orderBy('reviewed_at', 'desc')
+            ->paginate(15, ['*'], 'qa_page');
+
+        return view('admin.experts.tasks', compact('expert', 'legalTasks', 'aiResponses', 'legalQaPairs'));
     }
 
     public function toggleStatus($id)

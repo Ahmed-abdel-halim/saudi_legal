@@ -186,6 +186,7 @@ class WorkbenchController extends Controller
             'correct_classification' => $request->is_correct ? $task->proposed_classification : $request->correct_classification,
             'status' => 'completed',
             'completed_at' => now(),
+            'time_spent' => $request->input('time_spent'),
         ]);
 
         return response()->json([
@@ -230,6 +231,7 @@ class WorkbenchController extends Controller
                 'confidence_level' => 10, // Max confidence for accepted tasks
                 'action'           => 'accepted',
                 'reward_amount'    => $this->calculateReward(10), // Full reward for correct acceptance
+                'time_spent'       => request()->input('time_spent'),
             ]);
 
             $task->update([
@@ -279,6 +281,7 @@ class WorkbenchController extends Controller
                 'confidence_level' => (int) $validated['confidence_level'],
                 'action'           => 'edited',
                 'reward_amount'    => $this->calculateReward((int) $validated['confidence_level']),
+                'time_spent'       => $request->input('time_spent'),
             ]);
 
             $task->update([

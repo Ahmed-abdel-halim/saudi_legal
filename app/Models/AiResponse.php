@@ -21,6 +21,7 @@ class AiResponse extends Model
         'reward_amount',
         'reward_status',
         'final_reward_amount',
+        'time_spent',
     ];
 
     protected $casts = [

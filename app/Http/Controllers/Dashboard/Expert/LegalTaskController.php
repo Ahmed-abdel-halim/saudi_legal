@@ -137,6 +137,7 @@ class LegalTaskController extends Controller
             'review_status'    => $status,
             'corrected_answer' => $request->is_correct ? null : $request->correct_answer,
             'reviewed_at'      => now(),
+            'time_spent'       => $request->input('time_spent'),
         ]);
 
         // Optional: Update record tags if they changed

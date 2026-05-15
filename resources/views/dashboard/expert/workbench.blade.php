@@ -579,23 +579,23 @@
            }
 
            /* زر السابقة - على اليمين */
-           .nav-btn.prev {
-               flex: 1;
-               height: 52px;
-               padding: 0 16px;
-               border-radius: 14px;
-               display: flex;
-               align-items: center;
-               justify-content: center;
-               gap: 8px;
-               font-size: 0.95rem;
-               font-weight: 600;
-               background: #f8fafc;
-               color: #334155;
-               border: 1px solid #e2e8f0;
-               cursor: pointer;
-               transition: 0.2s;
-           }
+            .nav-btn.prev {
+                flex: 1;
+                height: 44px;
+                padding: 0 16px;
+                border-radius: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                background: #f8fafc;
+                color: #334155;
+                border: 1px solid #e2e8f0;
+                cursor: pointer;
+                transition: 0.2s;
+            }
 
            .nav-btn.prev i {
                font-size: 1.2rem;
@@ -606,24 +606,24 @@
            }
 
            /* زر التالي - في النص (لو موجود) */
-           .nav-btn.next {
-               flex: 1;
-               height: 52px;
-               padding: 0 16px;
-               border-radius: 14px;
-               display: flex;
-               align-items: center;
-               justify-content: center;
-               gap: 8px;
-               font-size: 0.95rem;
-               font-weight: 600;
-               color: #059669;
-               background: #ecfdf5;
-               border-color: #a7f3d0;
-               cursor: pointer;
-               transition: 0.2s;
-               order: 0;
-           }
+            .nav-btn.next {
+                flex: 1;
+                height: 44px;
+                padding: 0 16px;
+                border-radius: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: #059669;
+                background: #ecfdf5;
+                border-color: #a7f3d0;
+                cursor: pointer;
+                transition: 0.2s;
+                order: 0;
+            }
 
            .nav-btn.next::before {
                content: "⏭";
@@ -636,33 +636,24 @@
            }
 
            /* زر التخطي - على الشمال */
-           .skip-btn {
-               flex: 1;
-               display: flex !important;
-               justify-content: center;
-               align-items: center;
-               gap: 8px;
-               height: 52px;
-               padding: 0 16px;
-               background: #f1f5f9;
-               border-radius: 12px;
-               font-weight: 600;
-               color: #64748b;
-               cursor: pointer;
-               transition: 0.2s;
-           }
+            .skip-btn {
+                flex: 1;
+                display: flex !important;
+                justify-content: center;
+                align-items: center;
+                gap: 8px;
+                height: 44px;
+                padding: 0 16px;
+                background: #f1f5f9;
+                border-radius: 12px;
+                font-weight: 600;
+                color: #64748b;
+                cursor: pointer;
+                transition: 0.2s;
+            }
 
            .skip-btn span {
                /* default order */
-           }
-
-           .skip-btn i {
-               font-size: 1.2rem;
-           }
-
-           .skip-btn:hover {
-               background: #e5e7eb;
-               color: #374151;
            }
 
            .buttons-grid {
@@ -670,20 +661,25 @@
                margin-bottom: 0;
            }
 
-           .decision-btn {
-               min-height: 80px;
-               padding: 16px;
-               font-size: 1.05rem;
-               border-radius: 16px;
-           }
+            .decision-btn {
+                min-height: 52px;
+                padding: 8px 10px;
+                font-size: 0.9rem;
+                border-radius: 12px;
+                gap: 2px;
+            }
 
-           .icon-lg {
-               font-size: 1.6rem;
-           }
+            .decision-btn span:last-child {
+                display: none !important;
+            }
 
-           .task-id {
-               display: none !important;
-           }
+            .icon-lg {
+                font-size: 1.1rem;
+            }
+
+            .task-id {
+                display: none !important;
+            }
        }
     </style>
 </head>
@@ -881,7 +877,10 @@
         let sec = 0;
         setInterval(() => {
             sec++;
-            document.getElementById('timer').innerText = new Date(sec * 1000).toISOString().substr(14, 5);
+            const timerEl = document.getElementById('timer');
+            if (timerEl) {
+                timerEl.innerText = new Date(sec * 1000).toISOString().substr(14, 5);
+            }
         }, 1000);
 
         // Confidence Level Slider
@@ -918,6 +917,7 @@
                 }
 
                 // Add payload fields
+                formData.append('time_spent', sec);
                 Object.keys(payload).forEach(key => {
                     formData.append(key, payload[key]);
                 });

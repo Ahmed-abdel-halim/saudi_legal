@@ -131,14 +131,18 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mt-4">
+                <div class="grid grid-cols-3 gap-3 mt-4">
                     <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <p class="text-[10px] font-black text-slate-400 uppercase mb-1">الوقت</p>
+                        <p class="text-[10px] font-black text-slate-400 uppercase mb-1">توقيت المراجعة</p>
                         <p class="text-xs font-bold text-slate-700">{{ $item->reviewed_at ? $item->reviewed_at->format('h:i A') : '--:--' }}</p>
                     </div>
                     <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                         <p class="text-[10px] font-black text-slate-400 uppercase mb-1">التاريخ</p>
                         <p class="text-xs font-bold text-slate-700">{{ $item->reviewed_at ? $item->reviewed_at->format('Y/m/d') : '----/--/--' }}</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <p class="text-[10px] font-black text-slate-400 uppercase mb-1">مدة التنفيذ</p>
+                        <p class="text-xs font-bold text-indigo-600">{{ $item->time_spent ? floor($item->time_spent / 60) . ':' . str_pad($item->time_spent % 60, 2, '0', STR_PAD_LEFT) : '--:--' }}</p>
                     </div>
                 </div>
             </div>

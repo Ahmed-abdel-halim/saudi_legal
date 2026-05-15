@@ -39,10 +39,10 @@
             <span class="text-2xl font-black text-blue-700">{{ $legalTasks->total() }}</span>
             <span class="text-xs font-bold text-blue-600 uppercase">مهام قانونية</span>
         </div>
-        <div class="bg-amber-50 border border-amber-100 rounded-2xl p-5 flex flex-col items-center justify-center text-center">
-            <i class="fa-solid fa-robot text-amber-500 text-xl mb-2"></i>
-            <span class="text-2xl font-black text-amber-700">{{ $aiResponses->total() }}</span>
-            <span class="text-xs font-bold text-amber-600 uppercase">مهام ذكاء اصطناعي</span>
+        <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 flex flex-col items-center justify-center text-center">
+            <i class="fa-solid fa-clock text-indigo-500 text-xl mb-2"></i>
+            <span class="text-2xl font-black text-indigo-700">{{ $expert->total_time_spent }}</span>
+            <span class="text-xs font-bold text-indigo-600 uppercase">إجمالي الوقت</span>
         </div>
     </div>
 </div>
@@ -62,6 +62,7 @@
                     <th class="px-6 py-4 font-bold w-1/4 text-right">السؤال</th>
                     <th class="px-6 py-4 font-bold w-1/3 text-right">التصحيح المعتمد</th>
                     <th class="px-6 py-4 font-bold text-center">الحالة</th>
+                    <th class="px-6 py-4 font-bold text-center">الوقت المستغرق</th>
                     <th class="px-6 py-4 font-bold text-right">التاريخ</th>
                 </tr>
             </thead>
@@ -89,6 +90,9 @@
                         @else
                             <span class="bg-rose-100 text-rose-700 px-2 py-1 rounded-md text-[10px] font-black">قام بالتعديل</span>
                         @endif
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="text-xs font-bold text-slate-500">{{ $task->time_spent ? floor($task->time_spent / 60) . ':' . str_pad($task->time_spent % 60, 2, '0', STR_PAD_LEFT) : '—' }}</span>
                     </td>
                     <td class="px-6 py-4 text-slate-400 text-xs">
                         {{ $task->completed_at ? $task->completed_at->format('Y/m/d H:i') : '—' }}
@@ -125,6 +129,7 @@
                     <th class="px-6 py-4 font-bold w-1/4 text-right">المهمة الأصلية</th>
                     <th class="px-6 py-4 font-bold w-1/3 text-right">التصحيح المعتمد</th>
                     <th class="px-6 py-4 font-bold text-center">الإجراء</th>
+                    <th class="px-6 py-4 font-bold text-center">الوقت المستغرق</th>
                     <th class="px-6 py-4 font-bold text-right">التاريخ</th>
                 </tr>
             </thead>
@@ -144,6 +149,9 @@
                     <td class="px-6 py-4 text-center">
                         <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-[10px] font-black uppercase">{{ $resp->action }}</span>
                     </td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="text-xs font-bold text-slate-500">{{ $resp->time_spent ? floor($resp->time_spent / 60) . ':' . str_pad($resp->time_spent % 60, 2, '0', STR_PAD_LEFT) : '—' }}</span>
+                    </td>
                     <td class="px-6 py-4 text-slate-400 text-xs">
                         {{ $resp->created_at->format('Y/m/d H:i') }}
                     </td>
@@ -160,6 +168,63 @@
     @if($aiResponses->hasPages())
     <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
         {{ $aiResponses->appends(['legal_page' => $legalTasks->currentPage()])->links() }}
+    </div>
+    @endif
+</div>
+{{-- Legal QA Pairs Section --}}
+<div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-8">
+    <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+        <h3 class="font-black text-slate-700 flex items-center gap-2">
+            <i class="fa-solid fa-check-double text-emerald-500"></i> مراجعات البيانات القانونية (QA Pairs)
+        </h3>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-right whitespace-normal">
+            <thead class="text-xs text-slate-500 uppercase bg-slate-50/80 border-b border-slate-100">
+                <tr>
+                    <th class="px-6 py-4 font-bold w-1/4 text-right">السؤال</th>
+                    <th class="px-6 py-4 font-bold w-1/3 text-right">الإجابة النهائية</th>
+                    <th class="px-6 py-4 font-bold text-center">الحالة</th>
+                    <th class="px-6 py-4 font-bold text-center">الوقت المستغرق</th>
+                    <th class="px-6 py-4 font-bold text-right">التاريخ</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                @forelse($legalQaPairs as $qa)
+                <tr class="hover:bg-slate-50/50 transition">
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-slate-800 line-clamp-3">
+                            {{ $qa->question }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="bg-emerald-50 text-emerald-800 p-3 rounded-lg border border-emerald-100 text-xs font-bold whitespace-pre-wrap">
+                            {{ $qa->final_answer }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-[10px] font-black uppercase">{{ $qa->review_status }}</span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="text-xs font-bold text-slate-500">{{ $qa->time_spent ? floor($qa->time_spent / 60) . ':' . str_pad($qa->time_spent % 60, 2, '0', STR_PAD_LEFT) : '—' }}</span>
+                    </td>
+                    <td class="px-6 py-4 text-slate-400 text-xs">
+                        {{ $qa->reviewed_at->format('Y/m/d H:i') }}
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="5" class="px-6 py-10 text-center text-slate-400 italic">لم يقم بمراجعة أي بيانات قانونية بعد.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    
+    @if($legalQaPairs->hasPages())
+    <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+        {{ $legalQaPairs->appends(['legal_page' => $legalTasks->currentPage(), 'ai_page' => $aiResponses->currentPage()])->links() }}
     </div>
     @endif
 </div>
