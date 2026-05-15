@@ -155,9 +155,9 @@
         </div>
 
         <div class="flex items-center gap-3 md:gap-4">
-            <!-- User Info -->
-            <div class="flex items-center gap-3 pl-4 border-l border-gray-200">
-                <div class="hidden md:flex flex-col items-end">
+            <!-- User Info (Hidden on Mobile) -->
+            <div class="hidden md:flex items-center gap-3 pl-4 border-l border-gray-200">
+                <div class="flex flex-col items-end">
                     <span class="text-sm font-bold text-gray-800">{{ Auth::user()->full_name ?? Auth::user()->name }}</span>
                     <span class="text-[11px] text-emerald-600 font-bold">خبير معتمد</span>
                 </div>
@@ -186,10 +186,10 @@
             </div>
 
             <!-- Remaining Tasks -->
-            <div class="flex items-center gap-2 bg-rose-50 border border-rose-100 px-3 py-1.5 rounded-xl text-[12px] font-bold text-rose-700">
+            <div class="flex items-center gap-1.5 md:gap-2 bg-rose-50 border border-rose-100 px-2 py-1 md:px-3 md:py-1.5 rounded-lg md:rounded-xl text-[10px] md:text-[12px] font-bold text-rose-700">
                 <i class="fa-solid fa-hourglass-half text-rose-500 animate-pulse"></i>
                 <span class="opacity-80">المتبقي:</span>
-                <span class="text-sm">{{ $stats['pending_tasks'] }}</span>
+                <span class="text-xs md:text-sm">{{ $stats['pending_tasks'] }}</span>
             </div>
 
             <!-- Timer -->
@@ -199,10 +199,10 @@
             </div>
 
             <!-- Earnings -->
-            <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl text-[12px] font-bold text-amber-700">
-                <span class="opacity-80">الرصيد:</span>
-                <span class="text-sm">{{ number_format($earnings_today, 2) }} ريال</span>
+            <div class="flex items-center gap-1.5 md:gap-2 bg-amber-50 border border-amber-200 px-2 py-1 md:px-3 md:py-1.5 rounded-lg md:rounded-xl text-[10px] md:text-[12px] font-bold text-amber-700">
                 <i class="fa-solid fa-coins text-amber-600"></i>
+                <span class="opacity-80">الرصيد:</span>
+                <span class="text-xs md:text-sm">{{ number_format($earnings_today, 2) }}</span>
             </div>
         </div>
     </header>

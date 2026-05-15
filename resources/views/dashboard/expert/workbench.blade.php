@@ -482,6 +482,10 @@
                direction: rtl;
            }
 
+           .user-info > div:first-child {
+               display: none !important;
+           }
+
            .wb-card {
                height: auto;        /* متبقاش 100vh */
                overflow-y: auto;    /* scrolling */
@@ -690,8 +694,8 @@
         <a href="{{ route('dashboard.expert') }}" class="back-btn" title="خروج"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
 
         <div class="user-info">
-            <!-- User Avatar & Info -->
-            <div style="display: flex; align-items: center; gap: 12px; margin-left: 15px; padding-left: 15px; border-left: 1px solid #e5e7eb;">
+            <!-- User Avatar & Info (Hidden on Mobile) -->
+            <div class="hidden md:flex" style="align-items: center; gap: 12px; margin-left: 15px; padding-left: 15px; border-left: 1px solid #e5e7eb;">
                 <div style="display: flex; flex-direction: column; align-items: flex-end;">
                     <span style="font-size: 0.9rem; font-weight: 700; color: #1f2937;">{{ Auth::user()->full_name ?? Auth::user()->name }}</span>
                     <span style="font-size: 0.75rem; color: #10b981; font-weight: 600;">خبير معتمد</span>
