@@ -47,6 +47,15 @@ class LegalTaskController extends Controller
         $mentionedArticles = collect();
 
         if ($currentQA) {
+            // Get citations from the new relational table (specifically for this QA pair)
+            $citations = $currentQA->citations->count() > 0 
+                ? $currentQA->citations 
+                : $currentQA->record->citations;
+
+            $firstCitation = $citations->first();
+            $lawSystemName = $firstCitation ? $firstCitation->system_name : 'نظام قانوني';
+            $lawArticleNumber = $firstCitation ? $firstCitation->article_number : '';
+
             // Map LegalQaPair + LegalRecord to a virtual "Task" object for the Blade view
             $task = (object) [
                 'id'              => $currentQA->id,
@@ -58,25 +67,67 @@ class LegalTaskController extends Controller
                 'tags'            => $currentQA->record->tags ?? [],
                 'sub_domain'      => $currentQA->record->sub_domain ?? 'قانون عام',
                 // Keep these for compatibility even if empty, as we now use citations table
-                'law_system_name'   => '', 
-                'law_article_number'=> '',
+                'law_system_name'   => $lawSystemName, 
+                'law_article_number'=> $lawArticleNumber,
             ];
-
-            // Get citations from the new relational table (specifically for this QA pair)
-            $citations = $currentQA->citations->count() > 0 
-                ? $currentQA->citations 
-                : $currentQA->record->citations;
 
             $mentionedArticles = $citations->map(function($c) {
                 if ($c->article) return $c->article;
                 
-                // Fallback for unlinked citations: Create a virtual object
-                return (object) [
-                    'id' => 'temp-' . $c->id,
-                    'legislation_title' => $c->system_name,
-                    'article_title' => $c->article_number ? "المادة {$c->article_number}" : '',
-                    'content' => 'نص المادة غير متوفر في قاعدة البيانات الحالية. المرجع: ' . $c->system_name
-                ];
+                $system = $c->system_name;
+                $isPrinciple = str_contains($system, 'مبدأ قضائي') || str_contains($system, 'المبدأ') || str_contains($system, 'قاعدة قضائية');
+                $isSharia = str_contains($system, 'قاعدة شرعية') || str_contains($system, 'قاعدة فقهية') || str_contains($system, 'الشرع') || str_contains($system, 'الفقهاء') || str_contains($system, 'قوله تعالى') || str_contains($system, 'قال تعالى') || str_contains($system, 'الحديث') || str_contains($system, 'الآية');
+                $isContract = str_contains($system, 'العقد') || str_contains($system, 'اتفاقية') || str_contains($system, 'البند') || str_contains($system, 'بند') || str_contains($system, 'ملحق');
+                $isEvidence = str_contains($system, 'محضر') || str_contains($system, 'إفادة') || str_contains($system, 'خطاب') || str_contains($system, 'تقرير') || str_contains($system, 'بينة') || str_contains($system, 'سند') || str_contains($system, 'فاتورة') || str_contains($system, 'كشف');
+
+                if ($isPrinciple) {
+                    $cleanTitle = str_replace(['مبدأ قضائي:', 'مبدأ قضائي :'], '', $system);
+                    $cleanTitle = trim($cleanTitle);
+                    return (object) [
+                        'id' => 'temp-' . $c->id,
+                        'legislation_title' => 'مبدأ قضائي مرتبط',
+                        'article_title' => '',
+                        'content' => $cleanTitle
+                    ];
+                } elseif ($isSharia) {
+                    return (object) [
+                        'id' => 'temp-' . $c->id,
+                        'legislation_title' => 'مستند شرعي / فقهي',
+                        'article_title' => '',
+                        'content' => $system
+                    ];
+                } elseif ($isContract) {
+                    return (object) [
+                        'id' => 'temp-' . $c->id,
+                        'legislation_title' => 'مستند تعاقدي / العقد المبرم',
+                        'article_title' => '',
+                        'content' => $system
+                    ];
+                } elseif ($isEvidence) {
+                    return (object) [
+                        'id' => 'temp-' . $c->id,
+                        'legislation_title' => 'بيّنة / مستند إثبات',
+                        'article_title' => '',
+                        'content' => $system
+                    ];
+                } else {
+                    $isLawWord = str_contains($system, 'نظام') || str_contains($system, 'قانون') || str_contains($system, 'لائحة') || str_contains($system, 'مرسوم') || str_contains($system, 'قرار');
+                    if (mb_strlen($system) < 150 && $isLawWord) {
+                        return (object) [
+                            'id' => 'temp-' . $c->id,
+                            'legislation_title' => $system,
+                            'article_title' => $c->article_number ? "المادة {$c->article_number}" : 'مادة غير محددة',
+                            'content' => 'نص المادة غير متوفر حالياً في قاعدة البيانات. المرجع: ' . $system . ($c->article_number ? "، المادة {$c->article_number}" : '')
+                        ];
+                    } else {
+                        return (object) [
+                            'id' => 'temp-' . $c->id,
+                            'legislation_title' => 'مستند وقائع / أسباب الحكم',
+                            'article_title' => '',
+                            'content' => $system
+                        ];
+                    }
+                }
             })->unique(fn($a) => is_object($a) ? ($a->id ?? $a->legislation_title) : $a);
         }
 

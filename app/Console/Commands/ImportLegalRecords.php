@@ -407,60 +407,124 @@ class ImportLegalRecords extends Command
      */
     private function findLegalArticleId(?string $articleNumber, ?string $systemName): ?int
     {
-        if (! $articleNumber && ! $systemName) return null;
+        if (!$articleNumber) {
+            return null; // A citation MUST have an article number to match a specific LegalArticle!
+        }
+
+        $systemName = trim($systemName);
+        if (empty($systemName)) {
+            return null;
+        }
+
+        // Avoid matching non-law references like contracts, judgments, evidence, etc.
+        $isNonLaw = preg_match('/(?:العقد|اتفاق|محضر|إفادة|تقرير|بينة|سند|فاتورة|كشف|خطاب|مبدأ|قاعدة شرعية|فقه|أسباب|منطوق|تاريخ)/ui', $systemName);
+        if ($isNonLaw) {
+            return null;
+        }
+
+        static $articleCache = [];
+        $cacheKey = $systemName . '|||' . $articleNumber;
+        if (array_key_exists($cacheKey, $articleCache)) {
+            return $articleCache[$cacheKey];
+        }
 
         $query = LegalArticle::query();
 
-        if ($systemName) {
-            // Common Synonyms Map
-            $synonyms = [
-                'الإثبات' => ['نظام الإثبات', 'قانون الإثبات'],
-                'المحاكم التجارية' => ['نظام المحاكم التجارية'],
-                'المرافعات الشرعية' => ['نظام المرافعات الشرعية'],
-                'المعاملات المدنية' => ['نظام المعاملات المدنية'],
-            ];
+        // 1. Match the legislation/system name
+        $synonyms = [
+            'الإثبات' => ['نظام الإثبات', 'قانون الإثبات'],
+            'المحاكم التجارية' => ['نظام المحاكم التجارية'],
+            'المرافعات الشرعية' => ['نظام المرافعات الشرعية'],
+            'المعاملات المدنية' => ['نظام المعاملات المدنية'],
+        ];
 
-            $searchTerms = [$systemName];
-            foreach ($synonyms as $key => $names) {
-                if (str_contains($systemName, $key)) {
-                    $searchTerms = array_merge($searchTerms, $names);
-                }
+        $searchTerms = [$systemName];
+        foreach ($synonyms as $key => $names) {
+            if (str_contains($systemName, $key)) {
+                $searchTerms = array_merge($searchTerms, $names);
+            }
+        }
+
+        $query->where(function($q) use ($searchTerms) {
+            foreach ($searchTerms as $term) {
+                $q->orWhere('legislation_title', $term)
+                  ->orWhere('legislation_title', 'LIKE', "%{$term}%");
+            }
+        });
+
+        // 2. Match the article number exactly or as ordinal
+        $textNum = is_numeric($articleNumber) ? $this->arabicOrdinal((int) $articleNumber) : null;
+
+        // We will match exact patterns in article_title or content:
+        // article_title can be: "المادة الأولى", "المادة 1", "المادة (1)", "المادة الحادية والعشرون", etc.
+        // We must prevent substring matching where "العشرون" matches "الحادية والعشرون" (which is Article 21, not 20).
+        $query->where(function($q) use ($articleNumber, $textNum) {
+            $exactTitles = [];
+            
+            // Format 1: "المادة X" or "المادة (X)" where X is numeric
+            $exactTitles[] = "المادة {$articleNumber}";
+            $exactTitles[] = "المادة ({$articleNumber})";
+            $exactTitles[] = "المادة {$articleNumber} مكرر";
+            $exactTitles[] = "المادة ({$articleNumber}) مكرر";
+            
+            // Format 2: "المادة X" where X is written Arabic (e.g. "الأولى", "العشرون")
+            if ($textNum) {
+                $exactTitles[] = "المادة {$textNum}";
+                $exactTitles[] = "المادة ({$textNum})";
+                $exactTitles[] = "المادة {$textNum} مكرر";
             }
 
-            // Priority 1: Match legislation title
-            $query->where(function($q) use ($searchTerms) {
-                foreach ($searchTerms as $term) {
-                    $q->orWhere('legislation_title', 'LIKE', "%{$term}%");
-                }
-            });
+            $q->whereIn('article_title', $exactTitles);
+            
+            foreach ($exactTitles as $title) {
+                $q->orWhere('article_title', 'LIKE', $title);
+            }
+
+            // Fallback: If not matched by exact title, search inside content but ONLY with strict word boundary or exact "المادة X" phrase
+            $q->orWhere('content', 'LIKE', "%المادة {$articleNumber}%")
+              ->orWhere('content', 'LIKE', "%المادة ({$articleNumber})%");
+              
+            if ($textNum) {
+                $q->orWhere('content', 'LIKE', "%المادة {$textNum}%")
+                  ->orWhere('content', 'LIKE', "%المادة ({$textNum})%");
+            }
+        });
+
+        $articles = $query->get();
+        $matchedArticle = null;
+        
+        // Find best exact match
+        foreach ($articles as $art) {
+            $title = trim($art->article_title);
+            if ($textNum && ($title === "المادة {$textNum}" || $title === "المادة ({$textNum})")) {
+                $matchedArticle = $art;
+                break;
+            }
+            if ($title === "المادة {$articleNumber}" || $title === "المادة ({$articleNumber})") {
+                $matchedArticle = $art;
+                break;
+            }
         }
 
-        if ($articleNumber) {
-            // Get the proper Arabic ordinal (e.g. 29 -> التاسعة والعشرون)
-            $textNum = is_numeric($articleNumber) ? $this->arabicOrdinal((int) $articleNumber) : null;
-
-            $query->where(function($q) use ($articleNumber, $textNum) {
-                $q->where('article_title', 'LIKE', "%{$articleNumber}%")
-                  ->orWhere('content', 'LIKE', "%المادة {$articleNumber}%");
+        // Substring boundary filter fallback
+        if (!$matchedArticle && $articles->isNotEmpty()) {
+            foreach ($articles as $art) {
+                $title = trim($art->article_title);
                 
-                if ($textNum) {
-                    $q->orWhere('article_title', 'LIKE', "%{$textNum}%")
-                      ->orWhere('content', 'LIKE', "%المادة {$textNum}%");
+                // Skip matching "الحادية والعشرون" when we want "العشرون"
+                if ($textNum && $articleNumber % 10 === 0) {
+                    if (str_contains($title, 'و' . $textNum)) {
+                        continue; // Skip "الحادية والعشرون", "الثانية والعشرون", etc.
+                    }
                 }
-            });
+
+                $matchedArticle = $art;
+                break;
+            }
         }
 
-        $article = $query->first();
-
-        // Fallback: search in content if not found by title
-        if (!$article && $systemName) {
-            $cleaned = str_replace(['نظام', 'لائحة', 'قانون'], '', $systemName);
-            $article = LegalArticle::where('content', 'LIKE', "%{$cleaned}%")
-                ->when($articleNumber, fn($q) => $q->where('content', 'LIKE', "%المادة {$articleNumber}%"))
-                ->first();
-        }
-
-        return $article?->id;
+        $articleCache[$cacheKey] = $matchedArticle?->id;
+        return $articleCache[$cacheKey];
     }
 
     private function buildRecordId(string $caseNumber): string

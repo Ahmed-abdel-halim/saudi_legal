@@ -233,8 +233,7 @@
                     <div class="space-y-4 pt-4">
                         <div class="flex justify-between items-center px-2">
                             <span class="text-xs text-gray-400 font-bold flex items-center gap-2">
-                                <i class="fa-solid fa-circle-info text-gray-300"></i> نظام الإثبات: انقر على أي كلمة
-                                لتحديدها كخطأ
+                                <i class="fa-solid fa-circle-info text-gray-300"></i> {{ $task->law_system_name }}: انقر على أي كلمة لتحديدها كخطأ
                             </span>
                             <span class="text-sm font-black text-emerald-600 flex items-center gap-2">
                                 الإجابة المقترحة <i class="fa-regular fa-circle-check"></i>
