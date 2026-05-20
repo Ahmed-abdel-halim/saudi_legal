@@ -72,16 +72,71 @@ class LegalTaskController extends Controller
             ];
 
             $mentionedArticles = $citations->map(function($c) {
+                // If linked to a real DB article, return it directly
                 if ($c->article) return $c->article;
                 
-                $system = $c->system_name;
-                $isPrinciple = str_contains($system, 'مبدأ قضائي') || str_contains($system, 'المبدأ') || str_contains($system, 'قاعدة قضائية');
-                $isSharia = str_contains($system, 'قاعدة شرعية') || str_contains($system, 'قاعدة فقهية') || str_contains($system, 'الشرع') || str_contains($system, 'الفقهاء') || str_contains($system, 'قوله تعالى') || str_contains($system, 'قال تعالى') || str_contains($system, 'الحديث') || str_contains($system, 'الآية');
-                $isContract = str_contains($system, 'العقد') || str_contains($system, 'اتفاقية') || str_contains($system, 'البند') || str_contains($system, 'بند') || str_contains($system, 'ملحق');
-                $isEvidence = str_contains($system, 'محضر') || str_contains($system, 'إفادة') || str_contains($system, 'خطاب') || str_contains($system, 'تقرير') || str_contains($system, 'بينة') || str_contains($system, 'سند') || str_contains($system, 'فاتورة') || str_contains($system, 'كشف');
+                $system = trim($c->system_name ?? '');
+
+                // ─── Quality Filter ──────────────────────────────────────────
+                // Skip empty, very short, or pure-number/date strings that are
+                // not meaningful legal references (e.g. "رأس المال", "21 / 6 / 1438هـ")
+                if (mb_strlen($system) < 15) return null;
+
+                // Skip if it looks like a pure factual statement with no legal indicator
+                $hasLegalIndicator = str_contains($system, 'نظام')
+                    || str_contains($system, 'قانون')
+                    || str_contains($system, 'لائحة')
+                    || str_contains($system, 'مرسوم')
+                    || str_contains($system, 'قرار')
+                    || str_contains($system, 'مبدأ')
+                    || str_contains($system, 'قاعدة')
+                    || str_contains($system, 'العقد')
+                    || str_contains($system, 'اتفاقية')
+                    || str_contains($system, 'البند')
+                    || str_contains($system, 'محضر')
+                    || str_contains($system, 'إفادة')
+                    || str_contains($system, 'خطاب')
+                    || str_contains($system, 'تقرير')
+                    || str_contains($system, 'سند')
+                    || str_contains($system, 'فاتورة')
+                    || str_contains($system, 'تعالى')
+                    || str_contains($system, 'الحديث')
+                    || str_contains($system, 'مستنبط')
+                    || str_contains($system, 'وفق')
+                    || str_contains($system, 'بموجب');
+
+                if (!$hasLegalIndicator) return null;
+                // ─────────────────────────────────────────────────────────────
+
+                $isPrinciple = str_contains($system, 'مبدأ قضائي')
+                    || str_contains($system, 'المبدأ')
+                    || str_contains($system, 'قاعدة قضائية')
+                    || str_contains($system, 'مستنبط');
+                    
+                $isSharia = str_contains($system, 'القاعدة الشرعية')
+                    || str_contains($system, 'قاعدة فقهية')
+                    || str_contains($system, 'الفقهاء')
+                    || str_contains($system, 'قوله تعالى')
+                    || str_contains($system, 'قال تعالى')
+                    || str_contains($system, 'الحديث')
+                    || str_contains($system, 'الآية');
+                    
+                $isContract = str_contains($system, 'العقد')
+                    || str_contains($system, 'اتفاقية')
+                    || str_contains($system, 'البند')
+                    || str_contains($system, 'بند')
+                    || str_contains($system, 'ملحق');
+                    
+                $isEvidence = str_contains($system, 'محضر')
+                    || str_contains($system, 'إفادة')
+                    || str_contains($system, 'خطاب')
+                    || str_contains($system, 'تقرير')
+                    || str_contains($system, 'سند')
+                    || str_contains($system, 'فاتورة')
+                    || str_contains($system, 'كشف');
 
                 if ($isPrinciple) {
-                    $cleanTitle = str_replace(['مبدأ قضائي:', 'مبدأ قضائي :'], '', $system);
+                    $cleanTitle = str_replace(['مبدأ قضائي:', 'مبدأ قضائي :', 'مبدأ قضائي مستقر في'], '', $system);
                     $cleanTitle = trim($cleanTitle);
                     return (object) [
                         'id' => 'temp-' . $c->id,
@@ -90,11 +145,13 @@ class LegalTaskController extends Controller
                         'content' => $cleanTitle
                     ];
                 } elseif ($isSharia) {
+                    $cleanTitle = str_replace(['القاعدة الشرعية:', 'القاعدة الشرعية :'], '', $system);
+                    $cleanTitle = trim($cleanTitle);
                     return (object) [
                         'id' => 'temp-' . $c->id,
                         'legislation_title' => 'مستند شرعي / فقهي',
                         'article_title' => '',
-                        'content' => $system
+                        'content' => $cleanTitle
                     ];
                 } elseif ($isContract) {
                     return (object) [
@@ -111,8 +168,12 @@ class LegalTaskController extends Controller
                         'content' => $system
                     ];
                 } else {
-                    $isLawWord = str_contains($system, 'نظام') || str_contains($system, 'قانون') || str_contains($system, 'لائحة') || str_contains($system, 'مرسوم') || str_contains($system, 'قرار');
-                    if (mb_strlen($system) < 150 && $isLawWord) {
+                    $isLawWord = str_contains($system, 'نظام')
+                        || str_contains($system, 'قانون')
+                        || str_contains($system, 'لائحة')
+                        || str_contains($system, 'مرسوم')
+                        || str_contains($system, 'قرار');
+                    if ($isLawWord && mb_strlen($system) < 150) {
                         return (object) [
                             'id' => 'temp-' . $c->id,
                             'legislation_title' => $system,
@@ -120,6 +181,8 @@ class LegalTaskController extends Controller
                             'content' => 'نص المادة غير متوفر حالياً في قاعدة البيانات. المرجع: ' . $system . ($c->article_number ? "، المادة {$c->article_number}" : '')
                         ];
                     } else {
+                        // Skip long unclassified factual statements
+                        if (mb_strlen($system) > 200) return null;
                         return (object) [
                             'id' => 'temp-' . $c->id,
                             'legislation_title' => 'مستند وقائع / أسباب الحكم',
@@ -128,7 +191,7 @@ class LegalTaskController extends Controller
                         ];
                     }
                 }
-            })->unique(fn($a) => is_object($a) ? ($a->id ?? $a->legislation_title) : $a);
+            })->filter()->unique(fn($a) => is_object($a) ? ($a->id ?? $a->legislation_title) : $a);
         }
 
         $stats = $this->getExpertStats($expert);
