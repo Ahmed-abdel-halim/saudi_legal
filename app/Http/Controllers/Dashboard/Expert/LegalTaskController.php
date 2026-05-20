@@ -77,41 +77,15 @@ class LegalTaskController extends Controller
                 
                 $system = trim($c->system_name ?? '');
 
-                // ─── Quality Filter ──────────────────────────────────────────
-                // Skip empty, very short, or pure-number/date strings that are
-                // not meaningful legal references (e.g. "رأس المال", "21 / 6 / 1438هـ")
-                if (mb_strlen($system) < 15) return null;
-
-                // Skip if it looks like a pure factual statement with no legal indicator
-                $hasLegalIndicator = str_contains($system, 'نظام')
-                    || str_contains($system, 'قانون')
-                    || str_contains($system, 'لائحة')
-                    || str_contains($system, 'مرسوم')
-                    || str_contains($system, 'قرار')
-                    || str_contains($system, 'مبدأ')
-                    || str_contains($system, 'قاعدة')
-                    || str_contains($system, 'العقد')
-                    || str_contains($system, 'اتفاقية')
-                    || str_contains($system, 'البند')
-                    || str_contains($system, 'محضر')
-                    || str_contains($system, 'إفادة')
-                    || str_contains($system, 'خطاب')
-                    || str_contains($system, 'تقرير')
-                    || str_contains($system, 'سند')
-                    || str_contains($system, 'فاتورة')
-                    || str_contains($system, 'تعالى')
-                    || str_contains($system, 'الحديث')
-                    || str_contains($system, 'مستنبط')
-                    || str_contains($system, 'وفق')
-                    || str_contains($system, 'بموجب');
-
-                if (!$hasLegalIndicator) return null;
-                // ─────────────────────────────────────────────────────────────
+                // Only skip empty or extremely short entries (e.g. noise or empty fields)
+                if (mb_strlen($system) < 3) return null;
 
                 $isPrinciple = str_contains($system, 'مبدأ قضائي')
                     || str_contains($system, 'المبدأ')
                     || str_contains($system, 'قاعدة قضائية')
-                    || str_contains($system, 'مستنبط');
+                    || str_contains($system, 'مستنبط')
+                    || str_contains($system, 'القضائية')
+                    || str_contains($system, 'أحكام الاستئناف');
                     
                 $isSharia = str_contains($system, 'القاعدة الشرعية')
                     || str_contains($system, 'قاعدة فقهية')
@@ -119,13 +93,16 @@ class LegalTaskController extends Controller
                     || str_contains($system, 'قوله تعالى')
                     || str_contains($system, 'قال تعالى')
                     || str_contains($system, 'الحديث')
-                    || str_contains($system, 'الآية');
+                    || str_contains($system, 'الآية')
+                    || str_contains($system, 'شرعاً')
+                    || str_contains($system, 'فقهاً');
                     
                 $isContract = str_contains($system, 'العقد')
                     || str_contains($system, 'اتفاقية')
                     || str_contains($system, 'البند')
                     || str_contains($system, 'بند')
-                    || str_contains($system, 'ملحق');
+                    || str_contains($system, 'ملحق')
+                    || str_contains($system, 'تعاقد');
                     
                 $isEvidence = str_contains($system, 'محضر')
                     || str_contains($system, 'إفادة')
@@ -133,7 +110,10 @@ class LegalTaskController extends Controller
                     || str_contains($system, 'تقرير')
                     || str_contains($system, 'سند')
                     || str_contains($system, 'فاتورة')
-                    || str_contains($system, 'كشف');
+                    || str_contains($system, 'كشف')
+                    || str_contains($system, 'بينة')
+                    || str_contains($system, 'قرينة')
+                    || str_contains($system, 'الخبير');
 
                 if ($isPrinciple) {
                     $cleanTitle = str_replace(['مبدأ قضائي:', 'مبدأ قضائي :', 'مبدأ قضائي مستقر في'], '', $system);
@@ -181,8 +161,6 @@ class LegalTaskController extends Controller
                             'content' => 'نص المادة غير متوفر حالياً في قاعدة البيانات. المرجع: ' . $system . ($c->article_number ? "، المادة {$c->article_number}" : '')
                         ];
                     } else {
-                        // Skip long unclassified factual statements
-                        if (mb_strlen($system) > 200) return null;
                         return (object) [
                             'id' => 'temp-' . $c->id,
                             'legislation_title' => 'مستند وقائع / أسباب الحكم',
