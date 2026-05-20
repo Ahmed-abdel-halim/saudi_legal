@@ -154,11 +154,23 @@ class LegalTaskController extends Controller
                         || str_contains($system, 'مرسوم')
                         || str_contains($system, 'قرار');
                     if ($isLawWord && mb_strlen($system) < 150) {
+                        $artTitle = 'مادة غير محددة';
+                        $artSuffix = '';
+                        if ($c->article_number) {
+                            if (is_numeric($c->article_number)) {
+                                $ordinal = $this->arabicOrdinal((int) $c->article_number);
+                                $artTitle = "المادة {$ordinal}";
+                                $artSuffix = "، المادة {$ordinal}";
+                            } else {
+                                $artTitle = "المادة {$c->article_number}";
+                                $artSuffix = "، المادة {$c->article_number}";
+                            }
+                        }
                         return (object) [
                             'id' => 'temp-' . $c->id,
                             'legislation_title' => $system,
-                            'article_title' => $c->article_number ? "المادة {$c->article_number}" : 'مادة غير محددة',
-                            'content' => 'نص المادة غير متوفر حالياً في قاعدة البيانات. المرجع: ' . $system . ($c->article_number ? "، المادة {$c->article_number}" : '')
+                            'article_title' => $artTitle,
+                            'content' => 'نص المادة غير متوفر حالياً في قاعدة البيانات. المرجع: ' . $system . $artSuffix
                         ];
                     } else {
                         return (object) [
@@ -366,5 +378,49 @@ class LegalTaskController extends Controller
             'pending_tasks'   => LegalQaPair::where('review_status', 'Pending')
                 ->count(),
         ];
+    }
+
+    /**
+     * Convert an integer to its written Arabic ordinal (feminine).
+     */
+    private function arabicOrdinal(int $number): string
+    {
+        $ones = [
+            1 => 'الأولى', 2 => 'الثانية', 3 => 'الثالثة', 4 => 'الرابعة', 5 => 'الخامسة',
+            6 => 'السادسة', 7 => 'السابعة', 8 => 'الثامنة', 9 => 'التاسعة', 10 => 'العاشرة',
+            11 => 'الحادية عشرة', 12 => 'الثانية عشرة', 13 => 'الثالثة عشرة', 14 => 'الرابعة عشرة',
+            15 => 'الخامسة عشرة', 16 => 'السادسة عشرة', 17 => 'السابعة عشرة', 18 => 'الثامنة عشرة', 19 => 'التاسعة عشرة'
+        ];
+        $tens = [
+            20 => 'العشرون', 30 => 'الثلاثون', 40 => 'الأربعون', 50 => 'الخمسون',
+            60 => 'الستون', 70 => 'السبعون', 80 => 'الثمانون', 90 => 'التسعون'
+        ];
+
+        if ($number <= 19) return $ones[$number] ?? '';
+        
+        if ($number < 100) {
+            $ten = (int) floor($number / 10) * 10;
+            $one = $number % 10;
+            if ($one === 0) return $tens[$ten];
+            if ($one === 1) return 'الحادية و' . $tens[$ten];
+            return $ones[$one] . ' و' . $tens[$ten];
+        }
+
+        if ($number === 100) return 'المائة';
+        if ($number < 200) {
+            return $this->arabicOrdinal($number - 100) . ' بعد المائة';
+        }
+
+        if ($number === 200) return 'المائتين';
+        if ($number < 300) {
+            return $this->arabicOrdinal($number - 200) . ' بعد المائتين';
+        }
+
+        if ($number === 300) return 'الثلاثمائة';
+        if ($number < 400) {
+            return $this->arabicOrdinal($number - 300) . ' بعد الثلاثمائة';
+        }
+
+        return (string) $number;
     }
 }
