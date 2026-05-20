@@ -33,4 +33,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/{id}/read', [App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
     Route::delete('/notifications/{id}', [App\Http\Controllers\Api\NotificationController::class, 'destroy']);
+
+    // ── Azure Status (Admin only) ──────────────────────────────────────────
+    Route::prefix('azure')->middleware('can:viewDashboard')->group(function () {
+        Route::get('/status',        [App\Http\Controllers\Api\AzureStatusController::class, 'status']);
+        Route::get('/search/test',   [App\Http\Controllers\Api\AzureStatusController::class, 'testSearch']);
+    });
 });

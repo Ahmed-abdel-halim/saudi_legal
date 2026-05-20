@@ -4,17 +4,24 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\LegalSearchService;
+use App\Services\AzureSearchService;
 use App\Services\LegalReferenceService;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class LegalAiController extends Controller
 {
     protected $searchService;
+    protected $azureService;
     protected $referenceService;
 
-    public function __construct(LegalSearchService $searchService, LegalReferenceService $referenceService)
-    {
-        $this->searchService = $searchService;
+    public function __construct(
+        LegalSearchService  $searchService,
+        AzureSearchService  $azureService,
+        LegalReferenceService $referenceService
+    ) {
+        $this->searchService  = $searchService;
+        $this->azureService   = $azureService;
         $this->referenceService = $referenceService;
     }
 
@@ -28,8 +35,16 @@ class LegalAiController extends Controller
         $request->validate(['question' => 'required|string|max:1000']);
         $question = $request->question;
 
-        // 1. Hybrid Search (Keywords + Legal Logic)
-        $contextTasks = $this->searchService->search($question, 5);
+        // 1. Smart Search: Azure Vector Search (إذا مفعّل) أو Keyword Search
+        $useAzure = config('azure.search.enabled', false);
+
+        if ($useAzure) {
+            Log::info('[LegalAi] Using Azure AI Search (Vector + Hybrid)');
+            $contextTasks = $this->azureService->hybridSearch($question, 5);
+        } else {
+            Log::info('[LegalAi] Using legacy keyword search');
+            $contextTasks = $this->searchService->search($question, 5);
+        }
 
         $allArticles = collect();
         

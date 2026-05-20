@@ -101,7 +101,14 @@
                         </td>
                         <td class="px-5 py-4">
                             <div class="flex flex-col max-w-[400px]">
-                                <span class="font-bold text-slate-800 truncate mb-0.5">{{ $item->question }}</span>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-bold text-slate-800 truncate mb-0.5" title="{{ $item->question }}">{{ $item->question }}</span>
+                                    @if($item->qa_id === 'Q-GOLD' || (isset($item->record->tags) && is_array($item->record->tags) && in_array('gold_standard', $item->record->tags)))
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">
+                                            <i class="fa-solid fa-star text-[9px] text-amber-500 animate-pulse"></i> سؤال اختبار
+                                        </span>
+                                    @endif
+                                </div>
                                 <span class="text-[11px] text-slate-400">{{ $item->record->sub_domain ?? 'قانون عام' }}</span>
                             </div>
                         </td>

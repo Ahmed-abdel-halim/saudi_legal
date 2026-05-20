@@ -278,6 +278,11 @@ Route::middleware(['superadmin'])->prefix('admin')->name('admin.')->group(functi
     // User Management
     Route::get('/legal-records', [\App\Http\Controllers\Admin\LegalManagementController::class, 'index'])->name('legal.index');
     Route::get('/legal-records/{id}', [\App\Http\Controllers\Admin\LegalManagementController::class, 'show'])->name('legal.show');
+
+    // Azure Management
+    Route::get('/azure', [\App\Http\Controllers\Admin\AzureManagementController::class, 'index'])->name('azure.index');
+    Route::post('/azure/sync', [\App\Http\Controllers\Admin\AzureManagementController::class, 'sync'])->name('azure.sync');
+
     Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('users.index');
     Route::patch('/users/{id}/toggle-status', [\App\Http\Controllers\Admin\AdminUserController::class, 'toggleStatus'])->name('users.toggle-status');
     Route::delete('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'destroy'])->name('users.destroy');

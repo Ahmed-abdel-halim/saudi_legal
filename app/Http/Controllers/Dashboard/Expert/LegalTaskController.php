@@ -8,6 +8,7 @@ use App\Models\LegalRecord;
 use App\Models\LegalCitation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class LegalTaskController extends Controller
@@ -133,17 +134,49 @@ class LegalTaskController extends Controller
 
         $status = $request->is_correct ? 'Approved' : 'Modified';
 
-        $qa->update([
-            'review_status'    => $status,
-            'corrected_answer' => $request->is_correct ? null : $request->correct_answer,
-            'reviewed_at'      => now(),
-            'time_spent'       => $request->input('time_spent'),
-        ]);
+        DB::transaction(function () use ($qa, $status, $request) {
+            $qa->update([
+                'review_status'    => $status,
+                'corrected_answer' => $request->is_correct ? null : $request->correct_answer,
+                'reviewed_at'      => now(),
+                'time_spent'       => $request->input('time_spent'),
+            ]);
 
-        // Optional: Update record tags if they changed
-        if ($request->has('tags')) {
-            $qa->record->update(['tags' => $request->tags]);
-        }
+            // Optional: Update record tags if they changed
+            if ($request->has('tags')) {
+                $qa->record->update(['tags' => $request->tags]);
+            }
+
+            // الربط مع نظام الحوكمة الأساسي (Governance System)
+            $legalTask = \App\Models\LegalTask::where('source_id', $qa->id)
+                ->where('source_type', 'legal_qa_pair')
+                ->first();
+
+            if ($legalTask) {
+                // إنشاء استجابة (AiResponse) لتفعيل التقييم التلقائي (Gold Standard & Consensus)
+                \App\Models\AiResponse::create([
+                    'task_id'          => $legalTask->task_id,
+                    'expert_id'        => Auth::id(),
+                    'corrected_data'   => $request->is_correct ? ($qa->generated_answer ?: '') : $request->correct_answer,
+                    'correction_notes' => $request->expert_comment,
+                    'confidence_level' => 10,
+                    'action'           => $request->is_correct ? 'accepted' : 'edited',
+                    'reward_amount'    => 2.00, // 2 ريال لكل مراجعة
+                    'time_spent'       => $request->input('time_spent'),
+                ]);
+
+                // تحديث حالة المهمة القانونية الفرعية
+                $legalTask->update([
+                    'status'         => 'completed',
+                    'expert_id'      => Auth::id(),
+                    'completed_at'   => now(),
+                    'correct_answer' => $request->is_correct ? null : $request->correct_answer,
+                    'expert_comment' => $request->expert_comment,
+                    'is_correct'     => $request->is_correct,
+                    'time_spent'     => $request->input('time_spent'),
+                ]);
+            }
+        });
 
         return response()->json([
             'success'  => true,

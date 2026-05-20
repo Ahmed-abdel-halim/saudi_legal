@@ -11,6 +11,9 @@ class LegalTask extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'task_id',
+        'source_type',
+        'source_id',
         'task_type',
         'expert_id',
         'status',
@@ -32,6 +35,15 @@ class LegalTask extends Model
         'row_number',
         'time_spent'
     ];
+
+    /**
+     * العلاقة مع مهمة الحوكمة الأساسية
+     */
+    public function task()
+    {
+        return $this->belongsTo(AiTask::class, 'task_id');
+    }
+
 
     /**
      * الربط التلقائي الذكي عند إنشاء أي مهمة

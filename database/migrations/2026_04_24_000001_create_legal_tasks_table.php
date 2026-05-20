@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('legal_tasks', function (Blueprint $table) {
             $table->id();
             
+            // معرف مهمة الحوكمة الأساسية
+            $table->unsignedBigInteger('task_id')->nullable()->comment('معرف مهمة الحوكمة الأساسية (AiTask)')->index();
+            
             // نوع المهمة: تحقق (verification) أو استشارة (consultation)
             $table->enum('task_type', ['verification', 'consultation'])->default('verification');
             

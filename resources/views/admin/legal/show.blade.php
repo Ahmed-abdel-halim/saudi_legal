@@ -40,9 +40,16 @@
         {{-- Question Card --}}
         <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
             <div class="p-8">
-                <div class="flex items-center gap-2 mb-4">
-                    <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
-                    <span class="text-xs font-black text-slate-400 uppercase tracking-widest">السؤال المستخرج من القضية</span>
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-6 bg-emerald-500 rounded-full"></div>
+                        <span class="text-xs font-black text-slate-400 uppercase tracking-widest">السؤال المستخرج من القضية</span>
+                    </div>
+                    @if($item->qa_id === 'Q-GOLD' || (isset($item->record->tags) && is_array($item->record->tags) && in_array('gold_standard', $item->record->tags)))
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-amber-100 text-amber-850 border border-amber-200 shadow-sm">
+                            <i class="fa-solid fa-star text-amber-500 animate-pulse"></i> سؤال اختبار ذهبي (مراقبة جودة)
+                        </span>
+                    @endif
                 </div>
                 <h2 class="text-2xl font-bold text-slate-800 leading-relaxed">{{ $item->question }}</h2>
             </div>

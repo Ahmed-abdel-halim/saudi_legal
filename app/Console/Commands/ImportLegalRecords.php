@@ -18,7 +18,7 @@ use Illuminate\Support\LazyCollection;
 class ImportLegalRecords extends Command
 {
     protected $signature = 'legal:import
-                            {file? : Path to the JSONL file (default: Radiif_Golden_5k_Abstract_QA_Fixed.jsonl)}
+                            {file? : Path to the JSONL file (default: Radiif_Master_16-5-2026.jsonl)}
                             {--fresh : Drop and re-import all records}
                             {--limit= : Only import N records (for testing)}';
 
@@ -55,7 +55,42 @@ class ImportLegalRecords extends Command
         ini_set('memory_limit', '-1');
         set_time_limit(0);
 
-        $file  = $this->argument('file') ?? base_path('Radiif_Golden_5k_Abstract_QA_Fixed.jsonl');
+        // تحويل ترميز قاعدة البيانات والجداول بشكل منفصل لتجنب انهيار العملية
+        $tablesToConvert = ['legal_tasks', 'legal_records', 'legal_qa_pairs', 'ai_tasks_v2', 'ai_responses_v2'];
+        
+        try {
+            $dbName = DB::connection()->getDatabaseName();
+            DB::statement("ALTER DATABASE `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+            $this->info("Database '{$dbName}' character set converted to utf8mb4.");
+        } catch (\Throwable $e) {
+            $this->warn("Failed to convert database character set: " . $e->getMessage());
+        }
+
+        foreach ($tablesToConvert as $table) {
+            try {
+                DB::statement("ALTER TABLE `{$table}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                $this->info("Table '{$table}' converted to utf8mb4 successfully.");
+            } catch (\Throwable $e) {
+                $this->warn("Failed to convert table '{$table}': " . $e->getMessage());
+            }
+        }
+
+        try {
+            DB::statement("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+            $this->info("Connection session encoding set to utf8mb4_unicode_ci.");
+        } catch (\Throwable $e) {
+            $this->warn("Failed to set session encoding: " . $e->getMessage());
+        }
+
+        // تعديل نوع عمود case_text في جدول legal_tasks إلى LONGTEXT لتجنب مشاكل القطع (truncation) والترميز
+        try {
+            DB::statement("ALTER TABLE `legal_tasks` MODIFY `case_text` LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL");
+            $this->info("Column 'case_text' in table 'legal_tasks' modified to LONGTEXT successfully.");
+        } catch (\Throwable $e) {
+            $this->warn("Failed to modify column 'case_text': " . $e->getMessage());
+        }
+
+        $file  = $this->argument('file') ?? base_path('Radiif_Master_16-5-2026.jsonl');
         $limit = $this->option('limit') ? (int) $this->option('limit') : null;
 
         if (! file_exists($file)) {
@@ -131,6 +166,27 @@ class ImportLegalRecords extends Command
 
     // ─────────────────────────────────────────────────────────────────────────
 
+    private function cleanUtf8(?string $string): ?string
+    {
+        if ($string === null) {
+            return null;
+        }
+
+        // Convert encoding and drop invalid UTF-8 sequences
+        $string = mb_convert_encoding($string, 'UTF-8', 'UTF-8');
+        
+        // Use iconv to strip remaining invalid byte patterns
+        $clean = iconv('UTF-8', 'UTF-8//IGNORE', $string);
+        if ($clean !== false) {
+            $string = $clean;
+        }
+
+        // Drop null bytes
+        $string = str_replace(chr(0), '', $string);
+
+        return $string;
+    }
+
     private function importRecord(array $data, ?int $clientId): void
     {
         $meta      = $data['metadata'] ?? [];
@@ -146,6 +202,7 @@ class ImportLegalRecords extends Command
         }
 
         $fullText = $this->stripHtml($data['full_case_text'] ?? '');
+        $fullText = $this->cleanUtf8($fullText);
 
         $record = LegalRecord::create([
             'record_id'        => $recordId,
@@ -155,10 +212,10 @@ class ImportLegalRecords extends Command
             'upload_date'      => $this->parseDate($date),
             'tags'             => $data['tags'] ?? [],
             'source_type'      => 'Court_Judgment',
-            'source_reference' => $caseNum,
-            'court_type'       => $courtType,
+            'source_reference' => $this->cleanUtf8($caseNum),
+            'court_type'       => $this->cleanUtf8($courtType),
             'full_text'        => $fullText,
-            'case_summary'     => $data['case_summary'] ?? null,
+            'case_summary'     => $this->cleanUtf8($data['case_summary'] ?? null),
         ]);
 
         // ── Citations & Q&A Pairs ───────────────────────────────────────────
@@ -185,8 +242,8 @@ class ImportLegalRecords extends Command
             LegalCitation::create([
                 'legal_record_id'  => $record->id,
                 'legal_qa_pair_id' => $qaPair->id,
-                'system_name'      => $systemName ?: $rawCitation,
-                'article_number'   => $articleNumber,
+                'system_name'      => $this->cleanUtf8($systemName ?: $rawCitation),
+                'article_number'   => $this->cleanUtf8($articleNumber),
                 'citation_source'  => $citationSource,
                 'legal_article_id' => $legalArticleId,
             ]);
@@ -249,11 +306,14 @@ class ImportLegalRecords extends Command
             $num  = str_pad($i + 1, 3, '0', STR_PAD_LEFT); // 001, 002 ...
             $qaId = "Q-{$num}";
 
+            $question = $this->cleanUtf8($qa['question'] ?? '');
+            $answer = $this->cleanUtf8($qa['answer'] ?? '');
+
             $qaPair = LegalQaPair::create([
                 'legal_record_id'  => $record->id,
                 'qa_id'            => $qaId,
-                'question'         => $qa['question']        ?? '',
-                'generated_answer' => $qa['answer']          ?? '',
+                'question'         => $question,
+                'generated_answer' => $answer,
                 'review_status'    => 'Pending',
                 'reviewer_id'      => null,
                 'corrected_answer' => null,
@@ -265,8 +325,8 @@ class ImportLegalRecords extends Command
             // Create Legacy AI Task and Legal Task for workbench compatibility
             $aiTask = \App\Models\AiTask::create([
                 'task_type'         => 'legal_verification',
-                'original_data'     => $qa['question'] ?? '',
-                'ai_suggestion'     => $qa['answer']   ?? '',
+                'original_data'     => $question,
+                'ai_suggestion'     => $answer,
                 'client_id'         => $clientId,
                 'status'            => 'pending',
                 'consensus_status'  => 'pending',
@@ -282,16 +342,15 @@ class ImportLegalRecords extends Command
                 'source_id'          => $qaPair->id,
                 'task_type'          => 'verification',
                 'status'             => 'pending',
-                'question'           => $qa['question'] ?? '',
-                'proposed_answer'    => $qa['answer']   ?? '',
+                'question'           => $question,
+                'proposed_answer'    => $answer,
                 'case_text'          => $fullText,
-                'case_reference'     => $caseReference,
+                'case_reference'     => $this->cleanUtf8($caseReference),
                 'domain'             => 'law',
-                'source_file'        => 'Radiif_Golden_5k_Abstract_QA_Fixed.jsonl',
+                'source_file'        => 'Radiif_Master_16-5-2026.jsonl',
             ]);
         }
     }
-
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /**
