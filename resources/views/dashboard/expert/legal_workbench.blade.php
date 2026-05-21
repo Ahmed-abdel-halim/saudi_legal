@@ -332,6 +332,9 @@
                                 
                                 // دمج المجموعتين وحذف التكرار
                                 $allTags = array_unique(array_merge($savedTags, $suggestedKeywords));
+                                // إخفاء الـ tags الداخلية التي تكشف طبيعة السؤال الاختباري
+                                $hiddenTags = ['gold_standard', 'test_question', 'gold standard', 'test question'];
+                                $allTags = array_filter($allTags, fn($t) => !in_array(strtolower(trim($t)), $hiddenTags));
                                 $allTags = array_slice(array_filter($allTags), 0, 10); // تحديد العدد الأقصى
                             @endphp
                             
@@ -431,14 +434,14 @@
                 </div>
 
                 <!-- Card Footer Navigation -->
-                <div class="bg-gray-50/50 px-8 py-4 border-t border-gray-100 flex justify-between items-center">
+                <div class="bg-gray-50/50 px-8 py-5 border-t border-gray-100 flex justify-between items-center">
                     <button onclick="skipTask()"
-                        class="text-gray-400 hover:text-gray-800 font-bold text-sm flex items-center gap-2 transition">
-                        تخطي <i class="fa-solid fa-forward-step rtl:rotate-180"></i>
+                        class="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-600 font-bold text-sm rounded-xl hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 transition shadow-sm">
+                        تخطي <i class="fa-solid fa-forward-step"></i>
                     </button>
                     <button onclick="previousTask()"
-                        class="text-gray-400 hover:text-gray-800 font-bold text-sm flex items-center gap-2 transition">
-                        <i class="fa-solid fa-angle-right rtl:rotate-180"></i> السابقة
+                        class="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-600 font-bold text-sm rounded-xl hover:bg-gray-100 hover:border-gray-300 hover:text-gray-900 transition shadow-sm">
+                        <i class="fa-solid fa-angle-right"></i> السابقة
                     </button>
                 </div>
 
@@ -605,12 +608,28 @@
 
         async function previousTask() {
             try {
-                await fetch("{{ route('dashboard.expert.legal_workbench.previous') }}", {
+                const response = await fetch("{{ route('dashboard.expert.legal_workbench.previous') }}", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify({ _token: "{{ csrf_token() }}" })
                 });
-                animateAndReload(true);
+                const result = await response.json();
+                if (result.success && result.found) {
+                    animateAndReload(true);
+                } else if (result.success && !result.found) {
+                    // لا توجد مهمة سابقة
+                    const btn = document.querySelector('button[onclick="previousTask()"]');
+                    if (btn) {
+                        btn.textContent = 'لا توجد سابقة';
+                        btn.disabled = true;
+                        btn.classList.add('opacity-40', 'cursor-not-allowed');
+                        setTimeout(() => {
+                            btn.innerHTML = '<i class="fa-solid fa-angle-right"></i> السابقة';
+                            btn.disabled = false;
+                            btn.classList.remove('opacity-40', 'cursor-not-allowed');
+                        }, 2000);
+                    }
+                }
             } catch (error) { console.error('Error:', error); }
         }
 

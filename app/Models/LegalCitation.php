@@ -41,7 +41,22 @@ class LegalCitation extends Model
 
     public function getArticleTextAttribute(): ?string
     {
-        return $this->article?->content;
+        // لو في مادة مرتبطة من قاعدة البيانات → نرجع نصها
+        if ($this->article?->content) {
+            return $this->article->content;
+        }
+
+        // لو المصدر نص حر (مبدأ قضائي، استنباط، إلخ) → نرجع system_name كما هو
+        if ($this->citation_source === 'other') {
+            return $this->system_name;
+        }
+
+        // لو مادة قانونية لكن غير موجودة في الـ DB → نرجع system_name (يحتوي على النص الخام)
+        if ($this->citation_source === 'law' && !$this->legal_article_id) {
+            return $this->system_name;
+        }
+
+        return null;
     }
 
     /**
@@ -72,7 +87,7 @@ class LegalCitation extends Model
         return [
             'system_name'    => $this->system_name,
             'article_number' => $this->article_number,
-            'article_text'   => $this->getArticleTextAttribute() ?? '',
+            'article_text'   => $this->getArticleTextAttribute(),
         ];
     }
 }

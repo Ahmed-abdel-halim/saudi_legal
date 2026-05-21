@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\LegalQaPair;
 use App\Models\LegalRecord;
 use App\Models\LegalCitation;
+use App\Models\GovernanceLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -80,6 +81,17 @@ class LegalTaskController extends Controller
                 // Only skip empty or extremely short entries (e.g. noise or empty fields)
                 if (mb_strlen($system) < 3) return null;
 
+                // حالة خاصة: مادة قانونية بدون اسم نظام محدد (مثل "المادة 84" في الـ JSONL)
+                if ($c->citation_source === 'law' && ($system === 'نظام غير محدد' || empty($system))) {
+                    $artLabel = $c->article_number ? "المادة {$c->article_number}" : 'مادة قانونية';
+                    return (object) [
+                        'id' => 'temp-' . $c->id,
+                        'legislation_title' => 'مرجع قانوني',
+                        'article_title' => $artLabel,
+                        'content' => 'نص المادة غير متوفر حالياً في قاعدة البيانات. المرجع: ' . $artLabel
+                    ];
+                }
+
                 $isPrinciple = str_contains($system, 'مبدأ قضائي')
                     || str_contains($system, 'المبدأ')
                     || str_contains($system, 'قاعدة قضائية')
@@ -116,22 +128,18 @@ class LegalTaskController extends Controller
                     || str_contains($system, 'الخبير');
 
                 if ($isPrinciple) {
-                    $cleanTitle = str_replace(['مبدأ قضائي:', 'مبدأ قضائي :', 'مبدأ قضائي مستقر في'], '', $system);
-                    $cleanTitle = trim($cleanTitle);
                     return (object) [
                         'id' => 'temp-' . $c->id,
                         'legislation_title' => 'مبدأ قضائي مرتبط',
                         'article_title' => '',
-                        'content' => $cleanTitle
+                        'content' => $system
                     ];
                 } elseif ($isSharia) {
-                    $cleanTitle = str_replace(['القاعدة الشرعية:', 'القاعدة الشرعية :'], '', $system);
-                    $cleanTitle = trim($cleanTitle);
                     return (object) [
                         'id' => 'temp-' . $c->id,
                         'legislation_title' => 'مستند شرعي / فقهي',
                         'article_title' => '',
-                        'content' => $cleanTitle
+                        'content' => $system
                     ];
                 } elseif ($isContract) {
                     return (object) [
@@ -148,12 +156,21 @@ class LegalTaskController extends Controller
                         'content' => $system
                     ];
                 } else {
-                    $isLawWord = str_contains($system, 'نظام')
-                        || str_contains($system, 'قانون')
+                    // التحقق من الكلمات الدلالية للأنظمة والقوانين مع تجنب التطابق الخاطئ مع كلمات مثل "النظامية" أو "قانوني" في الجمل الطويلة
+                    $isLawWord = (
+                            str_contains($system, 'نظام ') 
+                            || str_contains($system, 'لنظام ') 
+                            || str_contains($system, 'بالنظام ')
+                            || str_contains($system, 'الأنظمة')
+                            || $system === 'نظام'
+                        )
+                        || (str_contains($system, 'قانون ') || str_contains($system, 'القانون ') || $system === 'قانون')
                         || str_contains($system, 'لائحة')
                         || str_contains($system, 'مرسوم')
                         || str_contains($system, 'قرار');
-                    if ($isLawWord && mb_strlen($system) < 150) {
+
+                    // تقليل الحد الأقصى لطول اسم النظام إلى 120 حرفاً لتجنب الجمل الطويلة التي تسرد الوقائع
+                    if ($isLawWord && mb_strlen($system) < 120) {
                         $artTitle = 'مادة غير محددة';
                         $artSuffix = '';
                         if ($c->article_number) {
@@ -181,7 +198,31 @@ class LegalTaskController extends Controller
                         ];
                     }
                 }
-            })->filter()->unique(fn($a) => is_object($a) ? ($a->id ?? $a->legislation_title) : $a);
+            })->filter();
+
+            // دمج المصادر المتكررة (مثل وقائع الدعوى أو المبادئ المستنبطة) في بطاقة واحدة لتجنب التكرار ولتسهيل القراءة
+            $groupedArticles = collect();
+            foreach ($mentionedArticles as $art) {
+                $key = trim($art->legislation_title) . '|||' . trim($art->article_title ?? '');
+                if (!$groupedArticles->has($key)) {
+                    $groupedArticles->put($key, (object) [
+                        'id' => $art->id,
+                        'legislation_title' => $art->legislation_title,
+                        'article_title' => $art->article_title ?? '',
+                        'content' => $art->content
+                    ]);
+                } else {
+                    $existing = $groupedArticles->get($key);
+                    $existing->content = $existing->content . "\n\n• " . $art->content;
+                }
+            }
+
+            $mentionedArticles = $groupedArticles->values()->map(function($art) {
+                if (str_contains($art->content, "\n\n• ")) {
+                    $art->content = "• " . $art->content;
+                }
+                return $art;
+            });
         }
 
         $stats = $this->getExpertStats($expert);
@@ -257,17 +298,81 @@ class LegalTaskController extends Controller
                 ->first();
 
             if ($legalTask) {
-                // إنشاء استجابة (AiResponse) لتفعيل التقييم التلقائي (Gold Standard & Consensus)
-                \App\Models\AiResponse::create([
-                    'task_id'          => $legalTask->task_id,
-                    'expert_id'        => Auth::id(),
-                    'corrected_data'   => $request->is_correct ? ($qa->generated_answer ?: '') : $request->correct_answer,
-                    'correction_notes' => $request->expert_comment,
-                    'confidence_level' => 10,
-                    'action'           => $request->is_correct ? 'accepted' : 'edited',
-                    'reward_amount'    => 2.00, // 2 ريال لكل مراجعة
-                    'time_spent'       => $request->input('time_spent'),
-                ]);
+                // updateOrCreate لتجنب Duplicate entry عند إعادة تصحيح مهمة سابقة
+                $aiResponse = \App\Models\AiResponse::updateOrCreate(
+                    [
+                        'task_id'   => $legalTask->task_id,
+                        'expert_id' => Auth::id(),
+                    ],
+                    [
+                        'corrected_data'   => $request->is_correct ? ($qa->generated_answer ?: '') : $request->correct_answer,
+                        'correction_notes' => $request->expert_comment,
+                        'confidence_level' => 10,
+                        'action'           => $request->is_correct ? 'accepted' : 'edited',
+                        'reward_amount'    => 2.00,
+                        'time_spent'       => $request->input('time_spent'),
+                    ]
+                );
+
+                // تفعيل تقييم Gold Standard — لو المهمة اختبارية
+                $aiTask = \App\Models\AiTask::find($legalTask->task_id);
+                if ($aiTask && $aiTask->is_gold_standard) {
+                    // لما المحامي يقول "صحيحة" على سؤال gold standard
+                    // ده يعني إنه وافق على الإجابة الخاطئة المقصودة → فشل الاختبار
+                    // لما يقول "تعديل/تصحيح" → نجح (اكتشف الخطأ)
+                    $expertPassedGold = !$request->is_correct; // نجح لو صحح الإجابة
+                    $expert = \App\Models\User::find(Auth::id());
+
+                    if ($expert) {
+                        $trustScoreBefore = $expert->trust_score;
+
+                        if ($expertPassedGold) {
+                            // نجح: اكتشف إن الإجابة خاطئة وصححها
+                            $expert->increment('gold_tasks_completed');
+                            \App\Models\GovernanceLog::create([
+                                'expert_id'          => $expert->id,
+                                'task_id'            => $aiTask->id,
+                                'event_type'         => 'gold_task_passed',
+                                'event_data'         => json_encode([
+                                    'expert_answer' => $request->correct_answer,
+                                    'gold_answer'   => $aiTask->gold_answer,
+                                    'source'        => 'legal_workbench',
+                                ]),
+                                'trust_score_before' => $trustScoreBefore,
+                                'trust_score_after'  => $trustScoreBefore,
+                            ]);
+                        } else {
+                            // فشل: قال "صحيحة" على إجابة خاطئة مقصودة
+                            $expert->increment('gold_tasks_failed');
+                            $expert->decrement('trust_score', 10);
+                            $expert->refresh();
+
+                            \App\Models\GovernanceLog::create([
+                                'expert_id'          => $expert->id,
+                                'task_id'            => $aiTask->id,
+                                'event_type'         => 'gold_task_failed',
+                                'event_data'         => json_encode([
+                                    'expert_answer' => 'accepted_wrong_answer',
+                                    'gold_answer'   => $aiTask->gold_answer,
+                                    'source'        => 'legal_workbench',
+                                ]),
+                                'trust_score_before' => $trustScoreBefore,
+                                'trust_score_after'  => $expert->trust_score,
+                            ]);
+
+                            // حظر تلقائي لو الـ trust score أقل من 60
+                            if ($expert->trust_score < 60 && !$expert->is_banned) {
+                                $expert->update([
+                                    'is_banned'           => true,
+                                    'banned_at'           => now(),
+                                    'ban_reason'          => 'انخفض مؤشر الثقة عن 60 بسبب الفشل في أسئلة الاختبار.',
+                                    'is_active'           => false,
+                                    'is_active_for_hire'  => false,
+                                ]);
+                            }
+                        }
+                    }
+                }
 
                 // تحديث حالة المهمة القانونية الفرعية
                 $legalTask->update([
@@ -297,7 +402,18 @@ class LegalTaskController extends Controller
         $expert = Auth::user();
         $currentId = $request->task_id;
 
-        // 1. Return current task to Pending
+        // 1. حفظ الـ ID الحالي في الـ session stack قبل التخطي
+        $history = session()->get('legal_task_history_' . $expert->id, []);
+        if ($currentId && !in_array($currentId, $history)) {
+            $history[] = (int) $currentId;
+            // نحتفظ بآخر 20 مهمة فقط
+            if (count($history) > 20) {
+                $history = array_slice($history, -20);
+            }
+            session()->put('legal_task_history_' . $expert->id, $history);
+        }
+
+        // 2. Return current task to Pending
         $qa = LegalQaPair::where('id', $currentId)
             ->where('reviewer_id', $expert->id)
             ->first();
@@ -309,13 +425,13 @@ class LegalTaskController extends Controller
             ]);
         }
 
-        // 2. Try to find the NEXT task (ID > currentId) to avoid showing the same one
+        // 3. Try to find the NEXT task (ID > currentId) to avoid showing the same one
         $nextQA = LegalQaPair::where('review_status', 'Pending')
             ->whereNull('reviewer_id')
             ->where('id', '>', $currentId)
             ->first();
 
-        // 3. If no "Next" one, just take any available Pending one that isn't the one we just skipped
+        // 4. If no "Next" one, just take any available Pending one that isn't the one we just skipped
         if (!$nextQA) {
             $nextQA = LegalQaPair::where('review_status', 'Pending')
                 ->whereNull('reviewer_id')
@@ -323,7 +439,7 @@ class LegalTaskController extends Controller
                 ->first();
         }
 
-        // 4. Lock the new one for this expert
+        // 5. Lock the new one for this expert
         if ($nextQA) {
             $nextQA->update([
                 'reviewer_id'   => $expert->id,
@@ -335,31 +451,64 @@ class LegalTaskController extends Controller
     }
 
     /**
-     * Previous task navigation (Simplified for QA Pairs)
+     * Previous task navigation — يرجع للمهمة السابقة من الـ session stack
      */
     public function previous(Request $request)
     {
         $expert = Auth::user();
 
-        // Find last reviewed item
-        $lastQA = LegalQaPair::where('reviewer_id', $expert->id)
-            ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
-            ->orderBy('reviewed_at', 'desc')
+        // 1. Return current Processing task to Pending (بدون مسح reviewer_id من الـ stats)
+        $currentQA = LegalQaPair::where('reviewer_id', $expert->id)
+            ->where('review_status', 'Processing')
             ->first();
 
-        if ($lastQA) {
-            // Return current processing item to Pending
-            LegalQaPair::where('reviewer_id', $expert->id)
-                ->where('review_status', 'Processing')
-                ->update(['review_status' => 'Pending', 'reviewer_id' => null]);
+        $currentId = $currentQA?->id;
 
-            // Re-open the last one
-            $lastQA->update([
-                'review_status' => 'Processing'
+        if ($currentQA) {
+            $currentQA->update([
+                'review_status' => 'Pending',
+                'reviewer_id'   => null,
             ]);
         }
 
-        return response()->json(['success' => true]);
+        // 2. جيب آخر ID من الـ session stack (مع إزالته)
+        $history = session()->get('legal_task_history_' . $expert->id, []);
+
+        // إزالة الـ ID الحالي من الـ history لو موجود
+        $history = array_values(array_filter($history, fn($id) => $id !== $currentId));
+
+        $prevId = !empty($history) ? array_pop($history) : null;
+        session()->put('legal_task_history_' . $expert->id, $history);
+
+        if ($prevId) {
+            $prevQA = LegalQaPair::find($prevId);
+            if ($prevQA) {
+                // نحتفظ بالـ reviewed_at لو كانت مراجعة سابقة (عشان الرصيد ما يتأثرش)
+                $prevQA->update([
+                    'review_status' => 'Processing',
+                    'reviewer_id'   => $expert->id,
+                    // لا نمسح reviewed_at — نتركه كما هو
+                ]);
+                return response()->json(['success' => true, 'found' => true]);
+            }
+        }
+
+        // 3. Fallback: آخر مهمة راجعها المحامي
+        $lastReviewed = LegalQaPair::where('reviewer_id', $expert->id)
+            ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
+            ->orderByDesc('reviewed_at')
+            ->orderByDesc('id')
+            ->first();
+
+        if ($lastReviewed) {
+            $lastReviewed->update([
+                'review_status' => 'Processing',
+                'reviewer_id'   => $expert->id,
+            ]);
+            return response()->json(['success' => true, 'found' => true]);
+        }
+
+        return response()->json(['success' => true, 'found' => false]);
     }
 
     /**
@@ -367,16 +516,17 @@ class LegalTaskController extends Controller
      */
     private function getExpertStats($expert)
     {
+        // نعد المهام اللي اتراجعت اليوم بناءً على reviewed_at بغض النظر عن الحالة الحالية
+        // (حتى لو رجعت للـ Processing بعد الضغط على السابقة)
         $completedToday = LegalQaPair::where('reviewer_id', $expert->id)
-            ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
+            ->whereNotNull('reviewed_at')
             ->whereDate('reviewed_at', Carbon::today())
             ->count();
 
         return [
             'completed_today' => $completedToday,
-            'earnings_today'  => $completedToday * 2.00, // 2 SAR per question
-            'pending_tasks'   => LegalQaPair::where('review_status', 'Pending')
-                ->count(),
+            'earnings_today'  => $completedToday * 2.00,
+            'pending_tasks'   => LegalQaPair::where('review_status', 'Pending')->count(),
         ];
     }
 

@@ -226,18 +226,33 @@ class ImportLegalRecords extends Command
 
     // ─────────────────────────────────────────────────────────────────────────
 
-    private function importCitations(LegalRecord $record, LegalQaPair $qaPair, array $articles): void
+    /**
+     * Import citations for a QA pair.
+     * Returns [firstSystem, firstArticleNumber, firstArticleText] for use in LegalTask.
+     */
+    private function importCitations(LegalRecord $record, LegalQaPair $qaPair, array $articles): array
     {
-        foreach ($articles as $rawCitation) {
+        $firstSystem      = null;
+        $firstArticleNum  = null;
+        $firstArticleText = null;
+
+        foreach ($articles as $idx => $rawCitation) {
             if (empty($rawCitation)) continue;
 
-            [$systemName, $articleNumber] = $this->parseCitationString($rawCitation);
-            $citationSource = $this->detectCitationSource($rawCitation);
+            $citation = $this->classifyCitation($rawCitation);
 
-            // Only search legal_articles for official law citations
-            $legalArticleId = ($citationSource === 'law')
-                ? $this->findLegalArticleId($articleNumber, $systemName)
-                : null;
+            if ($citation['type'] === 'law') {
+                $systemName     = $citation['system_name'];
+                $articleNumber  = $citation['article_number'];
+                $citationSource = $this->detectCitationSource($rawCitation);
+                $legalArticleId = $this->findLegalArticleId($articleNumber, $systemName);
+            } else {
+                // نص حر: مبدأ قضائي، استنباط، بند عقد، إلخ
+                $systemName     = null;
+                $articleNumber  = null;
+                $citationSource = $this->detectCitationSource($rawCitation);
+                $legalArticleId = null;
+            }
 
             LegalCitation::create([
                 'legal_record_id'  => $record->id,
@@ -247,7 +262,20 @@ class ImportLegalRecords extends Command
                 'citation_source'  => $citationSource,
                 'legal_article_id' => $legalArticleId,
             ]);
+
+            if ($idx === 0) {
+                $firstSystem     = $systemName;
+                $firstArticleNum = $articleNumber;
+                if ($citation['type'] === 'law' && $legalArticleId) {
+                    $firstArticleText = LegalArticle::find($legalArticleId)?->content;
+                } elseif ($citation['type'] === 'free_text') {
+                    // النص الحر يُستخدم مباشرةً كنص المادة للعرض
+                    $firstArticleText = $this->cleanUtf8($rawCitation);
+                }
+            }
         }
+
+        return [$firstSystem, $firstArticleNum, $firstArticleText];
     }
 
     /**
@@ -319,8 +347,10 @@ class ImportLegalRecords extends Command
                 'corrected_answer' => null,
             ]);
 
-            // ── Import Citations specifically for THIS QA Pair ──────────────
-            $this->importCitations($record, $qaPair, $qa['legal_articles'] ?? []);
+            // ── Import Citations & استخراج أول إحالة للـ LegalTask ──────────────
+            [$firstSystem, $firstArticleNum, $firstArticleText] = $this->importCitations(
+                $record, $qaPair, $qa['legal_articles'] ?? []
+            );
 
             // Create Legacy AI Task and Legal Task for workbench compatibility
             $aiTask = \App\Models\AiTask::create([
@@ -344,6 +374,9 @@ class ImportLegalRecords extends Command
                 'status'             => 'pending',
                 'question'           => $question,
                 'proposed_answer'    => $answer,
+                'law_system_name'    => mb_substr($this->cleanUtf8($firstSystem ?: ($firstArticleText ? 'مبدأ قضائي' : 'نظام غير محدد')) ?? '', 0, 200),
+                'law_article_number' => mb_substr($this->cleanUtf8($firstArticleNum ?: ($firstArticleText ? 'مبدأ' : 'غير محدد')) ?? '', 0, 50),
+                'law_article_text'   => $firstArticleText,
                 'case_text'          => $fullText,
                 'case_reference'     => $this->cleanUtf8($caseReference),
                 'domain'             => 'law',
@@ -361,46 +394,110 @@ class ImportLegalRecords extends Command
      *
      * Returns [systemName, articleNumber]
      */
+    /**
+     * تحديد نوع الإحالة: مادة قانونية رسمية أم نص حر (مبدأ قضائي/استنباط/إلخ)؟
+     *
+     * تُعيد:
+     *   ['type' => 'law',       'system_name' => ..., 'article_number' => ..., 'raw_text' => ...]
+     *   ['type' => 'free_text', 'system_name' => null, 'article_number' => null, 'raw_text' => ...]
+     */
+    private function classifyCitation(string $raw): array
+    {
+        $raw = trim($raw);
+
+        // إذا كان النص طويلاً جداً (أكثر من 120 حرفاً) فهو على الأرجح نص مستنبط وليس مرجعاً قانونياً مختصراً
+        if (mb_strlen($raw) > 120) {
+            return [
+                'type'           => 'free_text',
+                'system_name'    => null,
+                'article_number' => null,
+                'raw_text'       => $raw,
+            ];
+        }
+
+        // إذا كان المرجع يبدو كنص حر غير نظامي (عقد، اتفاقية، مبدأ قضائي، إلخ)، فهو free_text
+        $isNonLaw = (bool) preg_match(
+            '/(?:العقد|اتفاق|محضر|إفادة|تقرير|بينة|سند|فاتورة|كشف|خطاب|مبدأ|قاعدة شرعية|فقه|أسباب|منطوق|تاريخ|مستنبط|استنباط|قضائي مستقر|أحكام قضائية|الاجتهاد)/ui',
+            $raw
+        );
+
+        if ($isNonLaw) {
+            return [
+                'type'           => 'free_text',
+                'system_name'    => null,
+                'article_number' => null,
+                'raw_text'       => $raw,
+            ];
+        }
+
+        // محاولة تحليل وتفكيك الإحالة
+        [$systemName, $articleNumber] = $this->parseCitationString($raw);
+
+        $hasLawIndicator = (bool) preg_match(
+            '/(?:من|في|بموجب|وفق)\s+(?:نظام|لائحة|قانون|مرسوم|قرار)|^(?:نظام|لائحة|قانون)\s+/ui',
+            $raw
+        );
+
+        $hasArticle = $articleNumber !== null || (bool) preg_match('/مادة|المادة/ui', $raw);
+
+        if ($hasArticle || $hasLawIndicator) {
+            return [
+                'type'           => 'law',
+                'system_name'    => $systemName ?: 'نظام غير محدد',
+                'article_number' => $articleNumber,
+                'raw_text'       => $raw,
+            ];
+        }
+
+        return [
+            'type'           => 'free_text',
+            'system_name'    => null,
+            'article_number' => null,
+            'raw_text'       => $raw,
+        ];
+    }
+
     private function parseCitationString(string $raw): array
     {
         $rawClean = trim($this->convertArabicNumbers($raw));
         
-        // Normalize parentheses around numbers like (29) or (٢٩)
-        $rawClean = preg_replace('/\((\d+)\)/u', '$1', $rawClean);
+        // تنظيف الأقواس المحيطة بالأرقام أو الكلمات التي تلي "المادة" أو "مادة" مباشرةً لتسهيل المطابقة والتحليل
+        // مثال: "المادة (51)" -> "المادة 51"، "المادة (السادسة والثلاثون)" -> "المادة السادسة والثلاثون"
+        $rawClean = preg_replace('/(?:المادة|مادة)\s*(?:رقم\s*)?\(\s*([^)]+)\s*\)/ui', 'المادة $1', $rawClean);
 
         $articleNumber = null;
         $systemName = null;
 
-        // 1. Try to find the first digits after "المادة" (e.g., "المادة 29", "المادة 30/1" -> "30")
+        // 1. محاولة استخراج الأرقام مباشرة بعد كلمة المادة (مثال: "المادة 29")
         if (preg_match('/المادة\s+(?:رقم\s+)?(\d+)/ui', $rawClean, $m)) {
             $articleNumber = $m[1];
         } else {
-            // 2. If no digits, try to find written Arabic words after "المادة" until we hit من/في/بموجب/وفق or end of string
+            // 2. إذا لم تكن هناك أرقام، نبحث عن الكلمات الترتيبية العربية (حروف) بعد كلمة "المادة" وحتى كلمة الفصل (من/في/بموجب/وفق) أو نهاية النص
             if (preg_match('/المادة\s+(.*?)(?:\s+(?:من|في|بموجب|وفق)|$)/ui', $rawClean, $m)) {
                 $written = trim($m[1]);
                 $articleNumber = $this->parseWrittenArabicNumber($written);
             }
         }
 
-        // Extract the system name:
-        // Case A: "المادة X من/في [System]"
+        // استخراج اسم النظام المرجعي:
+        // الحالة أ: "المادة X من/في [اسم النظام]"
         if (preg_match('/المادة\s+.+?\s+(?:من|في|وفق|بموجب)\s+(.+)$/ui', $rawClean, $m)) {
             $systemName = trim($m[1]);
         }
-        // Case B: "الفقرة X من المادة Y من/في [System]"
+        // الحالة ب: "الفقرة X من المادة Y من/في [اسم النظام]"
         elseif (preg_match('/من\s+المادة\s+.+?\s+(?:من|في|وفق|بموجب)\s+(.+)$/ui', $rawClean, $m)) {
             $systemName = trim($m[1]);
         }
-        // Case C: "[System] المادة X" or "[System] المادة [Words]" (no "من/في")
+        // الحالة ج: "[اسم النظام] المادة X" أو "[اسم النظام] المادة [الكلمات]" (بدون حروف جر)
         elseif (preg_match('/^(.+?)\s+المادة\s+/ui', $rawClean, $m)) {
             $systemName = trim($m[1]);
         }
-        // Case D: No "المادة" word at all
+        // الحالة د: لا تحتوي الإحالة على كلمة "المادة" على الإطلاق
         elseif (!preg_match('/المادة/ui', $rawClean)) {
             $systemName = $rawClean;
         }
 
-        // Clean up system name from prefixes/suffixes
+        // تنظيف اسم النظام من السوابق والرموز غير المرغوبة
         if ($systemName) {
             $systemName = preg_replace('/^(?:نظام|لائحة|قانون)\s+/ui', '', $systemName);
             $systemName = trim($systemName, " \t\n\r\0\x0B().");
@@ -486,7 +583,7 @@ class ImportLegalRecords extends Command
         }
 
         // Avoid matching non-law references like contracts, judgments, evidence, etc.
-        $isNonLaw = preg_match('/(?:العقد|اتفاق|محضر|إفادة|تقرير|بينة|سند|فاتورة|كشف|خطاب|مبدأ|قاعدة شرعية|فقه|أسباب|منطوق|تاريخ)/ui', $systemName);
+        $isNonLaw = preg_match('/(?:العقد|اتفاق|محضر|إفادة|تقرير|بينة|سند|فاتورة|كشف|خطاب|مبدأ|قاعدة شرعية|فقه|أسباب|منطوق|تاريخ|مستنبط|استنباط|قضائي مستقر)/ui', $systemName);
         if ($isNonLaw) {
             return null;
         }
