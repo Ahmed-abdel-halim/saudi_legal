@@ -14,61 +14,28 @@ class ExpertDashboardController extends Controller
     {
         $user = Auth::user();
 
-        // 2. Statistics
+        // 2. Statistics — Legal tasks only
         $total_tasks = 0;
         $tasks_today = 0;
-        
-        try {
-            $stats = DB::table('ai_responses_v2')
-                ->select(DB::raw('count(*) as total_tasks'))
-                ->selectRaw("SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as tasks_today")
-                ->selectRaw("MAX(created_at) as last_activity")
-                ->where('expert_id', $user->id)
-                ->first();
 
-            $total_tasks = $stats->total_tasks ?? 0;
-            $tasks_today = $stats->tasks_today ?? 0;
-        } catch (\Exception $e) {
-            $total_tasks = 0;
-            $tasks_today = 0;
-        }
+        // 3. Financials — Legal tasks only at 0.25 SAR
+        $price_legal = 0.25;
+        $price_per_task = $price_legal; // Legacy fallback for history table if needed
 
-        // Include Legal Tasks (New Schema) in Stats
-        try {
-            $legalStats = \App\Models\LegalQaPair::where('reviewer_id', $user->id)
-                ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
-                ->selectRaw('count(*) as total_tasks')
-                ->selectRaw("SUM(CASE WHEN DATE(reviewed_at) = CURDATE() THEN 1 ELSE 0 END) as tasks_today")
-                ->first();
-
-            $total_tasks += $legalStats->total_tasks ?? 0;
-            $tasks_today += $legalStats->tasks_today ?? 0;
-        } catch (\Exception $e) {}
-
-        // 3. Financials
-        $price_ai = \App\Models\SiteSetting::get('price_per_ai_task', 5.00);
-        $price_legal = 0.25; // Forced to 0.25
-        $price_linguistic = \App\Models\SiteSetting::get('price_per_linguistic_task', 0.25);
-
-        // Calculate total tasks per type (approximate for display)
-        $ai_count = DB::table('ai_responses_v2')->where('expert_id', $user->id)->count();
+        // Legal tasks count (only source of truth)
         $legal_count = \App\Models\LegalQaPair::where('reviewer_id', $user->id)
             ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
             ->count();
-        $linguistic_count = DB::table('linguistic_tasks')->where('expert_id', $user->id)->where('status', 'completed')->count();
 
-        $total_balance = ($ai_count * $price_ai) + ($legal_count * $price_legal) + ($linguistic_count * $price_linguistic);
-        
-        // Today's balance
-        $ai_today = DB::table('ai_responses_v2')->where('expert_id', $user->id)->whereDate('created_at', now())->count();
         $legal_today = \App\Models\LegalQaPair::where('reviewer_id', $user->id)
             ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
             ->whereDate('reviewed_at', now())
             ->count();
-        $linguistic_today = DB::table('linguistic_tasks')->where('expert_id', $user->id)->where('status', 'completed')->whereDate('completed_at', now())->count();
 
-        $today_balance = ($ai_today * $price_ai) + ($legal_today * $price_legal) + ($linguistic_today * $price_linguistic);
-        $price_per_task = $price_ai; // Legacy fallback for history table if needed
+        $total_tasks   = $legal_count;
+        $tasks_today   = $legal_today;
+        $total_balance = $legal_count * $price_legal;
+        $today_balance = $legal_today * $price_legal;
 
         // 4. Level Logic
         $expert_level = __('expert_dashboard.level_new');

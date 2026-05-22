@@ -7,6 +7,7 @@ use App\Models\LegalQaPair;
 use App\Models\LegalRecord;
 use App\Models\LegalCitation;
 use App\Models\GovernanceLog;
+use App\Services\GoldStandardEnrichmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -72,9 +73,28 @@ class LegalTaskController extends Controller
                 'law_article_number'=> $lawArticleNumber,
             ];
 
+            // ── Gold Standard Enrichment ──────────────────────────────────────────
+            // لو سؤال اختبار: نجيب المواد ونص القضية من الـ JSONL الكبير
+            $goldEnrichment = null;
+            try {
+                $enrichmentService = new GoldStandardEnrichmentService();
+                $goldEnrichment = $enrichmentService->enrich($currentQA);
+            } catch (\Exception $e) {
+                // تجاهل الأخطاء — نكمل بالبيانات العادية
+            }
+
+            // لو عندنا enrichment: نحدّث الـ task بالبيانات الجديدة
+            if ($goldEnrichment) {
+                $task->case_text    = $goldEnrichment['case_text'] ?: $task->case_text;
+                $task->wrong_answer = $goldEnrichment['wrong_answer'];
+                $task->is_gold      = true;
+            } else {
+                $task->wrong_answer = null;
+                $task->is_gold      = false;
+            }
+            // ─────────────────────────────────────────────────────────────────────
+
             $mentionedArticles = $citations->map(function($c) {
-                // If linked to a real DB article, return it directly
-                if ($c->article) return $c->article;
                 
                 $system = trim($c->system_name ?? '');
 
@@ -163,6 +183,12 @@ class LegalTaskController extends Controller
                             || str_contains($system, 'بالنظام ')
                             || str_contains($system, 'الأنظمة')
                             || $system === 'نظام'
+                            || str_contains($system, 'المحاكم التجارية')
+                            || str_contains($system, 'المرافعات')
+                            || str_contains($system, 'الإثبات')
+                            || str_contains($system, 'الشركات')
+                            || str_contains($system, 'التحكيم')
+                            || str_contains($system, 'العمل')
                         )
                         || (str_contains($system, 'قانون ') || str_contains($system, 'القانون ') || $system === 'قانون')
                         || str_contains($system, 'لائحة')
@@ -200,15 +226,24 @@ class LegalTaskController extends Controller
                 }
             })->filter();
 
-            // دمج المصادر المتكررة (مثل وقائع الدعوى أو المبادئ المستنبطة) في بطاقة واحدة لتجنب التكرار ولتسهيل القراءة
+            // دمج المصادر المتكررة تماماً فقط (نفس النظام ونفس المادة)
+            // مواد مختلفة من نفس النظام تظهر كبطاقات منفصلة
+            // استثناء: كل مستندات "وقائع / أسباب الحكم" تُدمج في بطاقة واحدة
             $groupedArticles = collect();
             foreach ($mentionedArticles as $art) {
-                $key = trim($art->legislation_title) . '|||' . trim($art->article_title ?? '');
+                // دمج كل مستندات الوقائع في key ثابت واحد
+                if (trim($art->legislation_title) === 'مستند وقائع / أسباب الحكم') {
+                    $key = 'وقائع|||مجمع';
+                } else {
+                    // الـ key يشمل الـ id عشان المواد المختلفة من نفس النظام ما تتدمجش
+                    $key = trim($art->legislation_title) . '|||' . trim($art->article_title ?? '') . '|||' . $art->id;
+                }
+
                 if (!$groupedArticles->has($key)) {
                     $groupedArticles->put($key, (object) [
                         'id' => $art->id,
                         'legislation_title' => $art->legislation_title,
-                        'article_title' => $art->article_title ?? '',
+                        'article_title' => $key === 'وقائع|||مجمع' ? '' : ($art->article_title ?? ''),
                         'content' => $art->content
                     ]);
                 } else {
@@ -223,6 +258,20 @@ class LegalTaskController extends Controller
                 }
                 return $art;
             });
+
+            // ── إضافة المواد من الـ JSONL لو gold standard ──────────────────────
+            if ($goldEnrichment && !empty($goldEnrichment['legal_articles'])) {
+                $jsonlArticles = collect($goldEnrichment['legal_articles'])->map(function($articleText, $i) {
+                    return (object) [
+                        'id'                => 'jsonl-' . $i,
+                        'legislation_title' => 'مادة قانونية (من نص القضية)',
+                        'article_title'     => '',
+                        'content'           => $articleText,
+                    ];
+                });
+                $mentionedArticles = $mentionedArticles->concat($jsonlArticles);
+            }
+            // ─────────────────────────────────────────────────────────────────────
         }
 
         $stats = $this->getExpertStats($expert);
@@ -525,7 +574,7 @@ class LegalTaskController extends Controller
 
         return [
             'completed_today' => $completedToday,
-            'earnings_today'  => $completedToday * 2.00,
+            'earnings_today'  => $completedToday * 0.25,
             'pending_tasks'   => LegalQaPair::where('review_status', 'Pending')->count(),
         ];
     }

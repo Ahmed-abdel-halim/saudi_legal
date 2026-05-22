@@ -80,7 +80,7 @@
         } catch (\Exception $e) {}
 
         $price_per_task = 0.25; 
-        $earnings_today = $stats['completed_today'] * $price_per_task; 
+        $earnings_today = $stats['earnings_today'] ?? 0;
     @endphp
 
     <!-- Stats Header -->
@@ -245,6 +245,8 @@
                                 {{ trim(preg_replace('/\(المصدر:[^\)]+نسبة تأكيد الربط:[^\)]+\)/u', '', $task->proposed_answer)) }}
                             </p>
                         </div>
+
+                        {{-- الإجابة الغلط المقصودة — للـ admin فقط، مش للمحامي --}}
                     </div>
 
                     <!-- Interactive Source Accordions (FAQ Style) -->
