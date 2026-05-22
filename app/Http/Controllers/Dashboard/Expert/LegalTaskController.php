@@ -101,6 +101,9 @@ class LegalTaskController extends Controller
                 // Only skip empty or extremely short entries (e.g. noise or empty fields)
                 if (mb_strlen($system) < 3) return null;
 
+                // استخدام article_text accessor من الـ model (يرجع النص من legal_articles أو system_name)
+                $articleText = $c->article_text ?? $c->system_name;
+
                 // حالة خاصة: مادة قانونية بدون اسم نظام محدد (مثل "المادة 84" في الـ JSONL)
                 if ($c->citation_source === 'law' && ($system === 'نظام غير محدد' || empty($system))) {
                     $artLabel = $c->article_number ? "المادة {$c->article_number}" : 'مادة قانونية';
@@ -108,7 +111,7 @@ class LegalTaskController extends Controller
                         'id' => 'temp-' . $c->id,
                         'legislation_title' => 'مرجع قانوني',
                         'article_title' => $artLabel,
-                        'content' => 'نص المادة غير متوفر حالياً في قاعدة البيانات. المرجع: ' . $artLabel
+                        'content' => $articleText ?: ('نص المادة غير متوفر حالياً في قاعدة البيانات. المرجع: ' . $artLabel)
                     ];
                 }
 
@@ -213,7 +216,7 @@ class LegalTaskController extends Controller
                             'id' => 'temp-' . $c->id,
                             'legislation_title' => $system,
                             'article_title' => $artTitle,
-                            'content' => 'نص المادة غير متوفر حالياً في قاعدة البيانات. المرجع: ' . $system . $artSuffix
+                            'content' => $articleText ?: ('نص المادة غير متوفر حالياً في قاعدة البيانات. المرجع: ' . $system . $artSuffix)
                         ];
                     } else {
                         return (object) [
