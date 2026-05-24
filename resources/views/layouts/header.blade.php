@@ -115,9 +115,9 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 </a>
 
                 {{-- Desktop Navigation --}}
-                <div class="hidden md:flex items-center gap-8">
+                <div class="hidden lg:flex items-center gap-5 text-sm">
                     <a href="{{ route('legal_assistant.public') }}"
-                        class="text-brand-primary font-bold transition whitespace-nowrap bg-brand-primary/10 px-3 py-1.5 rounded-full flex items-center gap-2 border border-brand-primary/20 hover:bg-brand-primary hover:text-white group">
+                        class="text-brand-primary font-bold transition whitespace-nowrap bg-brand-primary/10 px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-brand-primary/20 hover:bg-brand-primary hover:text-white group text-xs">
                         <i class="fa-solid fa-robot group-hover:animate-bounce"></i> {{ $currentLang === 'en' ? 'AI Legal Assistant' : 'المساعد القانوني' }}
                     </a>
                     <a href="{{ route('how-it-works') }}"
@@ -139,10 +139,10 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 </div>
 
                 {{-- Desktop Actions --}}
-                <div class="hidden md:flex items-center gap-4">
+                <div class="hidden lg:flex items-center gap-3 text-sm">
                     {{-- Language Switcher --}}
                     <a href="{{ $switchLangUrl }}"
-                        class="text-sm font-bold text-gray-500 hover:text-brand-primary border border-gray-200 px-3 py-1 rounded-full transition">
+                        class="text-xs font-bold text-gray-500 hover:text-brand-primary border border-gray-200 px-2.5 py-1 rounded-full transition">
                         {{ $targetLangText }}
                     </a>
 
@@ -154,7 +154,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         {{ __('header.BTN_LOGIN', [], $currentLang) }}
                     </a>
                     <a href="{{ route('register.company', ['type' => 'supplier']) }}"
-                        class="bg-brand-primary text-white px-6 py-2.5 rounded-full font-bold shadow-lg hover:bg-opacity-90 transition-all">
+                        class="bg-brand-primary text-white px-4 py-2 rounded-full font-bold shadow-lg hover:bg-opacity-90 transition-all">
                         {{ __('header.BTN_START_NOW', [], $currentLang) }}
                     </a>
                     @else
@@ -276,13 +276,13 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white hidden"></span>
                     </a>
                     <a href="{{ Auth::user() && in_array(Auth::user()->role, ['expert', 'freelancer']) ? route('dashboard.expert') : route('dashboard') }}"
-                        class="bg-brand-primary text-white px-6 py-2.5 rounded-full font-bold shadow-lg hover:bg-opacity-90 transition-all">
+                        class="bg-brand-primary text-white px-4 py-2 rounded-full font-bold shadow-lg hover:bg-opacity-90 transition-all">
                         {{ __('header.BTN_DASHBOARD', [], $currentLang) }}
                     </a>
                     <form action="{{ route('logout') }}" method="POST" class="inline">
                         @csrf
                         <button type="submit"
-                            class="text-gray-600 hover:text-red-600 font-bold transition px-4 py-2.5">
+                            class="text-gray-600 hover:text-red-600 font-bold transition px-3 py-2">
                             {{ __('header.BTN_LOGOUT', [], $currentLang) }}
                         </button>
                     </form>
@@ -290,7 +290,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 </div>
 
                 {{-- Mobile Menu Toggle --}}
-                <div class="md:hidden flex items-center gap-3">
+                <div class="lg:hidden flex items-center gap-3">
                     <button @click="mobileMenuOpen = !mobileMenuOpen"
                         class="text-gray-600 p-1"
                         aria-label="{{ __('header.ARIA_TOGGLE_MENU', [], $currentLang) }}">
@@ -309,7 +309,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 x-transition:leave="transition ease-in duration-150"
                 x-transition:leave-start="opacity-100 transform scale-100"
                 x-transition:leave-end="opacity-0 transform scale-95"
-                class="md:hidden mt-4 pb-4 border-t pt-4">
+                class="lg:hidden mt-4 pb-4 border-t pt-4">
                 <div class="flex flex-col gap-4">
                     <a href="{{ route('legal_assistant.public') }}"
                         class="text-brand-primary font-bold flex items-center gap-2 bg-brand-primary/10 p-2 rounded-lg border border-brand-primary/20">

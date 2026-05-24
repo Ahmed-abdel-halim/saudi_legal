@@ -22,14 +22,14 @@ class ExpertDashboardController extends Controller
         $price_legal = 0.25;
         $price_per_task = $price_legal; // Legacy fallback for history table if needed
 
-        // Legal tasks count (only source of truth)
-        $legal_count = \App\Models\LegalQaPair::where('reviewer_id', $user->id)
-            ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
+        // Legal tasks count (only source of truth) - based on AiResponse
+        $legal_count = \App\Models\AiResponse::where('expert_id', $user->id)
+            ->whereHas('task.legalTask')
             ->count();
 
-        $legal_today = \App\Models\LegalQaPair::where('reviewer_id', $user->id)
-            ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
-            ->whereDate('reviewed_at', now())
+        $legal_today = \App\Models\AiResponse::where('expert_id', $user->id)
+            ->whereHas('task.legalTask')
+            ->whereDate('created_at', now())
             ->count();
 
         $total_tasks   = $legal_count;
@@ -79,23 +79,37 @@ class ExpertDashboardController extends Controller
         }
 
         // 5.b Legal Pending Count (New Structured QA Pairs)
-        $legal_pending_count = \App\Models\LegalQaPair::where('review_status', 'Pending')
+        $legal_pending_count = \App\Models\LegalTask::where('source_type', 'legal_qa_pair')
+            ->whereHas('task', function ($query) use ($user) {
+                $query->whereIn('status', ['pending', 'in_progress'])
+                    ->whereColumn('current_responses', '<', 'required_responses')
+                    ->whereDoesntHave('responses', function ($q) use ($user) {
+                        $q->where('expert_id', $user->id);
+                    })
+                    ->whereDoesntHave('assignments', function ($q) use ($user) {
+                        $q->where('expert_id', $user->id);
+                    });
+            })
             ->count();
 
         // 6. History
         $history = collect([]);
         try {
             $historyV2 = DB::table('ai_responses_v2')
-                ->where('expert_id', $user->id)
-                ->select('id as task_id', 'created_at')
-                ->orderBy('created_at', 'desc')
+                ->leftJoin('legal_tasks', 'ai_responses_v2.task_id', '=', 'legal_tasks.task_id')
+                ->where('ai_responses_v2.expert_id', $user->id)
+                ->whereNull('legal_tasks.id')
+                ->select('ai_responses_v2.id as task_id', 'ai_responses_v2.created_at')
+                ->orderBy('ai_responses_v2.created_at', 'desc')
                 ->limit(5)
                 ->get();
                 
-            $historyLegal = \App\Models\LegalQaPair::where('reviewer_id', $user->id)
-                ->whereIn('review_status', ['Approved', 'Modified', 'Rejected'])
-                ->select('id as task_id', 'reviewed_at as created_at')
-                ->orderBy('reviewed_at', 'desc')
+            $historyLegal = DB::table('ai_responses_v2')
+                ->join('legal_tasks', 'ai_responses_v2.task_id', '=', 'legal_tasks.task_id')
+                ->where('ai_responses_v2.expert_id', $user->id)
+                ->where('legal_tasks.source_type', 'legal_qa_pair')
+                ->select('legal_tasks.source_id as task_id', 'ai_responses_v2.created_at')
+                ->orderBy('ai_responses_v2.created_at', 'desc')
                 ->limit(5)
                 ->get();
                 

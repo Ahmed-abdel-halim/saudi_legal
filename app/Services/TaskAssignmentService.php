@@ -15,7 +15,7 @@ class TaskAssignmentService
         return DB::transaction(function () use ($taskId, $expertId) {
             $task = AiTask::lockForUpdate()->find($taskId);
             if (!$task) throw new Exception("Task not found.");
-            if (in_array($task->status, ['Consensus_Reached','Conflict'])) throw new Exception("Task is already finalized.");
+            if (in_array($task->status->value ?? $task->status, ['Consensus_Reached','Conflict'])) throw new Exception("Task is already finalized.");
 
             $expert = User::find($expertId);
             

@@ -44,6 +44,14 @@ class LegalTask extends Model
         return $this->belongsTo(AiTask::class, 'task_id');
     }
 
+    /**
+     * العلاقة مع السؤال القانوني الأساسي
+     */
+    public function qaPair()
+    {
+        return $this->belongsTo(LegalQaPair::class, 'source_id');
+    }
+
 
     /**
      * الربط التلقائي الذكي عند إنشاء أي مهمة

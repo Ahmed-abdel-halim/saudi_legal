@@ -35,6 +35,11 @@ class LegalQaPair extends Model
         return $this->belongsTo(User::class, 'reviewer_id');
     }
 
+    public function legalTask()
+    {
+        return $this->hasOne(LegalTask::class, 'source_id')->where('source_type', 'legal_qa_pair');
+    }
+
     public function citations()
     {
         return $this->hasMany(LegalCitation::class, 'legal_qa_pair_id');

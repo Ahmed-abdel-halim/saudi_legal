@@ -9,5 +9,7 @@ enum TaskStatus: string
     case Completed  = 'completed';
     case Skipped    = 'skipped';
     case Rejected   = 'rejected';
+    case ConsensusReached = 'Consensus_Reached';
+    case Conflict = 'Conflict';
 }
 

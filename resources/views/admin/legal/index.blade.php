@@ -127,7 +127,29 @@
                             </span>
                         </td>
                         <td class="px-5 py-4">
-                            @if($item->reviewer)
+                            @php
+                                $responses = $item->legalTask?->task?->responses ?? collect();
+                            @endphp
+                            @if($responses->isNotEmpty())
+                                <div class="flex items-center -space-x-2 rtl:space-x-reverse">
+                                    @foreach($responses as $resp)
+                                        @if($resp->expert)
+                                            <div class="w-7 h-7 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-slate-600 shadow-sm relative group cursor-pointer" title="{{ $resp->expert->name }}">
+                                                @if($resp->expert->avatar_path)
+                                                    <img src="{{ asset('uploads/' . $resp->expert->avatar_path) }}" class="w-full h-full rounded-full object-cover">
+                                                @else
+                                                    {{ mb_substr($resp->expert->name, 0, 1) }}
+                                                @endif
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                    @if($responses->count() === 1 && $responses->first()?->expert)
+                                        <span class="text-xs font-bold text-slate-700 ms-3">{{ $responses->first()->expert->name }}</span>
+                                    @elseif($responses->count() > 1)
+                                        <span class="text-xs font-bold text-slate-500 ms-3">({{ $responses->count() }} محامين)</span>
+                                    @endif
+                                </div>
+                            @elseif($item->reviewer)
                                 <div class="flex items-center gap-2">
                                     <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
                                         {{ mb_substr($item->reviewer->name, 0, 1) }}

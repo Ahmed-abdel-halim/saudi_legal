@@ -119,39 +119,118 @@
     {{-- Right Column: Metadata & Citations --}}
     <div class="space-y-6">
         
-        {{-- Reviewer Info --}}
+        {{-- Reviewers List --}}
+        @php
+            $responses = $item->legalTask?->task?->responses ?? collect();
+        @endphp
         <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-            <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">معلومات التدقيق</h4>
+            <div class="flex items-center justify-between mb-6">
+                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest">سجل تدقيق المحامين</h4>
+                <span class="bg-indigo-100 text-indigo-600 text-[10px] font-black px-2.5 py-0.5 rounded-full">{{ $responses->count() }}</span>
+            </div>
             
             <div class="space-y-4">
-                <div class="flex items-center gap-4 p-3 bg-slate-50 rounded-2xl">
-                    <div class="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center text-lg font-black text-slate-800 shadow-sm overflow-hidden">
-                        @if($item->reviewer && $item->reviewer->avatar_path)
-                            <img src="{{ asset('uploads/' . $item->reviewer->avatar_path) }}" class="w-full h-full object-cover">
-                        @else
-                            {{ mb_substr($item->reviewer->name ?? '?', 0, 1) }}
-                        @endif
-                    </div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-400">المحامي المراجع</p>
-                        <h6 class="font-bold text-slate-800">{{ $item->reviewer->name ?? 'غير محدد' }}</h6>
-                    </div>
-                </div>
+                @forelse($responses as $resp)
+                    @if($resp->expert)
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-sm font-black text-slate-800 shadow-sm overflow-hidden">
+                                    @if($resp->expert->avatar_path)
+                                        <img src="{{ asset('uploads/' . $resp->expert->avatar_path) }}" class="w-full h-full object-cover">
+                                    @else
+                                        {{ mb_substr($resp->expert->name, 0, 1) }}
+                                    @endif
+                                </div>
+                                <div class="flex-1 whitespace-normal">
+                                    <h6 class="text-xs font-black text-slate-800">{{ $resp->expert->name }}</h6>
+                                    <p class="text-[10px] font-bold text-slate-400 mt-0.5">{{ $resp->expert->expert_specialization ?? 'محامٍ مراجع' }}</p>
+                                </div>
+                                <div>
+                                    @if($resp->action === 'accepted')
+                                        <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[9px] font-black">
+                                            معتمد كما هو
+                                        </span>
+                                    @else
+                                        <span class="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-[9px] font-black">
+                                            معدل
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
 
-                <div class="grid grid-cols-3 gap-3 mt-4">
-                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <p class="text-[10px] font-black text-slate-400 uppercase mb-1">توقيت المراجعة</p>
-                        <p class="text-xs font-bold text-slate-700">{{ $item->reviewed_at ? $item->reviewed_at->format('h:i A') : '--:--' }}</p>
-                    </div>
-                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <p class="text-[10px] font-black text-slate-400 uppercase mb-1">التاريخ</p>
-                        <p class="text-xs font-bold text-slate-700">{{ $item->reviewed_at ? $item->reviewed_at->format('Y/m/d') : '----/--/--' }}</p>
-                    </div>
-                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <p class="text-[10px] font-black text-slate-400 uppercase mb-1">مدة التنفيذ</p>
-                        <p class="text-xs font-bold text-indigo-600">{{ $item->time_spent ? floor($item->time_spent / 60) . ':' . str_pad($item->time_spent % 60, 2, '0', STR_PAD_LEFT) : '--:--' }}</p>
-                    </div>
-                </div>
+                            <div class="grid grid-cols-2 gap-2 text-[10px] border-t border-slate-100 pt-2.5">
+                                <div>
+                                    <span class="text-slate-400">التاريخ:</span>
+                                    <span class="font-bold text-slate-700">{{ $resp->created_at->format('Y/m/d - h:i A') }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400">الوقت المستغرق:</span>
+                                    <span class="font-bold text-indigo-600">{{ $resp->time_spent ? floor($resp->time_spent / 60) . ':' . str_pad($resp->time_spent % 60, 2, '0', STR_PAD_LEFT) : '0:00' }}</span>
+                                </div>
+                            </div>
+
+                            @if($resp->action === 'edited')
+                                <div class="bg-white border border-slate-200 rounded-xl p-3 text-[11px] leading-relaxed text-slate-800 font-bold mt-2 whitespace-pre-wrap">
+                                    <div class="text-[9px] text-amber-600 font-black mb-1">الإجابة المصححة:</div>
+                                    {{ $resp->corrected_data }}
+                                </div>
+                            @endif
+
+                            @if($resp->correction_notes)
+                                <div class="bg-slate-100/50 rounded-xl p-3 text-[10px] leading-relaxed text-slate-500 font-medium italic mt-2 whitespace-pre-wrap">
+                                    <div class="text-[9px] text-slate-400 font-black mb-1">تعليق المحامي:</div>
+                                    "{{ $resp->correction_notes }}"
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+                @empty
+                    @if($item->reviewer)
+                        {{-- Fallback logic for legacy single reviews --}}
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-sm font-black text-slate-800 shadow-sm overflow-hidden">
+                                    @if($item->reviewer->avatar_path)
+                                        <img src="{{ asset('uploads/' . $item->reviewer->avatar_path) }}" class="w-full h-full object-cover">
+                                    @else
+                                        {{ mb_substr($item->reviewer->name, 0, 1) }}
+                                    @endif
+                                </div>
+                                <div class="flex-1 whitespace-normal">
+                                    <h6 class="text-xs font-black text-slate-800">{{ $item->reviewer->name }}</h6>
+                                    <p class="text-[10px] font-bold text-slate-400 mt-0.5">{{ $item->reviewer->expert_specialization ?? 'محامٍ مراجع' }}</p>
+                                </div>
+                                <div>
+                                    @if($item->review_status === 'Approved')
+                                        <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[9px] font-black">
+                                            معتمد كما هو
+                                        </span>
+                                    @elseif($item->review_status === 'Modified')
+                                        <span class="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-[9px] font-black">
+                                            معدل
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 text-[10px] border-t border-slate-100 pt-2.5">
+                                <div>
+                                    <span class="text-slate-400">التاريخ:</span>
+                                    <span class="font-bold text-slate-700">{{ $item->reviewed_at ? $item->reviewed_at->format('Y/m/d - h:i A') : '----/--/--' }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400">الوقت المستغرق:</span>
+                                    <span class="font-bold text-indigo-600">{{ $item->time_spent ? floor($item->time_spent / 60) . ':' . str_pad($item->time_spent % 60, 2, '0', STR_PAD_LEFT) : '0:00' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="text-center py-8 text-slate-300 italic text-xs">
+                            <i class="fa-solid fa-hourglass-start text-lg mb-2"></i>
+                            <p>لا توجد مراجعات حتى الآن</p>
+                        </div>
+                    @endif
+                @endforelse
             </div>
         </div>
 

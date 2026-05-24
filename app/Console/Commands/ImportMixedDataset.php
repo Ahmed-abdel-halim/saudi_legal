@@ -96,7 +96,10 @@ class ImportMixedDataset extends Command
             LegalQaPair::truncate();
             LegalCitation::truncate();
             LegalRecord::truncate();
-            AiTask::where('is_gold_standard', true)->delete();
+            DB::table('ai_tasks_v2')->truncate();
+            DB::table('ai_responses_v2')->truncate();
+            DB::table('task_assignments')->truncate();
+            DB::table('task_consensus')->truncate();
             LegalTask::truncate();
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
             $this->info('Tables cleared.');

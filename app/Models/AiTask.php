@@ -42,6 +42,11 @@ class AiTask extends Model
         'sentiment' => \App\Enums\TaskSentiment::class ,
     ];
 
+    public function legalTask()
+    {
+        return $this->hasOne(LegalTask::class, 'task_id');
+    }
+
     public function responses()
     {
         return $this->hasMany(AiResponse::class , 'task_id');

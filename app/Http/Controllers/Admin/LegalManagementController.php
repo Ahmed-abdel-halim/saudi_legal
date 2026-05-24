@@ -14,7 +14,7 @@ class LegalManagementController extends Controller
      */
     public function index(Request $request)
     {
-        $query = LegalQaPair::with(['record', 'reviewer'])
+        $query = LegalQaPair::with(['record', 'reviewer', 'legalTask.task.responses.expert'])
             ->when($request->status, function ($q) use ($request) {
                 return $q->where('review_status', $request->status);
             })
@@ -45,7 +45,7 @@ class LegalManagementController extends Controller
      */
     public function show($id)
     {
-        $item = LegalQaPair::with(['record.citations.article', 'reviewer'])->findOrFail($id);
+        $item = LegalQaPair::with(['record.citations.article', 'reviewer', 'legalTask.task.responses.expert'])->findOrFail($id);
         return view('admin.legal.show', compact('item'));
     }
 }

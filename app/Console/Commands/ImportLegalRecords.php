@@ -99,11 +99,16 @@ class ImportLegalRecords extends Command
         }
 
         if ($this->option('fresh')) {
-            $this->warn('--fresh: Truncating legal_qa_pairs, legal_citations, legal_records ...');
+            $this->warn('--fresh: Truncating legal_qa_pairs, legal_citations, legal_records, tasks, and responses...');
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
             LegalQaPair::truncate();
             LegalCitation::truncate();
             LegalRecord::truncate();
+            DB::table('ai_tasks_v2')->truncate();
+            DB::table('ai_responses_v2')->truncate();
+            DB::table('task_assignments')->truncate();
+            DB::table('task_consensus')->truncate();
+            LegalTask::truncate();
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
             $this->info('Tables cleared.');
         }
