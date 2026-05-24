@@ -242,6 +242,9 @@ Route::prefix('notifications')->name('notifications.')->middleware('auth')->grou
 
 // Services Routes
 Route::get('/services/browse', [ServiceController::class, 'browse'])->name('services.browse');
+Route::get('/services/rlhf', [App\Http\Controllers\PageController::class, 'rlhf'])->name('pages.services.rlhf');
+Route::get('/services/hitl', [App\Http\Controllers\PageController::class, 'hitl'])->name('pages.services.hitl');
+Route::get('/services/data-infrastructure', [App\Http\Controllers\PageController::class, 'dataInfrastructure'])->name('pages.services.data_infrastructure');
 Route::get('/services/{id}', [ServiceController::class, 'show'])->name('services.show');
 Route::get('/services/{id}/contact', [ServiceController::class, 'contact'])->name('services.contact');
 Route::post('/services/{id}/contact', function () {
@@ -368,7 +371,4 @@ Route::get('/stripe/webhook', function () {
 // ─── B2B SaaS Public Pages (Crawlable for Google Approval) ───────────────────
 Route::get('/api-docs', [App\Http\Controllers\PageController::class, 'apiDocs'])->name('pages.api_docs');
 Route::get('/security-compliance', [App\Http\Controllers\PageController::class, 'securityCompliance'])->name('pages.security_compliance');
-Route::get('/services/rlhf', [App\Http\Controllers\PageController::class, 'rlhf'])->name('pages.services.rlhf');
-Route::get('/services/hitl', [App\Http\Controllers\PageController::class, 'hitl'])->name('pages.services.hitl');
-Route::get('/services/data-infrastructure', [App\Http\Controllers\PageController::class, 'dataInfrastructure'])->name('pages.services.data_infrastructure');
 
