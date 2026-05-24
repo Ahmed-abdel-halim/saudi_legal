@@ -17,7 +17,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
         <div class="flex flex-col lg:flex-row justify-between gap-12 lg:gap-8 mb-12">
             
             {{-- Column 1: Logo and Description (Right side in RTL) --}}
-            <div class="lg:w-1/3">
+            <div class="lg:w-1/4">
                 <a href="{{ route('home') }}" class="flex items-center gap-3 mb-6">
                     <div class="bg-brand-primary rounded-lg text-white font-bold h-10 w-10 flex items-center justify-center text-xl">
                         R
@@ -35,7 +35,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 </p>
             </div>
 
-            <div class="lg:w-2/3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            <div class="lg:w-3/4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                 {{-- Column 2: About Section --}}
                 <div>
                     <h4 class="text-lg font-bold mb-6 text-white">{{ __('footer.NAV_ABOUT', [], $currentLang) }}</h4>
@@ -58,14 +58,24 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                     </ul>
                 </div>
 
-                {{-- Column 4: Legal Section --}}
+                {{-- Column 4: Technical Services Section --}}
                 <div>
-                    <h4 class="text-lg font-bold mb-6 text-white">{{ __('footer.NAV_LEGAL_TITLE', [], $currentLang) }}</h4>
+                    <h4 class="text-lg font-bold mb-6 text-white">{{ __('footer.NAV_TECHNICAL_SERVICES', [], $currentLang) }}</h4>
                     <ul class="space-y-3 text-sm">
+                        <li><a href="{{ route('pages.services.rlhf') }}" class="text-gray-400 hover:text-brand-secondary transition-all block">{{ __('footer.NAV_MENU_RLHF', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('pages.services.hitl') }}" class="text-gray-400 hover:text-brand-secondary transition-all block">{{ __('footer.NAV_MENU_HITL', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('pages.services.data_infrastructure') }}" class="text-gray-400 hover:text-brand-secondary transition-all block">{{ __('footer.NAV_MENU_INFRASTRUCTURE', [], $currentLang) }}</a></li>
+                    </ul>
+                </div>
+
+                {{-- Column 5: Developers & Security Section --}}
+                <div>
+                    <h4 class="text-lg font-bold mb-6 text-white">{{ __('footer.NAV_DEVELOPERS_SECURITY', [], $currentLang) }}</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="{{ route('pages.api_docs') }}" class="text-gray-400 hover:text-brand-teal transition-all block">{{ __('footer.NAV_MENU_API_DOCS', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('pages.security_compliance') }}" class="text-gray-400 hover:text-brand-teal transition-all block">{{ __('footer.NAV_MENU_SECURITY_COMPLIANCE', [], $currentLang) }}</a></li>
                         <li><a href="{{ route('legal.terms') }}" class="text-gray-400 hover:text-brand-teal transition-all block">{{ __('footer.NAV_MENU_TERMS', [], $currentLang) }} (B2B)</a></li>
                         <li><a href="{{ route('legal.privacy') }}" class="text-gray-400 hover:text-brand-teal transition-all block">{{ __('footer.NAV_MENU_PRIVACY', [], $currentLang) }}</a></li>
-                        <li><a href="{{ route('legal.msa') }}" class="text-gray-400 hover:text-brand-teal transition-all block">{{ __('footer.NAV_MENU_MSA', [], $currentLang) }} (SLA)</a></li>
-                        <li><a href="{{ route('legal.nda') }}" class="text-gray-400 hover:text-brand-teal transition-all block">@if($currentLang === 'ar') اتفاقية عدم الإفصاح (NDA) @else Non-Disclosure Agreement (NDA) @endif</a></li>
                     </ul>
                 </div>
             </div>

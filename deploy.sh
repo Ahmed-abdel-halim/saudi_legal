@@ -28,6 +28,7 @@ echo "⚡ Optimizing for production..."
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+php artisan sitemap:generate
 
 # Set permissions
 echo "🔐 Setting permissions..."

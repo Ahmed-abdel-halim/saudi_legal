@@ -13,6 +13,7 @@
         "laravel/tinker": "^2.10.1",
         "phpoffice/phpspreadsheet": "^5.7",
         "pusher/pusher-php-server": "^7.2",
+        "spatie/laravel-sitemap": "^8.0",
         "stripe/stripe-php": "^19.4"
     },
     "require-dev": {

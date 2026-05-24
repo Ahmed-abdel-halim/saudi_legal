@@ -212,11 +212,19 @@ class LegalTaskController extends Controller
                                 $artSuffix = "، المادة {$c->article_number}";
                             }
                         }
+                        
+                        // إذا كان هناك نص كامل من legal_articles، استخدمه
+                        // وإلا، اعرض رسالة توضيحية
+                        $content = $articleText;
+                        if (!$c->legal_article_id || !$c->article?->content) {
+                            $content = "⚠️ نص هذه المادة غير متوفر حالياً في قاعدة البيانات.\n\n📌 المرجع: {$system} {$artSuffix}\n\n💡 يمكنك الرجوع للنص الرسمي للنظام أو استخدام نص القضية أدناه للمراجعة.";
+                        }
+                        
                         return (object) [
                             'id' => 'temp-' . $c->id,
                             'legislation_title' => $system,
                             'article_title' => $artTitle,
-                            'content' => $articleText ?: ('نص المادة غير متوفر حالياً في قاعدة البيانات. المرجع: ' . $system . $artSuffix)
+                            'content' => $content
                         ];
                     } else {
                         return (object) [
@@ -263,16 +271,27 @@ class LegalTaskController extends Controller
             });
 
             // ── إضافة المواد من الـ JSONL لو gold standard ──────────────────────
+            // ملاحظة: المواد في الـ JSONL غالباً مجرد references (مثل "المادة 20 من نظام...")
+            // نتحقق إذا كانت نصوص كاملة (أكثر من 100 حرف) قبل إضافتها
             if ($goldEnrichment && !empty($goldEnrichment['legal_articles'])) {
-                $jsonlArticles = collect($goldEnrichment['legal_articles'])->map(function($articleText, $i) {
-                    return (object) [
-                        'id'                => 'jsonl-' . $i,
-                        'legislation_title' => 'مادة قانونية (من نص القضية)',
-                        'article_title'     => '',
-                        'content'           => $articleText,
-                    ];
-                });
-                $mentionedArticles = $mentionedArticles->concat($jsonlArticles);
+                $jsonlArticles = collect($goldEnrichment['legal_articles'])
+                    ->filter(function($articleText) {
+                        // نتجاهل الـ references القصيرة (أقل من 100 حرف)
+                        // ونعرض فقط النصوص الكاملة
+                        return mb_strlen(trim($articleText)) > 100;
+                    })
+                    ->map(function($articleText, $i) {
+                        return (object) [
+                            'id'                => 'jsonl-' . $i,
+                            'legislation_title' => 'مادة قانونية (من نص القضية)',
+                            'article_title'     => '',
+                            'content'           => $articleText,
+                        ];
+                    });
+                
+                if ($jsonlArticles->isNotEmpty()) {
+                    $mentionedArticles = $mentionedArticles->concat($jsonlArticles);
+                }
             }
             // ─────────────────────────────────────────────────────────────────────
         }

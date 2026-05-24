@@ -34,4 +34,14 @@ return [
     // Social Media
     'SOCIAL_TWITTER' => 'Twitter',
     'SOCIAL_LINKEDIN' => 'LinkedIn',
+
+    // B2B SaaS Additions
+    'NAV_TECHNICAL_SERVICES' => 'Technical Services',
+    'NAV_DEVELOPERS_SECURITY' => 'Developers & Security',
+    'NAV_MENU_API_DOCS' => 'API Documentation',
+    'NAV_MENU_SECURITY_COMPLIANCE' => 'Security & Compliance',
+    'NAV_MENU_RLHF' => 'Model Tuning (RLHF)',
+    'NAV_MENU_HITL' => 'Human-in-the-Loop (HITL)',
+    'NAV_MENU_INFRASTRUCTURE' => 'Data Infrastructure',
 ];
+

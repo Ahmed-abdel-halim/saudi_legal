@@ -34,4 +34,14 @@ return [
     // Social Media
     'SOCIAL_TWITTER' => 'تويتر',
     'SOCIAL_LINKEDIN' => 'لينكد إن',
+
+    // B2B SaaS Additions
+    'NAV_TECHNICAL_SERVICES' => 'الخدمات التقنية',
+    'NAV_DEVELOPERS_SECURITY' => 'المطورون والأمان',
+    'NAV_MENU_API_DOCS' => 'توثيق الـ API',
+    'NAV_MENU_SECURITY_COMPLIANCE' => 'الأمان والامتثال (PDPL)',
+    'NAV_MENU_RLHF' => 'مواءمة النماذج (RLHF)',
+    'NAV_MENU_HITL' => 'التحقق البشري (HITL)',
+    'NAV_MENU_INFRASTRUCTURE' => 'البنية التحتية للبيانات',
 ];
+
