@@ -466,6 +466,13 @@ class ImportLegalRecords extends Command
     {
         $rawClean = trim($this->convertArabicNumbers($raw));
         
+        // Preprocess 'م' followed by a number or slash + number
+        // Examples: "م 26" -> "المادة 26", "م/20" -> "المادة 20", "م 26 فقرة 3" -> "المادة 26 فقرة 3"
+        $rawClean = preg_replace('/(?<!\p{L})م\s*[\/\-]?\s*\(?(\d+)\)?(?!\p{L})/u', 'المادة $1', $rawClean);
+        
+        // Handle case: "نظام المحاكم التجارية (1/24)" -> "نظام المحاكم التجارية المادة 24"
+        $rawClean = preg_replace('/(?<!\d)(?<!\d\/)\(?(\d+)\/(\d+)\)?(?!\/\d)(?!\d)/u', 'المادة $2', $rawClean);
+
         // تنظيف الأقواس المحيطة بالأرقام أو الكلمات التي تلي "المادة" أو "مادة" مباشرةً لتسهيل المطابقة والتحليل
         // مثال: "المادة (51)" -> "المادة 51"، "المادة (السادسة والثلاثون)" -> "المادة السادسة والثلاثون"
         $rawClean = preg_replace('/(?:المادة|مادة)\s*(?:رقم\s*)?\(\s*([^)]+)\s*\)/ui', 'المادة $1', $rawClean);
@@ -502,9 +509,16 @@ class ImportLegalRecords extends Command
             $systemName = $rawClean;
         }
 
-        // تنظيف اسم النظام من الرموز غير المرغوبة فقط (نحتفظ بكلمة نظام/لائحة/قانون)
+        // تنظيف اسم النظام من الرموز غير المرغوبة والبيانات الزائدة
         if ($systemName) {
-            $systemName = trim($systemName, " \t\n\r\0\x0B().");
+            // تنظيف البادئات مثل "الفصل السابع من"، "الباب التاسع من"، إلخ
+            $systemName = preg_replace('/^(?:الفصل|الباب|الفقرة|البند)\s+(?:[^\s]+)\s+(?:من\s+)?/ui', '', $systemName);
+            $systemName = preg_replace('/^(?:من\s+)/ui', '', $systemName);
+            
+            // تنظيف اللواحق مثل "الصادرة بقرار..."، "المشار إليها..."، "التي أوجبت..."
+            $systemName = preg_replace('/\s+(?:و?الصادر|و?الصادرة|و?المعدل|و?المعدلة|و?المشار|و?التي|و?الذي|و?الخاص|وبند|رقم\s+\d+|بتاريخ|عام\s+\d+|لعام\s+\d+|\(|\||,\s*|في\s+مراعاة).*$/ui', '', $systemName);
+            
+            $systemName = trim($systemName, " \t\n\r\0\x0B().|-");
         }
 
         return [$systemName, $articleNumber];

@@ -141,7 +141,7 @@ class LegalTaskController extends Controller
             }
             // ─────────────────────────────────────────────────────────────────────
 
-            $mentionedArticles = $citations->map(function($c) {
+            $mentionedArticles = $citations->map(function($c) use ($currentQA) {
                 
                 $system = trim($c->system_name ?? '');
 
@@ -247,8 +247,9 @@ class LegalTaskController extends Controller
 
                     // تقليل الحد الأقصى لطول اسم النظام إلى 120 حرفاً لتجنب الجمل الطويلة التي تسرد الوقائع
                     if ($isLawWord && mb_strlen($system) < 120) {
-                        $artTitle = 'مادة غير محددة';
+                        $artTitle = '';
                         $artSuffix = '';
+                        
                         if ($c->article_number) {
                             if (is_numeric($c->article_number)) {
                                 $ordinal = $this->arabicOrdinal((int) $c->article_number);
@@ -258,6 +259,31 @@ class LegalTaskController extends Controller
                                 $artTitle = "المادة {$c->article_number}";
                                 $artSuffix = "، المادة {$c->article_number}";
                             }
+                        } else {
+                            // لا يوجد رقم مادة — محاولة تحديد المادة تلقائياً من محتوى السؤال والإجابة
+                            $questionText = $currentQA->question ?? '';
+                            $answerText = $currentQA->generated_answer ?? '';
+                            $searchText = $questionText . ' ' . $answerText;
+                            
+                            // البحث في legal_articles عن مواد من نفس النظام
+                            $matchedArticle = $this->findBestMatchingArticle($system, $searchText);
+                            
+                            if ($matchedArticle) {
+                                return (object) [
+                                    'id' => 'temp-' . $c->id,
+                                    'legislation_title' => $system,
+                                    'article_title' => $matchedArticle->article_title,
+                                    'content' => $matchedArticle->content
+                                ];
+                            }
+                            
+                            // لم نجد مادة مطابقة — نعرضه كنص مستنبط من الحكم
+                            return (object) [
+                                'id' => 'temp-' . $c->id,
+                                'legislation_title' => 'نص مستنبط من الحكم',
+                                'article_title' => '',
+                                'content' => "📌 المصدر القانوني: {$system}\n\n" . ($articleText ?: $system)
+                            ];
                         }
                         
                         // إذا كان هناك نص كامل من legal_articles، استخدمه
@@ -265,7 +291,7 @@ class LegalTaskController extends Controller
                         $content = $articleText;
                         $isGeminiRetrieved = false;
 
-                        if (!$c->legal_article_id || !$c->article?->content) {
+                        if (false && (!$c->legal_article_id || !$c->article?->content)) { // Disabled Gemini auto-retrieval to allow manual entry
                             // محاولة استرداد المادة عبر Gemini تلقائياً
                             if (!empty($system) && $system !== 'نظام غير محدد' && $c->article_number) {
                                 try {
@@ -822,5 +848,71 @@ class LegalTaskController extends Controller
         }
 
         return (string) $number;
+    }
+
+    /**
+     * Find the best matching legal article from the database based on question/answer keywords.
+     * Used when a citation references a law by name but without a specific article number.
+     */
+    private function findBestMatchingArticle(string $systemName, string $searchText): ?\App\Models\LegalArticle
+    {
+        // استخراج الكلمات المفتاحية من نص السؤال والإجابة (كلمات أكثر من 3 حروف)
+        $stopWords = ['من', 'في', 'على', 'إلى', 'عن', 'مع', 'هذا', 'هذه', 'ذلك', 'تلك', 'التي', 'الذي', 'التي',
+                       'كان', 'كانت', 'يكون', 'أن', 'إن', 'لا', 'ما', 'هل', 'كيف', 'متى', 'أين', 'لماذا',
+                       'بعد', 'قبل', 'بين', 'حتى', 'عند', 'منذ', 'ثم', 'أو', 'بل', 'لكن', 'وقد', 'فقد',
+                       'ولا', 'فلا', 'أما', 'إذا', 'لو', 'قد', 'كما', 'أيضا', 'أيضاً', 'عليه', 'عليها',
+                       'فيه', 'فيها', 'منه', 'منها', 'به', 'بها', 'له', 'لها', 'وهو', 'وهي'];
+        
+        // تنظيف النص واستخراج كلمات مفتاحية
+        $words = preg_split('/[\s,،.؟?!؛:;()\[\]{}«»"\'"]+/u', $searchText);
+        $keywords = [];
+        foreach ($words as $word) {
+            $clean = trim($word);
+            // كلمات أطول من 3 حروف ومش من الـ stop words
+            if (mb_strlen($clean) > 3 && !in_array($clean, $stopWords)) {
+                $keywords[] = $clean;
+            }
+        }
+        
+        if (empty($keywords)) return null;
+        
+        // البحث في legal_articles عن مواد من نفس النظام
+        $articles = \App\Models\LegalArticle::where('legislation_title', $systemName)->get();
+        
+        if ($articles->isEmpty()) {
+            // محاولة بحث مرن (LIKE)
+            $articles = \App\Models\LegalArticle::where('legislation_title', 'LIKE', '%' . $systemName . '%')->get();
+        }
+        
+        if ($articles->isEmpty()) return null;
+        
+        // حساب نقاط التطابق لكل مادة
+        $bestScore = 0;
+        $bestArticle = null;
+        
+        foreach ($articles as $article) {
+            $score = 0;
+            $content = $article->content ?? '';
+            
+            foreach ($keywords as $keyword) {
+                // عدد مرات ظهور الكلمة في محتوى المادة
+                $count = mb_substr_count($content, $keyword);
+                if ($count > 0) {
+                    $score += $count;
+                }
+            }
+            
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $bestArticle = $article;
+            }
+        }
+        
+        // نقبل النتيجة فقط لو فيه تطابق معقول (3 كلمات على الأقل)
+        if ($bestScore >= 3 && $bestArticle) {
+            return $bestArticle;
+        }
+        
+        return null;
     }
 }
