@@ -231,38 +231,37 @@ class ImportMixedDataset extends Command
         fclose($handle);
         $this->info("تم تحميل {$totalQuestionsLoaded} سؤال عادي ومطابقة {$totalGoldMatched} / {$totalGoldNeeded} من أسئلة الاختبار بنجاح.");
 
-        // 3. الخلط والدمج (Interleaving)
-        // النسبة: لكل 4 أسئلة عادية نضع سؤالاً ذهبياً واحداً
-        $this->info("جاري خلط البيانات وإدراجها بالترتيب المناسب للوركبنش...");
+        // 3. الخلط والدمج العشوائي (Random Shuffling)
+        $this->info("جاري خلط البيانات عشوائياً وإدراجها بالترتيب للوركبنش...");
         
-        $totalNormal = count($normalQuestions);
-        $totalGold = count($goldRecords);
-        
-        $normalIndex = 0;
-        $goldIndex = 0;
-        $insertedCount = 0;
+        $combined = [];
+        foreach ($normalQuestions as $q) {
+            $combined[] = [
+                'type' => 'normal',
+                'data' => $q
+            ];
+        }
+        foreach ($goldRecords as $g) {
+            $combined[] = [
+                'type' => 'gold',
+                'data' => $g
+            ];
+        }
 
-        $bar = $this->output->createProgressBar($totalNormal + $totalGold);
+        shuffle($combined);
+
+        $insertedCount = 0;
+        $bar = $this->output->createProgressBar(count($combined));
         $bar->start();
 
-        while ($normalIndex < $totalNormal || $goldIndex < $totalGold) {
-            // إدراج 4 أسئلة عادية
-            for ($i = 0; $i < 4; $i++) {
-                if ($normalIndex < $totalNormal) {
-                    $this->insertSingleNormalQuestion($normalQuestions[$normalIndex], $clientId, $refService);
-                    $normalIndex++;
-                    $insertedCount++;
-                    $bar->advance();
-                }
+        foreach ($combined as $item) {
+            if ($item['type'] === 'normal') {
+                $this->insertSingleNormalQuestion($item['data'], $clientId, $refService);
+            } else {
+                $this->insertGoldRecord($item['data'], $clientId);
             }
-
-            // إدراج 1 سؤال ذهبي للاختبار
-            if ($goldIndex < $totalGold) {
-                $this->insertGoldRecord($goldRecords[$goldIndex], $clientId);
-                $goldIndex++;
-                $insertedCount++;
-                $bar->advance();
-            }
+            $insertedCount++;
+            $bar->advance();
         }
 
         $bar->finish();
