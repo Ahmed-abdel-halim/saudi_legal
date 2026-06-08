@@ -123,10 +123,17 @@
                                 </div>
                                 <div class="flex flex-wrap gap-2">
                                     @foreach($item->record->citations as $citation)
-                                        <div class="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-slate-600 hover:border-emerald-200 transition cursor-default flex items-center gap-2">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                            {{ $citation->system_name }} {{ $citation->article_number ? ' - المادة ' . $citation->article_number : '' }}
-                                        </div>
+                                        @if($citation->added_by_expert)
+                                            <div class="px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-xl text-[11px] font-black text-indigo-700 hover:border-indigo-300 transition cursor-default flex items-center gap-2">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                                                {{ $citation->system_name }} {{ $citation->article_number ? ' - المادة ' . $citation->article_number : '' }} (إضافتك)
+                                            </div>
+                                        @else
+                                            <div class="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-slate-600 hover:border-emerald-200 transition cursor-default flex items-center gap-2">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                                {{ $citation->system_name }} {{ $citation->article_number ? ' - المادة ' . $citation->article_number : '' }}
+                                            </div>
+                                        @endif
                                     @endforeach
                                 </div>
                             </div>

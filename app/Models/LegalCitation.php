@@ -14,6 +14,11 @@ class LegalCitation extends Model
         'article_number',
         'citation_source',   // 'law' | 'contract' | 'religious' | 'other'
         'legal_article_id',
+        'added_by_expert',
+    ];
+
+    protected $casts = [
+        'added_by_expert' => 'boolean',
     ];
 
     // ── Relations ──────────────────────────────────────────

@@ -573,6 +573,7 @@ class LegalTaskController extends Controller
                             'system_name'      => $ref['system'] ?? 'نظام غير محدد',
                             'article_number'   => $ref['article'] ?? '',
                             'citation_source'  => 'law',
+                            'added_by_expert'  => true,
                         ]);
                     }
                 }

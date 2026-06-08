@@ -243,18 +243,42 @@
 
             <div class="space-y-3">
                 @forelse($item->record->citations as $citation)
-                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 transition group">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                            <span class="text-xs font-black text-slate-800">{{ $citation->system_name }}</span>
+                    @if($citation->added_by_expert)
+                        <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-150 hover:border-indigo-300 transition group relative overflow-hidden">
+                            <div class="absolute top-0 ltr:right-0 rtl:left-0">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-bl-2xl ltr:rounded-tr-none rtl:rounded-tr-2xl bg-indigo-650 bg-indigo-600 text-[9px] font-black text-white uppercase tracking-wider">
+                                    <i class="fa-solid fa-user-tie"></i> إضافة المحامي
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2 mb-2 mt-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                                <span class="text-xs font-black text-indigo-950">{{ $citation->system_name }}</span>
+                            </div>
+                            @if($citation->article_number)
+                                <p class="text-[11px] font-bold text-indigo-600 mb-2">المادة رقم ({{ $citation->article_number }})</p>
+                            @endif
+                            @if($citation->citation_text)
+                                <p class="text-[11px] leading-relaxed text-indigo-900/70 font-medium">
+                                    {{ Str::limit($citation->citation_text, 100) }}
+                                </p>
+                            @endif
                         </div>
-                        @if($citation->article_number)
-                            <p class="text-[11px] font-bold text-emerald-600 mb-2">المادة رقم ({{ $citation->article_number }})</p>
-                        @endif
-                        <p class="text-[11px] leading-relaxed text-slate-500 font-medium">
-                            {{ Str::limit($citation->citation_text, 100) }}
-                        </p>
-                    </div>
+                    @else
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 transition group">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                <span class="text-xs font-black text-slate-800">{{ $citation->system_name }}</span>
+                            </div>
+                            @if($citation->article_number)
+                                <p class="text-[11px] font-bold text-emerald-600 mb-2">المادة رقم ({{ $citation->article_number }})</p>
+                            @endif
+                            @if($citation->citation_text)
+                                <p class="text-[11px] leading-relaxed text-slate-500 font-medium">
+                                    {{ Str::limit($citation->citation_text, 100) }}
+                                </p>
+                            @endif
+                        </div>
+                    @endif
                 @empty
                     <div class="text-center py-6 text-slate-300 italic text-xs">
                         لا توجد استشهادات مربوطة
