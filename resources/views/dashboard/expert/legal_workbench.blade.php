@@ -397,19 +397,30 @@
                         <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 shadow-sm relative overflow-hidden">
                             <div class="absolute top-0 right-0 w-24 h-24 bg-blue-100/50 -mr-8 -mt-8 rounded-full blur-xl"></div>
                             <div class="relative z-10">
-                                <label class="block text-sm font-black text-blue-800 mb-3 flex items-center gap-2">
-                                    <i class="fa-solid fa-book-section text-blue-500"></i> إضافة مرجع قانوني للتصحيح (اختياري)
-                                </label>
-                                <div class="flex flex-col md:flex-row gap-4">
-                                    <div class="flex-1">
-                                        <input type="text" id="correct_law_system" class="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="النظام (مثال: نظام الإثبات)">
-                                    </div>
-                                    <div class="flex-1">
-                                        <input type="text" id="correct_law_article" class="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="المادة (مثال: المادة الأولى)">
+                                <div class="flex justify-between items-center mb-3">
+                                    <label class="block text-sm font-black text-blue-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-book-section text-blue-500"></i> إضافة مراجع قانونية للتصحيح (اختياري)
+                                    </label>
+                                    <button type="button" onclick="addReferenceRow()" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-black rounded-lg hover:bg-blue-700 transition flex items-center gap-1">
+                                        <i class="fa-solid fa-plus text-[10px]"></i> أضف مرجعاً آخر
+                                    </button>
+                                </div>
+                                <div id="references-list" class="space-y-3">
+                                    <!-- First Row -->
+                                    <div class="flex items-center gap-2 reference-row">
+                                        <div class="flex-1">
+                                            <input type="text" class="ref-system w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="النظام (مثال: نظام الإثبات)">
+                                        </div>
+                                        <div class="flex-1">
+                                            <input type="text" class="ref-article w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="المادة (مثال: المادة الأولى)">
+                                        </div>
+                                        <button type="button" onclick="removeReferenceRow(this)" class="p-3 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition opacity-40 hover:opacity-100">
+                                            <i class="fa-solid fa-trash-can text-sm"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <p class="text-xs text-blue-600/80 mt-3 font-bold flex items-center gap-1.5">
-                                    <i class="fa-solid fa-circle-info"></i> سيتم ربط هذا النظام والمادة بالإجابة الصحيحة لتطوير الذكاء الاصطناعي.
+                                    <i class="fa-solid fa-circle-info"></i> سيتم ربط هذه الأنظمة والمواد بالإجابة الصحيحة لتطوير الذكاء الاصطناعي.
                                 </p>
                             </div>
                         </div>
@@ -562,18 +573,74 @@
             }
         }
 
+        let isSubmitting = false;
+
+        function disableAllButtons(disable) {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.disabled = disable;
+                if (disable) {
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            });
+        }
+
+        function addReferenceRow() {
+            const container = document.getElementById('references-list');
+            const newRow = document.createElement('div');
+            newRow.className = "flex items-center gap-2 reference-row animate-in slide-in-from-top-2 duration-200";
+            newRow.innerHTML = `
+                <div class="flex-1">
+                    <input type="text" class="ref-system w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="النظام (مثال: نظام الإثبات)">
+                </div>
+                <div class="flex-1">
+                    <input type="text" class="ref-article w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="المادة (مثال: المادة الأولى)">
+                </div>
+                <button type="button" onclick="removeReferenceRow(this)" class="p-3 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition opacity-40 hover:opacity-100">
+                    <i class="fa-solid fa-trash-can text-sm"></i>
+                </button>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function removeReferenceRow(btn) {
+            const rows = document.querySelectorAll('.reference-row');
+            if (rows.length > 1) {
+                btn.closest('.reference-row').remove();
+            } else {
+                const row = btn.closest('.reference-row');
+                row.querySelector('.ref-system').value = '';
+                row.querySelector('.ref-article').value = '';
+            }
+        }
+
         async function submitTask(isCorrect) {
+            if (isSubmitting) return;
             const taskId = "{{ $task->id ?? '' }}";
             if (!taskId) return;
 
+            isSubmitting = true;
+            disableAllButtons(true);
+
             const selectedTags = Array.from(document.querySelectorAll('input[name="tags[]"]:checked')).map(cb => cb.value);
+
+            // Collect all references
+            const references = [];
+            document.querySelectorAll('.reference-row').forEach(row => {
+                const system = row.querySelector('.ref-system').value.trim();
+                const article = row.querySelector('.ref-article').value.trim();
+                if (system || article) {
+                    references.push({ system, article });
+                }
+            });
 
             const data = {
                 task_id: taskId,
                 is_correct: isCorrect,
                 correct_answer: isCorrect ? null : document.getElementById('correct_answer').value,
-                correct_law_system: isCorrect ? null : document.getElementById('correct_law_system').value,
-                correct_law_article: isCorrect ? null : document.getElementById('correct_law_article').value,
+                correct_law_references: isCorrect ? [] : references,
                 tags: selectedTags,
                 time_spent: seconds,
                 _token: "{{ csrf_token() }}"
@@ -591,24 +658,51 @@
                     animateAndReload();
                 } else {
                     alert('خطأ: ' + result.message);
+                    isSubmitting = false;
+                    disableAllButtons(false);
                 }
-            } catch (error) { console.error('Error:', error); alert('حدث خطأ تقني أثناء الحفظ.'); }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('حدث خطأ تقني أثناء الحفظ.');
+                isSubmitting = false;
+                disableAllButtons(false);
+            }
         }
 
         async function skipTask() {
+            if (isSubmitting) return;
             const taskId = "{{ $task->id ?? '' }}";
             if (!taskId) return;
+            
+            isSubmitting = true;
+            disableAllButtons(true);
+            
             try {
-                await fetch("{{ route('dashboard.expert.legal_workbench.skip') }}", {
+                const response = await fetch("{{ route('dashboard.expert.legal_workbench.skip') }}", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify({ task_id: taskId, _token: "{{ csrf_token() }}" })
                 });
-                animateAndReload();
-            } catch (error) { console.error('Error:', error); }
+                const result = await response.json();
+                if (result.success) {
+                    animateAndReload();
+                } else {
+                    isSubmitting = false;
+                    disableAllButtons(false);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                isSubmitting = false;
+                disableAllButtons(false);
+            }
         }
 
         async function previousTask() {
+            if (isSubmitting) return;
+            
+            isSubmitting = true;
+            disableAllButtons(true);
+            
             try {
                 const response = await fetch("{{ route('dashboard.expert.legal_workbench.previous') }}", {
                     method: 'POST',
@@ -618,21 +712,29 @@
                 const result = await response.json();
                 if (result.success && result.found) {
                     animateAndReload(true);
-                } else if (result.success && !result.found) {
-                    // لا توجد مهمة سابقة
-                    const btn = document.querySelector('button[onclick="previousTask()"]');
-                    if (btn) {
-                        btn.textContent = 'لا توجد سابقة';
-                        btn.disabled = true;
-                        btn.classList.add('opacity-40', 'cursor-not-allowed');
-                        setTimeout(() => {
-                            btn.innerHTML = '<i class="fa-solid fa-angle-right"></i> السابقة';
-                            btn.disabled = false;
-                            btn.classList.remove('opacity-40', 'cursor-not-allowed');
-                        }, 2000);
+                } else {
+                    isSubmitting = false;
+                    disableAllButtons(false);
+                    if (result.success && !result.found) {
+                        // لا توجد مهمة سابقة
+                        const btn = document.querySelector('button[onclick="previousTask()"]');
+                        if (btn) {
+                            btn.textContent = 'لا توجد سابقة';
+                            btn.disabled = true;
+                            btn.classList.add('opacity-40', 'cursor-not-allowed');
+                            setTimeout(() => {
+                                btn.innerHTML = '<i class="fa-solid fa-angle-right"></i> السابقة';
+                                btn.disabled = false;
+                                btn.classList.remove('opacity-40', 'cursor-not-allowed');
+                            }, 2000);
+                        }
                     }
                 }
-            } catch (error) { console.error('Error:', error); }
+            } catch (error) {
+                console.error('Error:', error);
+                isSubmitting = false;
+                disableAllButtons(false);
+            }
         }
 
         function toggleAccordion(id, btn) {

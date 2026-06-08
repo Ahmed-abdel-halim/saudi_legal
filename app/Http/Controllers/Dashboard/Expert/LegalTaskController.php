@@ -499,6 +499,9 @@ class LegalTaskController extends Controller
             'correct_answer'  => 'required_if:is_correct,false|nullable|string',
             'expert_comment'  => 'nullable|string|max:1000',
             'tags'            => 'nullable|array',
+            'correct_law_references' => 'nullable|array',
+            'correct_law_references.*.system' => 'nullable|string|max:255',
+            'correct_law_references.*.article' => 'nullable|string|max:255',
         ]);
 
         $qa = LegalQaPair::findOrFail($request->task_id);
@@ -514,6 +517,19 @@ class LegalTaskController extends Controller
             ->first();
 
         if (!$assignment) {
+            // التحقق مما إذا كان قد تم إرسال الرد بالفعل وتحديث المهمة (لتفادي أخطاء نقر الزر المتكرر أو انتهاء الجلسة المؤقت)
+            $alreadySubmitted = \App\Models\AiResponse::where('task_id', $legalTask->task_id)
+                ->where('expert_id', Auth::id())
+                ->exists();
+
+            if ($alreadySubmitted) {
+                return response()->json([
+                    'success'  => true,
+                    'message'  => 'تم حفظ المراجعة بنجاح، شكراً لك.',
+                    'next_url' => route('dashboard.expert.legal_workbench')
+                ]);
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => 'عذراً، لم يتم تخصيص هذه المهمة لك أو انتهى وقت صلاحيتها.'
@@ -522,7 +538,23 @@ class LegalTaskController extends Controller
 
         $status = $request->is_correct ? 'Approved' : 'Modified';
 
-        DB::transaction(function () use ($qa, $legalTask, $status, $request, $assignment) {
+        // تجميع المراجع المتعددة لحفظها كقيم مفصولة بفواصل للرجوع التاريخي
+        $systems = [];
+        $articles = [];
+        if ($request->has('correct_law_references')) {
+            foreach ($request->correct_law_references as $ref) {
+                if (!empty($ref['system'])) {
+                    $systems[] = trim($ref['system']);
+                }
+                if (!empty($ref['article'])) {
+                    $articles[] = trim($ref['article']);
+                }
+            }
+        }
+        $correctLawSystem = !empty($systems) ? implode('، ', $systems) : null;
+        $correctLawArticle = !empty($articles) ? implode('، ', $articles) : null;
+
+        DB::transaction(function () use ($qa, $legalTask, $status, $request, $assignment, $correctLawSystem, $correctLawArticle) {
             $qa->update([
                 'review_status'    => $status,
                 'reviewer_id'      => Auth::id(), // تحديث الخبير الحالي كآخر لقطة مراجعة
@@ -530,6 +562,21 @@ class LegalTaskController extends Controller
                 'reviewed_at'      => now(),
                 'time_spent'       => $request->input('time_spent'),
             ]);
+
+            // حفظ المراجع القانونية الجديدة في جدول الإحالات لربطها بالسؤال
+            if (!$request->is_correct && $request->has('correct_law_references')) {
+                foreach ($request->correct_law_references as $ref) {
+                    if (!empty($ref['system']) || !empty($ref['article'])) {
+                        \App\Models\LegalCitation::create([
+                            'legal_record_id'  => $qa->legal_record_id,
+                            'legal_qa_pair_id' => $qa->id,
+                            'system_name'      => $ref['system'] ?? 'نظام غير محدد',
+                            'article_number'   => $ref['article'] ?? '',
+                            'citation_source'  => 'law',
+                        ]);
+                    }
+                }
+            }
 
             // Optional: Update record tags if they changed
             if ($request->has('tags')) {
@@ -617,13 +664,15 @@ class LegalTaskController extends Controller
 
                 // تحديث حالة المهمة القانونية الفرعية
                 $legalTask->update([
-                    'status'         => 'completed',
-                    'expert_id'      => Auth::id(),
-                    'completed_at'   => now(),
-                    'correct_answer' => $request->is_correct ? null : $request->correct_answer,
-                    'expert_comment' => $request->expert_comment,
-                    'is_correct'     => $request->is_correct,
-                    'time_spent'     => $request->input('time_spent'),
+                    'status'              => 'completed',
+                    'expert_id'           => Auth::id(),
+                    'completed_at'        => now(),
+                    'correct_answer'      => $request->is_correct ? null : $request->correct_answer,
+                    'expert_comment'      => $request->expert_comment,
+                    'is_correct'          => $request->is_correct,
+                    'time_spent'          => $request->input('time_spent'),
+                    'correct_law_system'  => $correctLawSystem,
+                    'correct_law_article' => $correctLawArticle,
                 ]);
             }
 
