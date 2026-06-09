@@ -500,8 +500,8 @@ class LegalTaskController extends Controller
             'expert_comment'  => 'nullable|string|max:1000',
             'tags'            => 'nullable|array',
             'correct_law_references' => 'nullable|array',
-            'correct_law_references.*.system' => 'nullable|string|max:255',
-            'correct_law_references.*.article' => 'nullable|string|max:255',
+            'correct_law_references.*.system' => 'nullable|string|max:65000',
+            'correct_law_references.*.article' => 'nullable|string|max:65000',
         ]);
 
         $qa = LegalQaPair::findOrFail($request->task_id);
