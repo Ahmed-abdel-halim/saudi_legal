@@ -115,14 +115,19 @@
                         </div>
 
                         <!-- Citations -->
-                        @if($item->record && $item->record->citations->count() > 0)
+                        @php
+                            $itemCitations = ($item->has_custom_citations || $item->citations->count() > 0)
+                                ? $item->citations 
+                                : ($item->record ? $item->record->citations : collect());
+                        @endphp
+                        @if($itemCitations && $itemCitations->count() > 0)
                             <div class="pt-6 border-t border-slate-50">
                                 <div class="flex items-center gap-2 mb-4">
                                     <i class="fa-solid fa-scale-balanced text-emerald-500 text-xs"></i>
                                     <span class="text-xs font-black text-slate-400">المراجع القانونية المرتبطة</span>
                                 </div>
                                 <div class="flex flex-wrap gap-2">
-                                    @foreach($item->record->citations as $citation)
+                                    @foreach($itemCitations as $citation)
                                         @if($citation->added_by_expert)
                                             <div class="px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-xl text-[11px] font-black text-indigo-700 hover:border-indigo-300 transition cursor-default flex items-center gap-2">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>

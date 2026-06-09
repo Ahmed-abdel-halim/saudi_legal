@@ -255,8 +255,8 @@
                         @if($mentioned_articles && $mentioned_articles->count() > 0)
                             @foreach($mentioned_articles as $article)
                                 <div class="border border-gray-100 rounded-[1.5rem] bg-white overflow-hidden shadow-sm transition-all duration-300 hover:border-blue-200">
-                                    <button onclick="toggleAccordion('article-{{ $article->id }}', this)" 
-                                        class="w-full relative px-6 py-5 text-right focus:outline-none bg-white">
+                                    <div onclick="toggleAccordion('article-{{ $article->id }}', this)" 
+                                        class="w-full relative px-6 py-5 text-right cursor-pointer bg-white select-none">
                                         <div class="flex items-center gap-3">
                                             <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex-shrink-0 flex items-center justify-center">
                                                 <i class="fa-solid fa-scale-balanced text-sm"></i>
@@ -266,7 +266,14 @@
                                             </span>
                                         </div>
                                         <i class="fa-solid fa-chevron-down absolute left-6 top-1/2 -translate-y-1/2 text-blue-600 text-lg font-bold transition-transform duration-300"></i>
-                                    </button>
+                                        @if(str_starts_with($article->id, 'temp-'))
+                                            <button onclick="deleteCitation('{{ $article->id }}', event)" 
+                                                class="absolute left-16 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition" 
+                                                title="حذف هذا المرجع">
+                                                <i class="fa-solid fa-trash-can text-sm"></i>
+                                            </button>
+                                        @endif
+                                    </div>
                                     <div id="article-{{ $article->id }}" class="hidden px-6 pb-6 bg-blue-50/30 border-t border-blue-50">
                                         <div dir="rtl" style="text-align: right !important;" class="text-gray-800 text-lg leading-loose font-bold w-full pt-6 whitespace-pre-wrap">{{ trim(strip_tags($article->content)) }}</div>
                                     </div>
@@ -746,7 +753,7 @@
             document.querySelectorAll('[id^="article-"], #judgment-accordion').forEach(el => {
                 if (el.id !== id) {
                     el.classList.add('hidden');
-                    const otherBtn = document.querySelector(`button[onclick*="'${el.id}'"]`);
+                    const otherBtn = document.querySelector(`[onclick*="'${el.id}'"]`);
                     if (otherBtn) {
                         const otherIcon = otherBtn.querySelector('i.fa-chevron-down');
                         if (otherIcon) otherIcon.style.transform = 'rotate(0deg)';
@@ -760,6 +767,42 @@
             } else {
                 content.classList.add('hidden');
                 icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        async function deleteCitation(articleId, event) {
+            if (event) event.stopPropagation();
+            
+            if (!confirm('هل أنت متأكد من رغبتك في حذف هذا المرجع القانوني؟')) {
+                return;
+            }
+
+            const taskId = "{{ $task->id ?? '' }}";
+            if (!taskId || !articleId) return;
+
+            try {
+                const response = await fetch("{{ route('dashboard.expert.legal_workbench.delete_citation') }}", {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ 
+                        task_id: taskId, 
+                        citation_id: articleId 
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    animateAndReload();
+                } else {
+                    alert('خطأ: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('حدث خطأ تقني أثناء حذف المرجع.');
             }
         }
 

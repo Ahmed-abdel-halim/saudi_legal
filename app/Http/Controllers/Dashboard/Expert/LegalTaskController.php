@@ -25,6 +25,15 @@ class LegalTaskController extends Controller
      */
     public function index(Request $request)
     {
+        // Dynamic Schema Patch
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('legal_qa_pairs', 'has_custom_citations')) {
+                \Illuminate\Support\Facades\Schema::table('legal_qa_pairs', function ($table) {
+                    $table->boolean('has_custom_citations')->default(false);
+                });
+            }
+        } catch (\Exception $e) {}
+
         $expert = Auth::user();
 
         // 1. Look for a QA pair currently being processed by this expert (via active TaskAssignment)
@@ -97,7 +106,7 @@ class LegalTaskController extends Controller
 
         if ($currentQA) {
             // Get citations from the new relational table (specifically for this QA pair)
-            $citations = $currentQA->citations->count() > 0 
+            $citations = ($currentQA->has_custom_citations || $currentQA->citations->count() > 0)
                 ? $currentQA->citations 
                 : $currentQA->record->citations;
 
@@ -458,7 +467,7 @@ class LegalTaskController extends Controller
         // جلب ردود هذا الخبير لمهام التحقق القانونية
         $responses = AiResponse::where('expert_id', $expert->id)
             ->whereHas('task.legalTask')
-            ->with(['task.legalTask.qaPair.record.citations'])
+            ->with(['task.legalTask.qaPair.record.citations', 'task.legalTask.qaPair.citations'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
@@ -565,6 +574,22 @@ class LegalTaskController extends Controller
 
             // حفظ المراجع القانونية الجديدة في جدول الإحالات لربطها بالسؤال
             if (!$request->is_correct && $request->has('correct_law_references')) {
+                if (!$qa->has_custom_citations) {
+                    $fallbackCitations = \App\Models\LegalCitation::where('legal_record_id', $qa->legal_record_id)->get();
+                    foreach ($fallbackCitations as $other) {
+                        \App\Models\LegalCitation::create([
+                            'legal_record_id'  => $qa->legal_record_id,
+                            'legal_qa_pair_id' => $qa->id,
+                            'system_name'      => $other->system_name,
+                            'article_number'   => $other->article_number,
+                            'citation_source'  => $other->citation_source,
+                            'legal_article_id' => $other->legal_article_id,
+                            'added_by_expert'  => $other->added_by_expert,
+                        ]);
+                    }
+                    $qa->update(['has_custom_citations' => true]);
+                }
+
                 foreach ($request->correct_law_references as $ref) {
                     if (!empty($ref['system']) || !empty($ref['article'])) {
                         \App\Models\LegalCitation::create([
@@ -964,5 +989,88 @@ class LegalTaskController extends Controller
         }
         
         return null;
+    }
+
+    /**
+     * Delete/Decouple a citation from the current QA task.
+     */
+    public function deleteCitation(Request $request)
+    {
+        $request->validate([
+            'task_id'     => 'required|exists:legal_qa_pairs,id',
+            'citation_id' => 'required|string',
+        ]);
+
+        $expert = Auth::user();
+        $qa = LegalQaPair::findOrFail($request->task_id);
+
+        // Verify task assignment
+        $legalTask = \App\Models\LegalTask::where('source_id', $qa->id)
+            ->where('source_type', 'legal_qa_pair')
+            ->firstOrFail();
+
+        $assignment = TaskAssignment::where('task_id', $legalTask->task_id)
+            ->where('expert_id', $expert->id)
+            ->active()
+            ->first();
+
+        if (!$assignment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'عذراً، لم يتم تخصيص هذه المهمة لك أو انتهى وقت صلاحيتها.'
+            ], 403);
+        }
+
+        $citationIdStr = $request->citation_id;
+        if (!str_starts_with($citationIdStr, 'temp-')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'عذراً، لا يمكن حذف هذا المرجع.'
+            ], 400);
+        }
+
+        $citationId = (int) str_replace('temp-', '', $citationIdStr);
+        $citation = LegalCitation::find($citationId);
+
+        if (!$citation) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المرجع القانوني غير موجود.'
+            ], 404);
+        }
+
+        DB::transaction(function () use ($qa, $citation, $citationId) {
+            // Check if the citation belongs directly to this QA pair
+            if ($citation->legal_qa_pair_id == $qa->id) {
+                // It belongs directly to this QA pair -> we can delete it directly
+                $citation->delete();
+            } else {
+                // It belongs to the parent record (fallback).
+                // We need to copy other citations to this QA pair, excluding the deleted one.
+                $otherCitations = LegalCitation::where('legal_record_id', $qa->legal_record_id)
+                    ->where('id', '!=', $citationId)
+                    ->get();
+
+                foreach ($otherCitations as $other) {
+                    LegalCitation::create([
+                        'legal_record_id'  => $qa->legal_record_id,
+                        'legal_qa_pair_id' => $qa->id,
+                        'system_name'      => $other->system_name,
+                        'article_number'   => $other->article_number,
+                        'citation_source'  => $other->citation_source,
+                        'legal_article_id' => $other->legal_article_id,
+                        'added_by_expert'  => $other->added_by_expert,
+                    ]);
+                }
+            }
+
+            // Mark this QA pair as having customized citations
+            $qa->update(['has_custom_citations' => true]);
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم حذف المرجع بنجاح.'
+        ]);
     }
 }

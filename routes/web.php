@@ -124,6 +124,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/legal-workbench/submit', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'submit'])->name('.legal_workbench.submit');
             Route::post('/legal-workbench/skip', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'skip'])->name('.legal_workbench.skip');
             Route::post('/legal-workbench/previous', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'previous'])->name('.legal_workbench.previous');
+            Route::post('/legal-workbench/delete-citation', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'deleteCitation'])->name('.legal_workbench.delete_citation');
 
             Route::get('/settings', [ExpertDashboardController::class, 'settings'])->name('.settings');
             Route::post('/purchase/{id}/accept', [ExpertDashboardController::class, 'acceptPurchase'])->name('.purchase.accept');

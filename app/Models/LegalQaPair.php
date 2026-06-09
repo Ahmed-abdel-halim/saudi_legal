@@ -17,10 +17,12 @@ class LegalQaPair extends Model
         'corrected_answer',
         'reviewed_at',
         'time_spent',
+        'has_custom_citations',
     ];
 
     protected $casts = [
         'reviewed_at' => 'datetime',
+        'has_custom_citations' => 'boolean',
     ];
 
     // ── Relations ──────────────────────────────────────────
