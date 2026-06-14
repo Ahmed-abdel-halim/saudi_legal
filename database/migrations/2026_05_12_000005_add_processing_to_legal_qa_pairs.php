@@ -10,13 +10,17 @@ return new class extends Migration
     public function up(): void
     {
         // Add 'Processing' to review_status to allow task locking for experts
-        DB::statement("ALTER TABLE legal_qa_pairs MODIFY COLUMN review_status 
-            ENUM('Pending', 'Processing', 'Approved', 'Rejected', 'Modified') NOT NULL DEFAULT 'Pending'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE legal_qa_pairs MODIFY COLUMN review_status 
+                ENUM('Pending', 'Processing', 'Approved', 'Rejected', 'Modified') NOT NULL DEFAULT 'Pending'");
+        }
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE legal_qa_pairs MODIFY COLUMN review_status 
-            ENUM('Pending', 'Approved', 'Rejected', 'Modified') NOT NULL DEFAULT 'Pending'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE legal_qa_pairs MODIFY COLUMN review_status 
+                ENUM('Pending', 'Approved', 'Rejected', 'Modified') NOT NULL DEFAULT 'Pending'");
+        }
     }
 };

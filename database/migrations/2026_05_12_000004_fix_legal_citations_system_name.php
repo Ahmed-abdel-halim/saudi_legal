@@ -18,8 +18,10 @@ return new class extends Migration
         });
 
         // 2. citation_source enum: add 'religious'
-        DB::statement("ALTER TABLE legal_citations MODIFY COLUMN citation_source 
-            ENUM('law','contract','religious','other') NOT NULL DEFAULT 'law'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE legal_citations MODIFY COLUMN citation_source 
+                ENUM('law','contract','religious','other') NOT NULL DEFAULT 'law'");
+        }
     }
 
     public function down(): void
@@ -29,7 +31,9 @@ return new class extends Migration
             $table->index(['legal_record_id', 'system_name']);
         });
 
-        DB::statement("ALTER TABLE legal_citations MODIFY COLUMN citation_source 
-            ENUM('law','contract','other') NOT NULL DEFAULT 'law'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE legal_citations MODIFY COLUMN citation_source 
+                ENUM('law','contract','other') NOT NULL DEFAULT 'law'");
+        }
     }
 };

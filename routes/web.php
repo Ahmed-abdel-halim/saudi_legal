@@ -120,6 +120,8 @@ Route::middleware(['auth'])->group(function () {
 
             // SAUDI LEGAL Routes
             Route::get('/legal-workbench', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'index'])->name('.legal_workbench');
+            Route::get('/legal-workbench/search-systems', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'searchSystems'])->name('.legal_workbench.search_systems');
+            Route::get('/legal-workbench/search-articles', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'searchArticles'])->name('.legal_workbench.search_articles');
             Route::get('/legal-history', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'history'])->name('.legal_history');
             Route::post('/legal-workbench/submit', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'submit'])->name('.legal_workbench.submit');
             Route::post('/legal-workbench/skip', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'skip'])->name('.legal_workbench.skip');

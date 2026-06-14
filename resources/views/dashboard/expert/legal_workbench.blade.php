@@ -212,7 +212,7 @@
         <main class="flex-1 w-full max-w-4xl mx-auto py-10 px-4">
 
             <!-- The Main Card -->
-            <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden relative">
+            <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 relative">
 
                 <div class="p-8 md:p-12 space-y-8">
 
@@ -401,8 +401,10 @@
                         class="hidden space-y-4 pt-4 animate-in fade-in slide-in-from-top-4 duration-300">
                         
                         <!-- NEW SECTION: Add Legal Reference -->
-                        <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 shadow-sm relative overflow-hidden">
-                            <div class="absolute top-0 right-0 w-24 h-24 bg-blue-100/50 -mr-8 -mt-8 rounded-full blur-xl"></div>
+                        <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 shadow-sm relative z-30">
+                            <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
+                                <div class="absolute top-0 right-0 w-24 h-24 bg-blue-100/50 -mr-8 -mt-8 rounded-full blur-xl"></div>
+                            </div>
                             <div class="relative z-10">
                                 <div class="flex justify-between items-center mb-3">
                                     <label class="block text-sm font-black text-blue-800 flex items-center gap-2">
@@ -414,16 +416,22 @@
                                 </div>
                                 <div id="references-list" class="space-y-3">
                                     <!-- First Row -->
-                                    <div class="flex items-center gap-2 reference-row">
-                                        <div class="flex-1">
-                                            <input type="text" class="ref-system w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="النظام (مثال: نظام الإثبات)">
+                                    <div class="bg-white p-4 rounded-xl border border-blue-100 reference-row space-y-3 relative">
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex-1 relative">
+                                                <input type="text" class="ref-system w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="النظام (مثال: نظام الإثبات)" autocomplete="off">
+                                                <div class="ref-system-dropdown hidden absolute right-0 left-0 mt-1 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg z-50 text-right"></div>
+                                            </div>
+                                            <div class="flex-1 relative">
+                                                <input type="text" class="ref-article w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="المادة (مثال: المادة الأولى)" autocomplete="off" disabled>
+                                                <div class="ref-article-dropdown hidden absolute right-0 left-0 mt-1 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg z-50 text-right"></div>
+                                                <input type="hidden" class="ref-article-id">
+                                            </div>
+                                            <button type="button" onclick="removeReferenceRow(this)" class="p-3 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition opacity-40 hover:opacity-100 flex-shrink-0">
+                                                <i class="fa-solid fa-trash-can text-sm"></i>
+                                            </button>
                                         </div>
-                                        <div class="flex-1">
-                                            <input type="text" class="ref-article w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="المادة (مثال: المادة الأولى)">
-                                        </div>
-                                        <button type="button" onclick="removeReferenceRow(this)" class="p-3 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition opacity-40 hover:opacity-100">
-                                            <i class="fa-solid fa-trash-can text-sm"></i>
-                                        </button>
+                                        <div class="ref-article-preview hidden bg-blue-50/40 p-4 rounded-xl border border-blue-100/50 text-sm font-bold text-gray-700 leading-relaxed text-right transition-all duration-300"></div>
                                     </div>
                                 </div>
                                 <p class="text-xs text-blue-600/80 mt-3 font-bold flex items-center gap-1.5">
@@ -454,7 +462,7 @@
                 </div>
 
                 <!-- Card Footer Navigation -->
-                <div class="bg-gray-50/50 px-8 py-5 border-t border-gray-100 flex justify-between items-center">
+                <div class="bg-gray-50/50 px-8 py-5 border-t border-gray-100 flex justify-between items-center rounded-b-[2rem]">
                     <button onclick="skipTask()"
                         class="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-600 font-bold text-sm rounded-xl hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 transition shadow-sm">
                         تخطي <i class="fa-solid fa-forward-step"></i>
@@ -594,22 +602,164 @@
             });
         }
 
+        function initAutocomplete(row) {
+            const systemInput = row.querySelector('.ref-system');
+            const systemDropdown = row.querySelector('.ref-system-dropdown');
+            const articleInput = row.querySelector('.ref-article');
+            const articleDropdown = row.querySelector('.ref-article-dropdown');
+            const articleIdInput = row.querySelector('.ref-article-id');
+            const previewContainer = row.querySelector('.ref-article-preview');
+
+            let systemTimeout = null;
+            let articleTimeout = null;
+
+            // --- SYSTEM SEARCH ---
+            const fetchSystems = async (query) => {
+                try {
+                    const res = await fetch(`/dashboard/expert/legal-workbench/search-systems?q=${encodeURIComponent(query)}`);
+                    const data = await res.json();
+                    
+                    systemDropdown.innerHTML = '';
+                    if (data.length > 0) {
+                        data.forEach(systemName => {
+                            const item = document.createElement('div');
+                            item.className = "px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm font-bold text-gray-700 transition border-b border-gray-100 last:border-0";
+                            item.textContent = systemName;
+                            item.onclick = () => {
+                                systemInput.value = systemName;
+                                systemDropdown.classList.add('hidden');
+                                
+                                // Reset and enable article input
+                                articleInput.disabled = false;
+                                articleInput.value = '';
+                                articleIdInput.value = '';
+                                previewContainer.innerHTML = '';
+                                previewContainer.classList.add('hidden');
+                                articleInput.focus();
+                                fetchArticles(systemName, ''); // trigger empty search to show list
+                            };
+                            systemDropdown.appendChild(item);
+                        });
+                        systemDropdown.classList.remove('hidden');
+                    } else {
+                        systemDropdown.classList.add('hidden');
+                    }
+                } catch (e) {
+                    console.error("Error fetching systems:", e);
+                }
+            };
+
+            systemInput.addEventListener('focus', () => {
+                fetchSystems(systemInput.value.trim());
+            });
+
+            systemInput.addEventListener('input', () => {
+                clearTimeout(systemTimeout);
+                systemTimeout = setTimeout(() => {
+                    fetchSystems(systemInput.value.trim());
+                }, 300);
+            });
+
+            // --- ARTICLE SEARCH ---
+            const fetchArticles = async (systemName, query) => {
+                try {
+                    const res = await fetch(`/dashboard/expert/legal-workbench/search-articles?system=${encodeURIComponent(systemName)}&q=${encodeURIComponent(query)}`);
+                    const data = await res.json();
+                    
+                    articleDropdown.innerHTML = '';
+                    if (data.length > 0) {
+                        data.forEach(art => {
+                            const item = document.createElement('div');
+                            item.className = "px-4 py-2.5 hover:bg-blue-50 cursor-pointer text-sm font-bold text-gray-700 transition border-b border-gray-100 last:border-0 text-right";
+                            
+                            const title = art.article_title || 'مادة';
+                            const snippet = art.content ? art.content.substring(0, 60) + '...' : '';
+                            item.innerHTML = `
+                                <div class="text-blue-700 font-bold">${title}</div>
+                                <div class="text-xs text-gray-400 font-normal truncate mt-0.5">${snippet}</div>
+                            `;
+                            
+                            item.onclick = () => {
+                                articleInput.value = title;
+                                articleIdInput.value = art.id;
+                                articleDropdown.classList.add('hidden');
+                                
+                                // Show article text preview
+                                previewContainer.innerHTML = `
+                                    <div class="text-blue-800 font-black mb-1.5 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-file-invoice text-xs"></i> نص ${title}:
+                                    </div>
+                                    <div class="text-gray-600 font-normal whitespace-pre-wrap leading-relaxed bg-white p-3 rounded-lg border border-blue-50/50 text-right" dir="rtl">${art.content}</div>
+                                `;
+                                previewContainer.classList.remove('hidden');
+                            };
+                            articleDropdown.appendChild(item);
+                        });
+                        articleDropdown.classList.remove('hidden');
+                    } else {
+                        articleDropdown.classList.add('hidden');
+                    }
+                } catch (e) {
+                    console.error("Error fetching articles:", e);
+                }
+            };
+
+            articleInput.addEventListener('focus', () => {
+                const systemVal = systemInput.value.trim();
+                if (systemVal) {
+                    fetchArticles(systemVal, articleInput.value.trim());
+                }
+            });
+
+            articleInput.addEventListener('input', () => {
+                const systemVal = systemInput.value.trim();
+                if (systemVal) {
+                    clearTimeout(articleTimeout);
+                    articleTimeout = setTimeout(() => {
+                        fetchArticles(systemVal, articleInput.value.trim());
+                    }, 300);
+                }
+            });
+        }
+
+        // Initialize autocompletes on existing rows
+        document.querySelectorAll('.reference-row').forEach(row => {
+            initAutocomplete(row);
+        });
+
+        // Hide dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.ref-system') && !e.target.closest('.ref-system-dropdown')) {
+                document.querySelectorAll('.ref-system-dropdown').forEach(d => d.classList.add('hidden'));
+            }
+            if (!e.target.closest('.ref-article') && !e.target.closest('.ref-article-dropdown')) {
+                document.querySelectorAll('.ref-article-dropdown').forEach(d => d.classList.add('hidden'));
+            }
+        });
+
         function addReferenceRow() {
             const container = document.getElementById('references-list');
             const newRow = document.createElement('div');
-            newRow.className = "flex items-center gap-2 reference-row animate-in slide-in-from-top-2 duration-200";
+            newRow.className = "bg-white p-4 rounded-xl border border-blue-100 reference-row space-y-3 relative animate-in slide-in-from-top-2 duration-200";
             newRow.innerHTML = `
-                <div class="flex-1">
-                    <input type="text" class="ref-system w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="النظام (مثال: نظام الإثبات)">
+                <div class="flex items-center gap-2">
+                    <div class="flex-1 relative">
+                        <input type="text" class="ref-system w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="النظام (مثال: نظام الإثبات)" autocomplete="off">
+                        <div class="ref-system-dropdown hidden absolute right-0 left-0 mt-1 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg z-50 text-right"></div>
+                    </div>
+                    <div class="flex-1 relative">
+                        <input type="text" class="ref-article w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="المادة (مثال: المادة الأولى)" autocomplete="off" disabled>
+                        <div class="ref-article-dropdown hidden absolute right-0 left-0 mt-1 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg z-50 text-right"></div>
+                        <input type="hidden" class="ref-article-id">
+                    </div>
+                    <button type="button" onclick="removeReferenceRow(this)" class="p-3 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition opacity-40 hover:opacity-100 flex-shrink-0">
+                        <i class="fa-solid fa-trash-can text-sm"></i>
+                    </button>
                 </div>
-                <div class="flex-1">
-                    <input type="text" class="ref-article w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-bold text-gray-700 transition" placeholder="المادة (مثال: المادة الأولى)">
-                </div>
-                <button type="button" onclick="removeReferenceRow(this)" class="p-3 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition opacity-40 hover:opacity-100">
-                    <i class="fa-solid fa-trash-can text-sm"></i>
-                </button>
+                <div class="ref-article-preview hidden bg-blue-50/40 p-4 rounded-xl border border-blue-100/50 text-sm font-bold text-gray-700 leading-relaxed text-right transition-all duration-300"></div>
             `;
             container.appendChild(newRow);
+            initAutocomplete(newRow);
         }
 
         function removeReferenceRow(btn) {
@@ -620,6 +770,11 @@
                 const row = btn.closest('.reference-row');
                 row.querySelector('.ref-system').value = '';
                 row.querySelector('.ref-article').value = '';
+                row.querySelector('.ref-article').disabled = true;
+                row.querySelector('.ref-article-id').value = '';
+                const preview = row.querySelector('.ref-article-preview');
+                preview.innerHTML = '';
+                preview.classList.add('hidden');
             }
         }
 
@@ -638,8 +793,13 @@
             document.querySelectorAll('.reference-row').forEach(row => {
                 const system = row.querySelector('.ref-system').value.trim();
                 const article = row.querySelector('.ref-article').value.trim();
+                const article_id = row.querySelector('.ref-article-id').value.trim();
                 if (system || article) {
-                    references.push({ system, article });
+                    references.push({ 
+                        system: system, 
+                        article: article, 
+                        article_id: article_id ? parseInt(article_id) : null 
+                    });
                 }
             });
 
@@ -660,6 +820,31 @@
                     body: JSON.stringify(data)
                 });
 
+                if (response.status === 419) {
+                    alert('انتهت صلاحية الجلسة (Session Expired) بسبب خمول الصفحة لفترة طويلة. يرجى تحديث الصفحة وإعادة المحاولة.');
+                    isSubmitting = false;
+                    disableAllButtons(false);
+                    return;
+                }
+
+                if (response.status === 403) {
+                    alert('انتهت صلاحية حجز هذه المهمة لك (تتطلب ساعتين كحد أقصى) أو تم حظر حسابك. يرجى تحديث الصفحة لجلب مهمة جديدة.');
+                    isSubmitting = false;
+                    disableAllButtons(false);
+                    return;
+                }
+
+                if (response.status === 401) {
+                    alert('تم تسجيل الخروج. يرجى تسجيل الدخول مرة أخرى في نافذة جديدة.');
+                    isSubmitting = false;
+                    disableAllButtons(false);
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('HTTP status ' + response.status);
+                }
+
                 const result = await response.json();
                 if (result.success) {
                     animateAndReload();
@@ -670,7 +855,7 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('حدث خطأ تقني أثناء الحفظ.');
+                alert('حدث خطأ تقني أثناء الحفظ. يرجى التأكد من اتصال الإنترنت وتحديث الصفحة.');
                 isSubmitting = false;
                 disableAllButtons(false);
             }

@@ -511,6 +511,7 @@ class LegalTaskController extends Controller
             'correct_law_references' => 'nullable|array',
             'correct_law_references.*.system' => 'nullable|string|max:65000',
             'correct_law_references.*.article' => 'nullable|string|max:65000',
+            'correct_law_references.*.article_id' => 'nullable|integer',
         ]);
 
         $qa = LegalQaPair::findOrFail($request->task_id);
@@ -592,6 +593,11 @@ class LegalTaskController extends Controller
 
                 foreach ($request->correct_law_references as $ref) {
                     if (!empty($ref['system']) || !empty($ref['article'])) {
+                        $articleId = $ref['article_id'] ?? null;
+                        if (!$articleId && !empty($ref['article']) && !empty($ref['system'])) {
+                            $articleId = $this->findLegalArticleId($ref['article'], $ref['system']);
+                        }
+
                         \App\Models\LegalCitation::create([
                             'legal_record_id'  => $qa->legal_record_id,
                             'legal_qa_pair_id' => $qa->id,
@@ -599,6 +605,7 @@ class LegalTaskController extends Controller
                             'article_number'   => $ref['article'] ?? '',
                             'citation_source'  => 'law',
                             'added_by_expert'  => true,
+                            'legal_article_id' => $articleId,
                         ]);
                     }
                 }
@@ -847,6 +854,266 @@ class LegalTaskController extends Controller
         }
 
         return response()->json(['success' => true, 'found' => false]);
+    }
+
+    public function searchSystems(Request $request)
+    {
+        $query = $request->input('q');
+        
+        if (empty($query)) {
+            $systems = \App\Models\LegalArticle::select('legislation_title')
+                ->groupBy('legislation_title')
+                ->orderBy('legislation_title', 'asc')
+                ->pluck('legislation_title');
+        } else {
+            $systems = \App\Models\LegalArticle::select('legislation_title')
+                ->where('legislation_title', 'LIKE', '%' . $query . '%')
+                ->groupBy('legislation_title')
+                ->orderBy('legislation_title', 'asc')
+                ->pluck('legislation_title');
+        }
+
+        return response()->json($systems);
+    }
+
+    /**
+     * Search articles within a system
+     */
+    public function searchArticles(Request $request)
+    {
+        $system = $request->input('system');
+        $query = $request->input('q');
+
+        if (empty($system)) {
+            return response()->json([]);
+        }
+
+        $dbQuery = \App\Models\LegalArticle::where('legislation_title', $system);
+        
+        if (!empty($query)) {
+            $normalizedQuery = $this->convertArabicNumbers($query);
+            
+            $dbQuery->where(function ($q) use ($query, $normalizedQuery) {
+                $q->where('article_title', 'LIKE', '%' . $query . '%')
+                  ->orWhere('article_title', 'LIKE', '%' . $normalizedQuery . '%');
+
+                if (is_numeric($normalizedQuery)) {
+                    $ordinal = $this->arabicOrdinal((int) $normalizedQuery);
+                    $q->orWhere('article_title', 'LIKE', '%' . $ordinal . '%')
+                      ->orWhere('article_title', 'LIKE', '% ' . $normalizedQuery . ' %')
+                      ->orWhere('article_title', 'LIKE', '%(' . $normalizedQuery . ')%')
+                      ->orWhere('article_title', 'LIKE', '%المادة ' . $normalizedQuery . '%');
+                } else {
+                    $parsedNum = $this->parseWrittenArabicNumber($query);
+                    if ($parsedNum) {
+                        $q->orWhere('article_title', 'LIKE', '%' . $parsedNum . '%')
+                          ->orWhere('article_title', 'LIKE', '%' . $this->arabicOrdinal((int) $parsedNum) . '%');
+                    }
+                }
+
+                $q->orWhere('content', 'LIKE', '%' . $query . '%')
+                  ->orWhere('content', 'LIKE', '%' . $normalizedQuery . '%');
+            });
+        }
+
+        $articles = $dbQuery->orderBy('id', 'asc')->get(['id', 'article_title', 'content']);
+
+        return response()->json($articles);
+    }
+
+    /**
+     * Convert Eastern Arabic numerals to Western Arabic.
+     */
+    private function convertArabicNumbers(string $str): string
+    {
+        return str_replace(
+            ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'],
+            ['0','1','2','3','4','5','6','7','8','9'],
+            $str
+        );
+    }
+
+    /**
+     * Parse written Arabic ordinal numbers to integer string.
+     */
+    private function parseWrittenArabicNumber(string $text): ?string
+    {
+        $text = trim($text);
+        $map = [
+            'الأولى' => '1', 'الأول' => '1',
+            'الثانية' => '2', 'الثاني' => '2',
+            'الثالثة' => '3', 'الثالث' => '3',
+            'الرابعة' => '4', 'الرابع' => '4',
+            'الخامسة' => '5', 'الخامس' => '5',
+            'السادسة' => '6', 'السادس' => '6',
+            'السابعة' => '7', 'السابع' => '7',
+            'الثامنة' => '8', 'الثامن' => '8',
+            'التاسعة' => '9', 'التاسع' => '9',
+            'العاشرة' => '10', 'العاشر' => '10',
+            'الحادية عشرة' => '11', 'الحادي عشر' => '11',
+            'الثانية عشرة' => '12', 'الثاني عشر' => '12',
+            'الثالثة عشرة' => '13', 'الثالث عشر' => '13',
+            'الرابعة عشرة' => '14', 'الرابع عشر' => '14',
+            'الخامسة عشرة' => '15', 'الخامس عشر' => '15',
+            'السادسة عشرة' => '16', 'السادس عشر' => '16', 'السادسة عشر' => '16',
+            'السابعة عشرة' => '17', 'السابع عشر' => '17', 'السابعة عشر' => '17',
+            'الثامنة عشرة' => '18', 'الثامن عشر' => '18', 'الثامنة عشر' => '18',
+            'التاسعة عشرة' => '19', 'التاسع عشر' => '19', 'التاسعة عشر' => '19',
+            'العشرون' => '20', 'العشرين' => '20',
+            'الحادية والعشرون' => '21', 'الحادي والعشرون' => '21', 'الحادية والعشرين' => '21',
+            'الثانية والعشرون' => '22', 'الثاني والعشرون' => '22', 'الثانية والعشرين' => '22',
+            'الثالثة والعشرون' => '23', 'الثالث والعشرون' => '23', 'الثالثة والعشرين' => '23',
+            'الرابعة والعشرون' => '24', 'الرابع والعشرون' => '24', 'الرابعة والعشرين' => '24',
+            'الخامسة والعشرون' => '25', 'الخامس والعشرون' => '25', 'الخامسة والعشرين' => '25',
+            'السادسة والعشرون' => '26', 'السادس والعشرون' => '26', 'السادسة والعشرين' => '26',
+            'السابعة والعشرون' => '27', 'السابع والعشرون' => '27', 'السابعة والعشرين' => '27',
+            'الثامنة والعشرون' => '28', 'الثامن والعشرون' => '28', 'الثامنة والعشرين' => '28',
+            'التاسعة والعشرون' => '29', 'التاسع والعشرون' => '29', 'التاسعة والعشرين' => '29',
+            'الثلاثون' => '30', 'الثلاثين' => '30',
+            'الحادية والثلاثون' => '31', 'الحادية والثلاثين' => '31',
+            'الثانية والثلاثون' => '32', 'الثانية والثلاثين' => '32',
+            'الخمسون' => '50', 'الخمسين' => '50',
+            'الحادية والخمسون' => '51', 'الحادية والخمسين' => '51',
+            'الخامسة والخمسون' => '55', 'الخامسة والخمسين' => '55',
+            'السادسة والخمسون' => '56', 'السادسة والخمسين' => '56',
+            'الثامنة والخمسون' => '58', 'الثامنة والخمسين' => '58',
+            'السبعون' => '70', 'السبعين' => '70',
+            'الثالثة والسبعون' => '73', 'الثالثة والسبعين' => '73',
+            'السادسة والسبعون' => '76', 'السادسة والسبعين' => '76',
+            'الثامنة والسبعون' => '78', 'الثامنة والسبعين' => '78',
+            'التسعون' => '90', 'التسعين' => '90',
+            'العاشرة بعد المائة' => '110',
+            'الرابعة والستون بعد المائة' => '164', 'الرابعة والستين بعد المائة' => '164',
+            'الثانية عشرة بعد المائتين' => '212', 'الثانية عشرة بعد المائتان' => '212'
+        ];
+
+        uksort($map, fn($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+
+        foreach ($map as $word => $num) {
+            if (str_contains($text, $word)) {
+                return $num;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Search legal_articles for a matching article.
+     */
+    private function findLegalArticleId(?string $articleNumber, ?string $systemName): ?int
+    {
+        if (!$articleNumber) {
+            return null;
+        }
+
+        $systemName = trim($systemName);
+        if (empty($systemName)) {
+            return null;
+        }
+
+        // Avoid matching non-law references
+        $isNonLaw = preg_match('/(?:العقد|اتفاق|محضر|إفادة|تقرير|بينة|سند|فاتورة|كشف|خطاب|مبدأ|قاعدة شرعية|فقه|أسباب|منطوق|تاريخ|مستنبط|استنباط|قضائي مستقر)/ui', $systemName);
+        if ($isNonLaw) {
+            return null;
+        }
+
+        $query = \App\Models\LegalArticle::query();
+
+        // 1. Match the legislation/system name
+        $synonyms = [
+            'الإثبات'            => ['نظام الإثبات', 'قانون الإثبات'],
+            'المحاكم التجارية'   => ['نظام المحاكم التجارية'],
+            'نظام المحاكم التجارية' => ['المحاكم التجارية'],
+            'المرافعات الشرعية'  => ['نظام المرافعات الشرعية'],
+            'نظام المرافعات الشرعية' => ['المرافعات الشرعية'],
+            'المعاملات المدنية'  => ['نظام المعاملات المدنية'],
+            'نظام المعاملات المدنية' => ['المعاملات المدنية'],
+            'الشركات'            => ['نظام الشركات'],
+            'نظام الشركات'       => ['الشركات'],
+            'التحكيم'            => ['نظام التحكيم'],
+            'نظام التحكيم'       => ['التحكيم'],
+            'العمل'              => ['نظام العمل'],
+            'نظام العمل'         => ['العمل'],
+        ];
+
+        $searchTerms = [$systemName];
+        foreach ($synonyms as $key => $names) {
+            if (str_contains($systemName, $key)) {
+                $searchTerms = array_merge($searchTerms, $names);
+            }
+        }
+
+        $query->where(function($q) use ($searchTerms) {
+            foreach ($searchTerms as $term) {
+                $q->orWhere('legislation_title', $term)
+                  ->orWhere('legislation_title', 'LIKE', "%{$term}%");
+            }
+        });
+
+        // 2. Match the article number exactly or as ordinal
+        $textNum = is_numeric($articleNumber) ? $this->arabicOrdinal((int) $articleNumber) : null;
+
+        $query->where(function($q) use ($articleNumber, $textNum) {
+            $exactTitles = [];
+            
+            $exactTitles[] = "المادة {$articleNumber}";
+            $exactTitles[] = "المادة ({$articleNumber})";
+            $exactTitles[] = "المادة {$articleNumber} مكرر";
+            $exactTitles[] = "المادة ({$articleNumber}) مكرر";
+            
+            if ($textNum) {
+                $exactTitles[] = "المادة {$textNum}";
+                $exactTitles[] = "المادة ({$textNum})";
+                $exactTitles[] = "المادة {$textNum} مكرر";
+            }
+
+            $q->whereIn('article_title', $exactTitles);
+            
+            foreach ($exactTitles as $title) {
+                $q->orWhere('article_title', 'LIKE', $title);
+            }
+
+            $q->orWhere('content', 'LIKE', "%المادة {$articleNumber}%")
+              ->orWhere('content', 'LIKE', "%المادة ({$articleNumber})%");
+              
+            if ($textNum) {
+                $q->orWhere('content', 'LIKE', "%المادة {$textNum}%")
+                  ->orWhere('content', 'LIKE', "%المادة ({$textNum})%");
+            }
+        });
+
+        $articles = $query->get();
+        $matchedArticle = null;
+        
+        foreach ($articles as $art) {
+            $title = trim($art->article_title);
+            if ($textNum && ($title === "المادة {$textNum}" || $title === "المادة ({$textNum})")) {
+                $matchedArticle = $art;
+                break;
+            }
+            if ($title === "المادة {$articleNumber}" || $title === "المادة ({$articleNumber})") {
+                $matchedArticle = $art;
+                break;
+            }
+        }
+
+        if (!$matchedArticle && $articles->isNotEmpty()) {
+            foreach ($articles as $art) {
+                $title = trim($art->article_title);
+                
+                if ($textNum && $articleNumber % 10 === 0) {
+                    if (str_contains($title, 'و' . $textNum)) {
+                        continue;
+                    }
+                }
+
+                $matchedArticle = $art;
+                break;
+            }
+        }
+
+        return $matchedArticle?->id;
     }
 
     /**
