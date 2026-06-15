@@ -12,7 +12,7 @@ use App\Models\GovernanceLog;
 use App\Models\TaskAssignment;
 use App\Models\User;
 use App\Services\DomainDetectionService;
-use App\Services\LegalLinkingService;
+use App\Services\Legal\LegalLinkingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;

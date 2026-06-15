@@ -10,7 +10,7 @@ use App\Models\AiTask;
 use App\Models\LegalTask;
 use App\Models\User;
 use App\Models\LegalArticle;
-use App\Services\LegalReferenceService;
+use App\Services\Legal\LegalReferenceService;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\DB;
 

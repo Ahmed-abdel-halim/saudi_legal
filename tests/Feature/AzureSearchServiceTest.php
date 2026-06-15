@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Services\AzureSearchService;
-use App\Services\LegalSearchService;
+use App\Services\Legal\LegalSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
@@ -138,7 +138,7 @@ class AzureSearchServiceTest extends TestCase
 
         $this->app->instance(AzureSearchService::class, $mockAzure);
 
-        $this->post(route('legal-ai.ask'), ['question' => 'ما هي شروط الطلاق؟'])
+        $this->post(route('legal_assistant.public.ask'), ['question' => 'ما هي شروط الطلاق؟'])
             ->assertStatus(200);
     }
 
@@ -153,7 +153,7 @@ class AzureSearchServiceTest extends TestCase
 
         $this->app->instance(AzureSearchService::class, $mockAzure);
 
-        $this->post(route('legal-ai.ask'), ['question' => 'ما هي شروط الطلاق؟'])
+        $this->post(route('legal_assistant.public.ask'), ['question' => 'ما هي شروط الطلاق؟'])
             ->assertStatus(200);
     }
 

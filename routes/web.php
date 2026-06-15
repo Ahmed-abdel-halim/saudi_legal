@@ -22,8 +22,8 @@ Route::get('/debug-articles', function () {
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // SAUDI LEGAL AI Assistant Public Routes (Temporary)
-Route::get('/legal-assistant', [\App\Http\Controllers\LegalAiController::class, 'index'])->name('legal_assistant.public');
-Route::post('/legal-assistant/ask', [\App\Http\Controllers\LegalAiController::class, 'ask'])->name('legal_assistant.public.ask');
+Route::get('/legal-assistant', [\App\Http\Controllers\Legal\LegalAiController::class, 'index'])->name('legal_assistant.public');
+Route::post('/legal-assistant/ask', [\App\Http\Controllers\Legal\LegalAiController::class, 'ask'])->name('legal_assistant.public.ask');
 
 // Careers Route
 Route::get('/careers', [App\Http\Controllers\CareerController::class, 'index'])->name('careers');
@@ -119,14 +119,14 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/workbench/sentiment', [\App\Http\Controllers\Dashboard\Expert\WorkbenchController::class, 'submitSentiment'])->name('.workbench.sentiment');
 
             // SAUDI LEGAL Routes
-            Route::get('/legal-workbench', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'index'])->name('.legal_workbench');
-            Route::get('/legal-workbench/search-systems', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'searchSystems'])->name('.legal_workbench.search_systems');
-            Route::get('/legal-workbench/search-articles', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'searchArticles'])->name('.legal_workbench.search_articles');
-            Route::get('/legal-history', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'history'])->name('.legal_history');
-            Route::post('/legal-workbench/submit', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'submit'])->name('.legal_workbench.submit');
-            Route::post('/legal-workbench/skip', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'skip'])->name('.legal_workbench.skip');
-            Route::post('/legal-workbench/previous', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'previous'])->name('.legal_workbench.previous');
-            Route::post('/legal-workbench/delete-citation', [\App\Http\Controllers\Dashboard\Expert\LegalTaskController::class, 'deleteCitation'])->name('.legal_workbench.delete_citation');
+            Route::get('/legal-workbench', [\App\Http\Controllers\Dashboard\Expert\Legal\LegalTaskController::class, 'index'])->name('.legal_workbench');
+            Route::get('/legal-workbench/search-systems', [\App\Http\Controllers\Dashboard\Expert\Legal\LegalTaskController::class, 'searchSystems'])->name('.legal_workbench.search_systems');
+            Route::get('/legal-workbench/search-articles', [\App\Http\Controllers\Dashboard\Expert\Legal\LegalTaskController::class, 'searchArticles'])->name('.legal_workbench.search_articles');
+            Route::get('/legal-history', [\App\Http\Controllers\Dashboard\Expert\Legal\LegalTaskController::class, 'history'])->name('.legal_history');
+            Route::post('/legal-workbench/submit', [\App\Http\Controllers\Dashboard\Expert\Legal\LegalTaskController::class, 'submit'])->name('.legal_workbench.submit');
+            Route::post('/legal-workbench/skip', [\App\Http\Controllers\Dashboard\Expert\Legal\LegalTaskController::class, 'skip'])->name('.legal_workbench.skip');
+            Route::post('/legal-workbench/previous', [\App\Http\Controllers\Dashboard\Expert\Legal\LegalTaskController::class, 'previous'])->name('.legal_workbench.previous');
+            Route::post('/legal-workbench/delete-citation', [\App\Http\Controllers\Dashboard\Expert\Legal\LegalTaskController::class, 'deleteCitation'])->name('.legal_workbench.delete_citation');
 
             Route::get('/settings', [ExpertDashboardController::class, 'settings'])->name('.settings');
             Route::post('/purchase/{id}/accept', [ExpertDashboardController::class, 'acceptPurchase'])->name('.purchase.accept');

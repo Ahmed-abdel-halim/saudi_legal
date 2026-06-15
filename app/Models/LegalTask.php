@@ -66,7 +66,7 @@ class LegalTask extends Model
             // محاولة الربط الذكي لأي مهمة جديدة لضمان دقة البيانات
             if (empty($model->law_system_name) || $model->law_system_name == 'نظام سعودي') {
                 try {
-                    $linkingService = new \App\Services\LegalLinkingService();
+                    $linkingService = new \App\Services\Legal\LegalLinkingService();
                     $searchText = $model->expert_comment . ' ' . $model->question . ' ' . $model->proposed_answer;
                     $match = $linkingService->findBestMatch($searchText);
 

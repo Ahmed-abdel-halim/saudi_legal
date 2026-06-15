@@ -19,8 +19,9 @@ use App\Models\LegalRecord;
 use App\Models\LegalQaPair;
 use App\Models\LegalCitation;
 use App\Services\DomainDetectionService;
-use App\Services\LegalLinkingService;
-use App\Services\LegalReferenceService;
+use App\Services\Legal\LegalLinkingService;
+use App\Services\Legal\LegalReferenceService;
+
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ProcessTaskUploadJob implements ShouldQueue

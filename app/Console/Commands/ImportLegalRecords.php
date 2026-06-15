@@ -10,7 +10,7 @@ use App\Models\User;
 use App\Models\AiTask;
 use App\Models\LegalTask;
 use App\Models\ClientQuestion;
-use App\Services\LegalReferenceService;
+use App\Services\Legal\LegalReferenceService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\LazyCollection;
