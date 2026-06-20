@@ -50,6 +50,10 @@ class TaskAssignmentService
 
     public function assignNextTask(User $expert): ?AiTask
     {
+        if (!$expert || !$expert->is_active || !$expert->is_active_for_hire || $expert->is_banned) {
+            return null;
+        }
+
         $existing = TaskAssignment::where('expert_id',$expert->id)
             ->active()
             ->whereHas('task',fn($q)=>$q->whereIn('status',['pending','in_progress']))

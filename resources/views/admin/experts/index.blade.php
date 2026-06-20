@@ -143,17 +143,21 @@
                     {{-- Performance (Tasks Audited) --}}
                     <td class="px-5 py-4">
                         <div class="flex flex-col gap-1">
-                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-blue-50/50 border border-blue-100 rounded-md px-1.5 py-0.5 w-fit" title="مهام قانونية تم تدقيقها">
+                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-blue-50/50 border border-blue-100 rounded-md px-1.5 py-0.5 w-fit" title="إجمالي الأسئلة المدققة">
                                 <i class="fa-solid fa-scale-balanced text-blue-500"></i>
-                                <span>{{ number_format($expert->legal_tasks_count) }}</span>
+                                <span>المدققة: {{ number_format($expert->legal_tasks_count) }}</span>
                             </div>
-                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-amber-50/50 border border-amber-100 rounded-md px-1.5 py-0.5 w-fit" title="مهام ذكاء اصطناعي">
-                                <i class="fa-solid fa-robot text-amber-500"></i>
-                                <span>{{ number_format($expert->ai_responses_count) }}</span>
+                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50/50 border border-emerald-100 rounded-md px-1.5 py-0.5 w-fit" title="أسئلة اختبار تم اكتشافها وتصحيحها">
+                                <i class="fa-solid fa-square-check text-emerald-500"></i>
+                                <span>الاختبار الصحيحة: {{ number_format($expert->gold_tasks_completed) }}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-red-700 bg-red-50/50 border border-red-100 rounded-md px-1.5 py-0.5 w-fit" title="أسئلة اختبار أخطأ فيها ووافق على الخطأ">
+                                <i class="fa-solid fa-triangle-exclamation text-red-500"></i>
+                                <span>الاختبار الخاطئة: {{ number_format($expert->gold_tasks_failed) }}</span>
                             </div>
                             <div class="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 bg-emerald-50/50 border border-emerald-100 rounded-md px-1.5 py-0.5 w-fit" title="إجمالي الوقت">
                                 <i class="fa-solid fa-clock text-emerald-500"></i>
-                                <span>{{ $expert->total_time_spent }}</span>
+                                <span>الوقت المستغرق: {{ $expert->total_time_spent }}</span>
                             </div>
                         </div>
                     </td>

@@ -93,7 +93,7 @@ class EvaluateConsensus implements ShouldQueue
                         'confidence' => $r->confidence_level
                     ];
                 })),
-                'final_answer' => $finalAnswer ? json_encode($finalAnswer) : null,
+                'final_answer' => $finalAnswer,
                 'confidence_level' => $confidence,
                 'consensus_type' => $consensusType,
             ]);

@@ -21,7 +21,7 @@ class GovernanceSystemTest extends TestCase
     {
         parent::setUp();
         // Create an expert user with initial trust score
-        $this->expert = User::factory()->create(['trust_score' => 100]);
+        $this->expert = User::factory()->create(['trust_score' => 100, 'role' => 'expert']);
     }
 
     /** @test */
@@ -44,6 +44,7 @@ class GovernanceSystemTest extends TestCase
             ]);
 
         // 3. Assertions
+        $response->dump();
         $response->assertJson(['success' => true]);
         
         // Check Governance Log
@@ -98,9 +99,9 @@ class GovernanceSystemTest extends TestCase
             'status' => 'pending'
         ]);
 
-        $expert1 = User::factory()->create();
-        $expert2 = User::factory()->create();
-        $expert3 = User::factory()->create();
+        $expert1 = User::factory()->create(['role' => 'expert']);
+        $expert2 = User::factory()->create(['role' => 'expert']);
+        $expert3 = User::factory()->create(['role' => 'expert']);
 
         // 2. Submit 3 Responses (2 Agree, 1 Disagree)
         // Expert 1: "Answer A"
@@ -128,7 +129,7 @@ class GovernanceSystemTest extends TestCase
         ]);
 
         // Check Task Status
-        $this->assertEquals('completed', $task->fresh()->status);
+        $this->assertEquals('Consensus_Reached', $task->fresh()->status->value);
         $this->assertEquals('consensus_reached', $task->fresh()->consensus_status);
     }
 }

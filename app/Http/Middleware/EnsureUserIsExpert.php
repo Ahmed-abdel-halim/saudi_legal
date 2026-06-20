@@ -24,6 +24,15 @@ class EnsureUserIsExpert
             return redirect()->route('admin.dashboard');
         }
 
+        // Check if the expert is banned or inactive
+        if (auth()->user()->is_banned || auth()->user()->is_active === false || auth()->user()->is_active === 0) {
+            $reason = auth()->user()->ban_reason ?: 'تم إيقاف حسابك في المنصة بسبب انخفاض درجة الثقة.';
+            \Illuminate\Support\Facades\Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login')->with('error', $reason);
+        }
+
         if (auth()->user()->role !== 'expert' && auth()->user()->role !== 'freelancer') {
             return redirect()->route('dashboard')->with('error', 'Access denied. This area is for experts only.');
         }

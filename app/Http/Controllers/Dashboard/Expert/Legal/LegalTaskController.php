@@ -635,65 +635,7 @@ class LegalTaskController extends Controller
                     ]
                 );
 
-                // تفعيل تقييم Gold Standard — لو المهمة اختبارية
-                $aiTask = \App\Models\AiTask::find($legalTask->task_id);
-                if ($aiTask && $aiTask->is_gold_standard) {
-                    // لما المحامي يقول "صحيحة" على سؤال gold standard
-                    // ده يعني إنه وافق على الإجابة الخاطئة المقصودة → فشل الاختبار
-                    // لما يقول "تعديل/تصحيح" → نجح (اكتشف الخطأ)
-                    $expertPassedGold = !$request->is_correct; // نجح لو صحح الإجابة
-                    $expert = \App\Models\User::find(Auth::id());
 
-                    if ($expert) {
-                        $trustScoreBefore = $expert->trust_score;
-
-                        if ($expertPassedGold) {
-                            // نجح: اكتشف إن الإجابة خاطئة وصححها
-                            $expert->increment('gold_tasks_completed');
-                            \App\Models\GovernanceLog::create([
-                                'expert_id'          => $expert->id,
-                                'task_id'            => $aiTask->id,
-                                'event_type'         => 'gold_task_passed',
-                                'event_data'         => json_encode([
-                                    'expert_answer' => $request->correct_answer,
-                                    'gold_answer'   => $aiTask->gold_answer,
-                                    'source'        => 'legal_workbench',
-                                ]),
-                                'trust_score_before' => $trustScoreBefore,
-                                'trust_score_after'  => $trustScoreBefore,
-                            ]);
-                        } else {
-                            // فشل: قال "صحيحة" على إجابة خاطئة مقصودة
-                            $expert->increment('gold_tasks_failed');
-                            $expert->decrement('trust_score', 10);
-                            $expert->refresh();
-
-                            \App\Models\GovernanceLog::create([
-                                'expert_id'          => $expert->id,
-                                'task_id'            => $aiTask->id,
-                                'event_type'         => 'gold_task_failed',
-                                'event_data'         => json_encode([
-                                    'expert_answer' => 'accepted_wrong_answer',
-                                    'gold_answer'   => $aiTask->gold_answer,
-                                    'source'        => 'legal_workbench',
-                                ]),
-                                'trust_score_before' => $trustScoreBefore,
-                                'trust_score_after'  => $expert->trust_score,
-                            ]);
-
-                            // حظر تلقائي لو الـ trust score أقل من 60
-                            if ($expert->trust_score < 60 && !$expert->is_banned) {
-                                $expert->update([
-                                    'is_banned'           => true,
-                                    'banned_at'           => now(),
-                                    'ban_reason'          => 'انخفض مؤشر الثقة عن 60 بسبب الفشل في أسئلة الاختبار.',
-                                    'is_active'           => false,
-                                    'is_active_for_hire'  => false,
-                                ]);
-                            }
-                        }
-                    }
-                }
 
                 // تحديث حالة المهمة القانونية الفرعية
                 $legalTask->update([

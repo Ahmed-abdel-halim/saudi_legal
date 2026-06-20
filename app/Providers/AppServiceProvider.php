@@ -28,16 +28,7 @@ class AppServiceProvider extends ServiceProvider
         // يفهرس QA Pairs في Azure Search تلقائياً عند الموافقة عليها
         LegalQaPair::observe(LegalQaPairObserver::class);
 
-        // ── Governance Event Listeners ─────────────────────────────────────
-        \Illuminate\Support\Facades\Event::listen(
-            \App\Events\AnswerSubmitted::class,
-            [\App\Listeners\ValidateGoldStandard::class, 'handle']
-        );
 
-        \Illuminate\Support\Facades\Event::listen(
-            \App\Events\AnswerSubmitted::class,
-            [\App\Listeners\EvaluateConsensus::class, 'handle']
-        );
 
         // ── Admin Gate Definitions ─────────────────────────────────────────
         $isAdmin = fn(User $user) => in_array($user->role, ['admin', 'superadmin']);

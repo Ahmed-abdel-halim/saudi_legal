@@ -271,7 +271,7 @@ class WorkbenchController extends Controller
             'confidence_level' => 'required|integer|min:1|max:10',
         ]);
 
-        DB::transaction(function () use ($task, $validated, $expert) {
+        DB::transaction(function () use ($task, $validated, $expert, $request) {
 
             $response = AiResponse::create([
                 'task_id'          => $task->id,

@@ -27,14 +27,22 @@ class ValidateGoldStandard implements ShouldQueue
         }
 
         $goldAnswer = $task->gold_answer; // Assuming array or string
-        // Simple comparison logic - can be enhanced for complex types
-        // Ensure consistent format (e.g., trim, lowercase) if text
-        // For array/json, robust comparison needed
         
-        // This is a simplified check. Adjust based on actual data structure.
-        $isCorrect = $response->corrected_data == json_encode($goldAnswer) || 
-                     $response->corrected_data == $goldAnswer ||
-                     json_decode($response->corrected_data, true) == $goldAnswer;
+        if ($task->legalTask) {
+            // For legal tasks, the trap is the generated answer itself.
+            // If the expert edited/corrected it, they passed.
+            // If they accepted it, they failed.
+            $isCorrect = ($response->action === 'edited');
+            $source = 'legal_workbench';
+            $expertAnswerData = $isCorrect ? $response->corrected_data : 'accepted_wrong_answer';
+        } else {
+            // For general tasks, compare the corrected data with the gold answer after normalizing
+            $normalizedResponse = $this->normalizeText($response->corrected_data);
+            $normalizedGold = $this->normalizeText($goldAnswer);
+            $isCorrect = ($normalizedResponse === $normalizedGold);
+            $source = 'general_workbench';
+            $expertAnswerData = $response->corrected_data;
+        }
 
         $trustScoreBefore = $expert->trust_score;
 
@@ -44,7 +52,11 @@ class ValidateGoldStandard implements ShouldQueue
                 'expert_id' => $expert->id,
                 'task_id' => $task->id,
                 'event_type' => 'gold_task_passed',
-                'event_data' => json_encode(['expert_answer' => $response->corrected_data, 'gold_answer' => $goldAnswer]),
+                'event_data' => json_encode([
+                    'expert_answer' => $expertAnswerData,
+                    'gold_answer' => $goldAnswer,
+                    'source' => $source
+                ], JSON_UNESCAPED_UNICODE),
                 'trust_score_before' => $trustScoreBefore,
                 'trust_score_after' => $trustScoreBefore,
             ]);
@@ -60,17 +72,25 @@ class ValidateGoldStandard implements ShouldQueue
                 'expert_id' => $expert->id,
                 'task_id' => $task->id,
                 'event_type' => 'gold_task_failed',
-                'event_data' => json_encode(['expert_answer' => $response->corrected_data, 'gold_answer' => $goldAnswer]),
+                'event_data' => json_encode([
+                    'expert_answer' => $expertAnswerData,
+                    'gold_answer' => $goldAnswer,
+                    'source' => $source
+                ], JSON_UNESCAPED_UNICODE),
                 'trust_score_before' => $trustScoreBefore,
                 'trust_score_after' => $trustScoreAfter,
             ]);
 
             // Check for ban
              if ($expert->trust_score < 60 && !$expert->is_banned) {
+                $banReason = $source === 'legal_workbench'
+                    ? 'انخفض مؤشر الثقة عن 60 بسبب الفشل في أسئلة الاختبار.'
+                    : 'Trust score fell below 60 due to failed gold tasks.';
+
                 $expert->update([
                     'is_banned' => true,
                     'banned_at' => now(),
-                    'ban_reason' => 'Trust score fell below 60 due to failed gold tasks.',
+                    'ban_reason' => $banReason,
                     'is_active' => false,
                     'is_active_for_hire' => false,
                 ]);
@@ -84,5 +104,29 @@ class ValidateGoldStandard implements ShouldQueue
                 ]);
              }
         }
+    }
+
+    /**
+     * Normalize text for robust comparison.
+     */
+    private function normalizeText($text): string
+    {
+        if (is_array($text)) {
+            $text = json_encode($text, JSON_UNESCAPED_UNICODE);
+        }
+        $text = (string)$text;
+        // Convert to lowercase and trim
+        $text = mb_strtolower(trim($text));
+        // Remove multiple spaces/newlines
+        $text = preg_replace('/\s+/', ' ', $text);
+        // Normalize Arabic letters:
+        $text = str_replace('ة', 'ه', $text);
+        $text = str_replace(['أ', 'إ', 'آ'], 'ا', $text);
+        $text = str_replace('ى', 'ي', $text);
+        // Remove common punctuation: . , ; : ? ! ، ؛ ؟
+        $text = str_replace(['.', ',', ';', ':', '?', '!', '،', '؛', '؟', '-', '_'], '', $text);
+        // Remove all remaining whitespace for a tight comparison
+        $text = preg_replace('/\s+/', '', $text);
+        return $text;
     }
 }
