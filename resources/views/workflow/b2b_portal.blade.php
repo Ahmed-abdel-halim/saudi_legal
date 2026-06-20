@@ -158,32 +158,54 @@
                 </div>
             </div>
 
-            <!-- Global Perspective Selector -->
-            <div class="flex bg-slate-950/80 p-1.5 rounded-xl border border-slate-800 gap-1.5">
-                <a href="?role=hospital"
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all {{ $activeRole === 'hospital' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200' }}">
-                    <i class="fa-solid fa-hospital-user text-xs"></i>
-                    <span>
-                        <span x-show="locale === 'en'">Hospital</span>
-                        <span x-show="locale === 'ar'">المستشفى</span>
-                    </span>
-                </a>
-                <a href="?role=payer"
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all {{ $activeRole === 'payer' ? 'bg-teal-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200' }}">
-                    <i class="fa-solid fa-shield-halved text-xs"></i>
-                    <span>
-                        <span x-show="locale === 'en'">Insurance Payer</span>
-                        <span x-show="locale === 'ar'">الدافع التأميني</span>
-                    </span>
-                </a>
-                <a href="?role=doctor"
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all {{ $activeRole === 'doctor' ? 'bg-amber-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200' }}">
-                    <i class="fa-solid fa-user-doctor text-xs"></i>
-                    <span>
-                        <span x-show="locale === 'en'">HITL Doctor</span>
-                        <span x-show="locale === 'ar'">طبيب التدقيق</span>
-                    </span>
-                </a>
+            <!-- Active Role Badge (Auto-assigned based on login identity) -->
+            <div class="flex items-center gap-2">
+                @if($activeRole === 'hospital')
+                    <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600/20 border border-indigo-500/40 text-indigo-300">
+                        <i class="fa-solid fa-hospital-user text-sm"></i>
+                        <div>
+                            <span class="block text-xs font-extrabold">
+                                <span x-show="locale === 'en'">Hospital</span>
+                                <span x-show="locale === 'ar'">المستشفى</span>
+                            </span>
+                            <span class="block text-[9px] text-indigo-400/70 font-semibold uppercase tracking-widest">
+                                <span x-show="locale === 'en'">Submitter Portal</span>
+                                <span x-show="locale === 'ar'">بوابة التقديم</span>
+                            </span>
+                        </div>
+                        <i class="fa-solid fa-lock text-[10px] text-indigo-400/50 ms-1"></i>
+                    </div>
+                @elseif($activeRole === 'payer')
+                    <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-600/20 border border-teal-500/40 text-teal-300">
+                        <i class="fa-solid fa-shield-halved text-sm"></i>
+                        <div>
+                            <span class="block text-xs font-extrabold">
+                                <span x-show="locale === 'en'">Insurance Payer</span>
+                                <span x-show="locale === 'ar'">الدافع التأميني</span>
+                            </span>
+                            <span class="block text-[9px] text-teal-400/70 font-semibold uppercase tracking-widest">
+                                <span x-show="locale === 'en'">Payer Portal</span>
+                                <span x-show="locale === 'ar'">بوابة شركة التأمين</span>
+                            </span>
+                        </div>
+                        <i class="fa-solid fa-lock text-[10px] text-teal-400/50 ms-1"></i>
+                    </div>
+                @elseif($activeRole === 'doctor')
+                    <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600/20 border border-amber-500/40 text-amber-300">
+                        <i class="fa-solid fa-user-doctor text-sm"></i>
+                        <div>
+                            <span class="block text-xs font-extrabold">
+                                <span x-show="locale === 'en'">HITL Doctor</span>
+                                <span x-show="locale === 'ar'">طبيب التدقيق</span>
+                            </span>
+                            <span class="block text-[9px] text-amber-400/70 font-semibold uppercase tracking-widest">
+                                <span x-show="locale === 'en'">Auditor Portal</span>
+                                <span x-show="locale === 'ar'">بوابة التدقيق</span>
+                            </span>
+                        </div>
+                        <i class="fa-solid fa-lock text-[10px] text-amber-400/50 ms-1"></i>
+                    </div>
+                @endif
             </div>
 
             <!-- Language Switcher & Reset Workspace -->
@@ -355,9 +377,46 @@
                             </div>
                         </div>
 
+                        <!-- Target Insurance Company Info -->
+                        @if(isset($payer))
+                        <div class="bg-indigo-950/40 p-3.5 rounded-2xl border border-indigo-900/50 flex justify-between items-center text-start">
+                            <div>
+                                <span class="block text-[9px] text-indigo-400 font-extrabold uppercase tracking-wider">
+                                    <span x-show="locale === 'en'">Target Insurance Payer</span>
+                                    <span x-show="locale === 'ar'">شركة التأمين المستهدفة</span>
+                                </span>
+                                <span class="font-bold text-sm text-white">
+                                    @if(str_contains($payer->name, 'Tawuniya'))
+                                        <span x-show="locale === 'en'">Tawuniya Insurance</span>
+                                        <span x-show="locale === 'ar'">التعاونية للتأمين</span>
+                                    @elseif(str_contains($payer->name, 'Bupa'))
+                                        <span x-show="locale === 'en'">Bupa Arabia</span>
+                                        <span x-show="locale === 'ar'">بوبا العربية</span>
+                                    @elseif(str_contains($payer->name, 'Rajhi'))
+                                        <span x-show="locale === 'en'">Al Rajhi Takaful</span>
+                                        <span x-show="locale === 'ar'">تكافل الراجحي</span>
+                                    @elseif(str_contains($payer->name, 'Medgulf'))
+                                        <span x-show="locale === 'en'">Medgulf Insurance</span>
+                                        <span x-show="locale === 'ar'">ميدغلف للتأمين</span>
+                                    @else
+                                        <span>{{ $payer->name }}</span>
+                                    @endif
+                                </span>
+                            </div>
+                            <a href="{{ route('workflow.portal', ['role' => 'hospital', 'select_payer' => 1]) }}" 
+                               class="px-2.5 py-1 text-[10px] font-bold bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 hover:text-white border border-indigo-700/50 rounded-lg transition-all">
+                                <span x-show="locale === 'en'">Change</span>
+                                <span x-show="locale === 'ar'">تغيير</span>
+                            </a>
+                        </div>
+                        @endif
+
                         <!-- Claim submission form -->
                         <form action="{{ route('workflow.upload_claim') }}" method="POST" class="space-y-3">
                             @csrf
+                            @if(isset($payer))
+                                <input type="hidden" name="payer_id" value="{{ $payer->company_id }}">
+                            @endif
 
                             <div>
                                 <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">

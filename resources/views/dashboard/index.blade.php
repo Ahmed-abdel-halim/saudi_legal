@@ -196,7 +196,7 @@
             </a>
 
             <!-- 3. Insurance Claims -->
-            <a href="{{ route('workflow.portal', ['role' => 'hospital']) }}" class="glass-card p-10 group relative overflow-hidden border-indigo-100/50">
+            <a href="{{ route('workflow.portal') }}" class="glass-card p-10 group relative overflow-hidden border-indigo-100/50">
                 <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/5 rounded-full transition-transform group-hover:scale-150 duration-700"></div>
                 <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
