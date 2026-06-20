@@ -976,7 +976,7 @@ class WorkflowFullCycleTest extends TestCase
     /** @test */
     public function test_17_portal_renders_for_hospital_role()
     {
-        $response = $this->get(route('workflow.portal', ['role' => 'hospital']));
+        $response = $this->actingAs($this->hospitalUser)->get(route('workflow.portal', ['role' => 'hospital']));
         $response->assertStatus(200);
         $response->assertViewIs('workflow.b2b_portal');
         $response->assertViewHas('stats');
@@ -986,7 +986,7 @@ class WorkflowFullCycleTest extends TestCase
     /** @test */
     public function test_17b_portal_renders_for_doctor_role()
     {
-        $response = $this->get(route('workflow.portal', ['role' => 'doctor']));
+        $response = $this->actingAs($this->doctor)->get(route('workflow.portal', ['role' => 'doctor']));
         $response->assertStatus(200);
         $response->assertViewHas('doctorQueue');
     }
@@ -994,7 +994,7 @@ class WorkflowFullCycleTest extends TestCase
     /** @test */
     public function test_17c_portal_renders_for_payer_role()
     {
-        $response = $this->get(route('workflow.portal', ['role' => 'payer']));
+        $response = $this->actingAs($this->payerUser)->get(route('workflow.portal', ['role' => 'payer']));
         $response->assertStatus(200);
         $response->assertViewHas('siuClaims');
         $response->assertViewHas('ruleCaps');
@@ -1013,7 +1013,7 @@ class WorkflowFullCycleTest extends TestCase
 
         $this->assertGreaterThan(0, WorkflowTask::count());
 
-        $response = $this->post(route('workflow.reset'));
+        $response = $this->actingAs($this->hospitalUser)->post(route('workflow.reset'));
 
         $response->assertSessionHasNoErrors();
         $response->assertSessionHas('success');
@@ -1028,7 +1028,7 @@ class WorkflowFullCycleTest extends TestCase
         // Give doctor some balance
         $this->doctor->update(['wallet_balance' => 225.00]);
 
-        $this->post(route('workflow.reset'));
+        $this->actingAs($this->hospitalUser)->post(route('workflow.reset'));
 
         $this->doctor->refresh();
         $this->assertEquals(0.00, $this->doctor->wallet_balance);

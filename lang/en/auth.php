@@ -29,6 +29,7 @@ return [
     'INDUSTRY_FINANCE' => 'Financial Consulting',
     'INDUSTRY_MARKETING' => 'Digital Marketing',
     'INDUSTRY_LAW' => 'Law & Legal Consulting',
+    'INDUSTRY_INSURANCE' => 'Insurance',
     'INDUSTRY_OTHER' => 'Other',
 
     // Company Sizes

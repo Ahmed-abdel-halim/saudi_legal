@@ -29,6 +29,7 @@ return [
     'INDUSTRY_FINANCE' => 'استشارات مالية',
     'INDUSTRY_MARKETING' => 'التسويق الرقمي',
     'INDUSTRY_LAW' => 'محاماة واستشارات قانونية',
+    'INDUSTRY_INSURANCE' => 'تأمين',
     'INDUSTRY_OTHER' => 'أخرى',
 
     // Company Sizes

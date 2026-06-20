@@ -76,6 +76,7 @@ return [
         'marketing' => 'Marketing & Media',
         'finance' => 'Finance & Business',
         'healthcare' => 'Healthcare',
+        'insurance' => 'Insurance',
         'education' => 'Education',
         'law' => 'Law & Legal Consulting',
         'other' => 'Other',
