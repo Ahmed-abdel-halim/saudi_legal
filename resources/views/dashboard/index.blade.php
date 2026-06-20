@@ -165,7 +165,7 @@
             <svg class="w-8 h-8 text-indigo-500" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8 0-1.85.63-3.55 1.69-4.9L16.9 18.31C15.55 19.37 13.85 20 12 20zm5.31-3.1L6.69 5.69A7.941 7.941 0 0112 4c4.42 0 8 3.58 8 8 0 1.85-.63 3.55-1.69 4.9z"/></svg>
             {{ __('dashboard.company_management') }}
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
 
             <!-- 1. Team Management -->
             <a href="{{ route('dashboard.team') }}" class="glass-card p-10 group relative overflow-hidden">
@@ -185,7 +185,7 @@
             <a href="{{ route('dashboard.projects') }}" class="glass-card p-10 group relative overflow-hidden border-emerald-100/50">
                 <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/5 rounded-full transition-transform group-hover:scale-150 duration-700"></div>
                 <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                 </div>
                 <h3 class="text-xl font-black text-slate-800 mb-2">{{ __('dashboard.projects_contracts') }}</h3>
                 <p class="text-slate-500 font-medium leading-relaxed mb-6">{{ __('dashboard.projects_contracts_desc') }}</p>
@@ -195,7 +195,25 @@
                 </div>
             </a>
 
-            <!-- 3. Settings -->
+            <!-- 3. Insurance Claims -->
+            <a href="{{ route('workflow.portal', ['role' => 'hospital']) }}" class="glass-card p-10 group relative overflow-hidden border-indigo-100/50">
+                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/5 rounded-full transition-transform group-hover:scale-150 duration-700"></div>
+                <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </div>
+                <h3 class="text-xl font-black text-slate-800 mb-2">
+                    {{ app()->getLocale() == 'ar' ? 'مطالبات التأمين' : 'Insurance Claims' }}
+                </h3>
+                <p class="text-slate-500 font-medium leading-relaxed mb-6">
+                    {{ app()->getLocale() == 'ar' ? 'إدارة مطالبات التأمين الطبية والتحقق السريري التلقائي بالذكاء الاصطناعي.' : 'Manage medical claims, auto-routing, and clinical AI audit reviews.' }}
+                </p>
+                <div class="flex items-center gap-2 text-indigo-600 font-black text-sm uppercase tracking-widest">
+                    {{ app()->getLocale() == 'ar' ? 'الذهاب للمطالبات' : 'Go to Claims' }}
+                    <svg class="w-5 h-5 rtl:rotate-180 group-hover:translate-x-2 transition-transform" viewBox="0 0 24 24"><path fill="currentColor" d="M16.01 11H4v2h12.01v3L20 12l-3.99-4z"/></svg>
+                </div>
+            </a>
+
+            <!-- 4. Settings -->
             <a href="{{ route('dashboard.settings') }}" class="glass-card p-10 group relative overflow-hidden">
                 <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-slate-500/5 rounded-full transition-transform group-hover:scale-150 duration-700"></div>
                 <div class="w-16 h-16 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-slate-800 group-hover:text-white transition-all duration-300">

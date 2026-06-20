@@ -375,3 +375,11 @@ Route::get('/stripe/webhook', function () {
 Route::get('/api-docs', [App\Http\Controllers\PageController::class, 'apiDocs'])->name('pages.api_docs');
 Route::get('/security-compliance', [App\Http\Controllers\PageController::class, 'securityCompliance'])->name('pages.security_compliance');
 
+// ─── B2B AI Workflow Platform & Claims Orchestrator Routes ───────────────────
+Route::get('/b2b-portal', [App\Http\Controllers\Workflow\WorkflowController::class, 'index'])->name('workflow.portal');
+Route::post('/b2b-portal/upload-claim', [App\Http\Controllers\Workflow\WorkflowController::class, 'uploadClaim'])->name('workflow.upload_claim');
+Route::post('/b2b-portal/doctor/resolve', [App\Http\Controllers\Workflow\WorkflowController::class, 'doctorResolve'])->name('workflow.doctor_resolve');
+Route::post('/b2b-portal/payer/policy', [App\Http\Controllers\Workflow\WorkflowController::class, 'updatePolicyRules'])->name('workflow.payer_policy');
+Route::post('/b2b-portal/reset', [App\Http\Controllers\Workflow\WorkflowController::class, 'resetDemo'])->name('workflow.reset');
+
+
