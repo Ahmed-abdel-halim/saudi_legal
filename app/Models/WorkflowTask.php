@@ -60,6 +60,22 @@ class WorkflowTask extends Model
     }
 
     /**
+     * Get the hospital company.
+     */
+    public function hospital()
+    {
+        return $this->belongsTo(Company::class, 'hospital_id', 'company_id');
+    }
+
+    /**
+     * Get the insurance company.
+     */
+    public function insurance()
+    {
+        return $this->belongsTo(Company::class, 'insurance_id', 'company_id');
+    }
+
+    /**
      * State checking helpers
      */
     public function isGreen(): bool

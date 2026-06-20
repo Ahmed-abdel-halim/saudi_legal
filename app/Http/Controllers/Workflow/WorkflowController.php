@@ -30,38 +30,116 @@ class WorkflowController extends Controller
         // 1. Setup Demo State if no users/companies exist
         $this->ensureDemoEntitiesSeeded();
 
-        // 2. Determine current active tenant / perspective
-        $activeRole = $request->query('role', session('workflow_role', 'hospital'));
-        session(['workflow_role' => $activeRole]);
-
-        // Get demo entities
-        $hospital = Company::where('industry', 'healthcare')->first();
-        $payer = Company::where('industry', 'insurance')->first();
-        $doctor = User::where('expert_specialization', 'doctor')->first();
-
-        // Simulate acting user
-        $actingUser = null;
-        if ($activeRole === 'doctor') {
-            $actingUser = $doctor;
-        } elseif ($activeRole === 'hospital') {
-            $actingUser = $hospital ? $hospital->users()->first() : null;
-        } else {
-            $actingUser = $payer ? $payer->users()->first() : null;
+        // Ensure user is authenticated
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
         }
 
+        // Determine authorized role perspective.
+        // IMPORTANT: Check company industry FIRST (most specific), then fall back to role.
+        // This prevents an insurance company user with role='supplier' from being
+        // misclassified as a hospital submitter.
+        $authorizedRole = 'hospital'; // safe default
+        if ($user->role === 'expert' && $user->expert_specialization === 'doctor') {
+            // HITL Clinical Auditor Doctor
+            $authorizedRole = 'doctor';
+        } elseif ($user->company && $user->company->industry === 'insurance') {
+            // Insurance Payer — company industry takes highest priority
+            $authorizedRole = 'payer';
+        } elseif ($user->company && $user->company->industry === 'healthcare') {
+            // Healthcare Hospital Submitter
+            $authorizedRole = 'hospital';
+        } elseif ($user->role === 'requester') {
+            // No company set yet, but role is requester → treat as payer
+            $authorizedRole = 'payer';
+        } elseif ($user->role === 'supplier') {
+            // No company set yet, but role is supplier → treat as hospital
+            $authorizedRole = 'hospital';
+        }
+
+        // Always redirect to the correct role URL if not already there.
+        // Silently redirect for missing/old URLs. Only show an error if someone
+        // explicitly tried to access a completely different role (e.g. ?role=doctor while being a payer).
+        $requestedRole = $request->query('role');
+        $validRoles = ['hospital', 'payer', 'doctor'];
+
+        if ($requestedRole !== $authorizedRole) {
+            $redirect = redirect()->route('workflow.portal', ['role' => $authorizedRole]);
+
+            // Only show "Access Denied" if the requested role is a valid role but belongs to someone else
+            if ($requestedRole && in_array($requestedRole, $validRoles)) {
+                return $redirect->with('error',
+                    $authorizedRole === 'payer'
+                        ? 'لا يمكنك الوصول إلى هذه البوابة — حسابك مرتبط بشركة تأمين (الدافع).'
+                        : ($authorizedRole === 'hospital'
+                            ? 'لا يمكنك الوصول إلى هذه البوابة — حسابك مرتبط بمستشفى (مُقدِّم).'
+                            : 'لا يمكنك الوصول إلى هذه البوابة — حسابك مرتبط بطبيب التدقيق.')
+                );
+            }
+
+            // Silent redirect (no role in URL, or unknown role value)
+            return $redirect;
+        }
+
+        $activeRole = $authorizedRole;
+        session(['workflow_role' => $activeRole]);
+
+        // If role is hospital and they requested to select a payer, return the selection view
+        if ($activeRole === 'hospital' && $request->query('select_payer') == 1) {
+            $insuranceCompanies = Company::where('industry', 'insurance')->get();
+            $actingUser = $user;
+            return view('workflow.select_payer', compact('activeRole', 'insuranceCompanies', 'actingUser'));
+        }
+
+        // Get matching entities
+        $hospital = ($user->company && $user->company->industry === 'healthcare') ? $user->company : Company::where('industry', 'healthcare')->first();
+        $payer = ($user->company && $user->company->industry === 'insurance') ? $user->company : Company::where('industry', 'insurance')->first();
+        
+        // Override payer if explicitly selected via payer_id query param
+        if ($activeRole === 'hospital' && $request->has('payer_id')) {
+            $selectedPayer = Company::where('company_id', $request->query('payer_id'))->where('industry', 'insurance')->first();
+            if ($selectedPayer) {
+                $payer = $selectedPayer;
+            }
+        }
+        
+        $doctor = ($user->role === 'expert' && $user->expert_specialization === 'doctor') ? $user : User::where('expert_specialization', 'doctor')->first();
+
+        $actingUser = $user;
+
         // Stats calculation
+        $statsQuery = WorkflowTask::query();
+        if ($activeRole === 'hospital') {
+            $statsQuery->where('hospital_id', $hospital->company_id ?? '')
+                       ->where('insurance_id', $payer->company_id ?? '');
+        } elseif ($activeRole === 'payer') {
+            $statsQuery->where('insurance_id', $payer->company_id ?? '');
+        }
+
         $stats = [
-            'total' => WorkflowTask::count(),
-            'green' => WorkflowTask::where('status_code', 1)->count(),
-            'yellow' => WorkflowTask::where('status_code', 2)->count(),
-            'red' => WorkflowTask::where('status_code', 3)->count(),
-            'clearing_pool' => WorkflowTask::where('status_code', 1)
+            'total' => (clone $statsQuery)->count(),
+            'green' => (clone $statsQuery)->where('status_code', 1)->count(),
+            'yellow' => (clone $statsQuery)->where('status_code', 2)->count(),
+            'red' => (clone $statsQuery)->where('status_code', 3)->count(),
+            'clearing_pool' => (clone $statsQuery)->where('status_code', 1)
                 ->get()
-                ->sum(fn($t) => (float)($t->payload['claimed_amount'] ?? 0)),
+                ->sum(fn($t) => (float)($t->payload['claimed_amount'] ?? $t->original_payload['claimed_amount'] ?? 0)),
         ];
 
         // Lists
-        $allTasks = WorkflowTask::orderBy('created_at', 'desc')->get();
+        if ($activeRole === 'hospital') {
+            $allTasks = WorkflowTask::where('hospital_id', $hospital->company_id ?? '')
+                ->where('insurance_id', $payer->company_id ?? '')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } elseif ($activeRole === 'payer') {
+            $allTasks = WorkflowTask::where('insurance_id', $payer->company_id ?? '')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            $allTasks = WorkflowTask::orderBy('created_at', 'desc')->get();
+        }
         
         // Filter doctor's active queue (Yellow claims)
         $doctorQueue = WorkflowTask::where('status_code', 2)
@@ -70,14 +148,28 @@ class WorkflowController extends Controller
             ->get();
 
         // Filter Payer SIU claims (Red claims)
-        $siuClaims = WorkflowTask::where('status_code', 3)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        if ($activeRole === 'payer') {
+            $siuClaims = WorkflowTask::where('status_code', 3)
+                ->where('insurance_id', $payer->company_id ?? '')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            $siuClaims = WorkflowTask::where('status_code', 3)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
 
         // Filter Hospital's submitted claims
-        $hospitalClaims = WorkflowTask::where('hospital_id', $hospital->company_id ?? '')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        if ($activeRole === 'hospital') {
+            $hospitalClaims = WorkflowTask::where('hospital_id', $hospital->company_id ?? '')
+                ->where('insurance_id', $payer->company_id ?? '')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            $hospitalClaims = WorkflowTask::where('hospital_id', $hospital->company_id ?? '')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
 
         // Custom template rule caps
         $ruleCaps = [
@@ -106,11 +198,28 @@ class WorkflowController extends Controller
      */
     public function uploadClaim(Request $request)
     {
-        $hospital = Company::where('industry', 'healthcare')->first();
-        $payer = Company::where('industry', 'insurance')->first();
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Verify user is authorized as a Hospital provider
+        $isHospital = ($user->role === 'supplier') || ($user->company && $user->company->industry === 'healthcare');
+        if (!$isHospital) {
+            return back()->with('error', 'Security Exception: Unauthorized. Only Healthcare Hospital accounts can submit claims.');
+        }
+
+        $hospital = $user->company ?? Company::where('industry', 'healthcare')->first();
+        
+        $payerId = $request->input('payer_id');
+        if ($payerId) {
+            $payer = Company::where('company_id', $payerId)->where('industry', 'insurance')->first();
+        } else {
+            $payer = Company::where('industry', 'insurance')->first();
+        }
 
         if (!$hospital || !$payer) {
-            return back()->with('error', 'Demo tenants are not properly seeded.');
+            return back()->with('error', 'Demo tenants are not properly seeded or invalid insurance company selected.');
         }
 
         // Support both JSON file upload or form inputs
@@ -138,6 +247,7 @@ class WorkflowController extends Controller
                 'simulated_semantic_score' => 'nullable|numeric|min:0|max:1',
                 'simulated_llm_score' => 'nullable|numeric|min:0|max:1',
                 'is_duplicate_flag' => 'nullable|boolean',
+                'payer_id' => 'nullable',
             ]);
 
             $payload = [
@@ -167,7 +277,7 @@ class WorkflowController extends Controller
 
             $statusText = $task->status_code == 1 ? 'Auto-Approved (Green)' : ($task->status_code == 2 ? 'Routed to Auditing (Yellow)' : 'Escalated to Payer SIU (Red)');
             
-            return redirect()->route('workflow.portal', ['role' => 'hospital'])
+            return redirect()->route('workflow.portal', ['role' => 'hospital', 'payer_id' => $payer->company_id])
                 ->with('success', "Claim submitted successfully. Routed path: {$statusText} (Confidence Score: {$task->confidence_score})");
         } catch (\Exception $e) {
             return back()->with('error', 'Ingestion failure: ' . $e->getMessage());
@@ -179,6 +289,17 @@ class WorkflowController extends Controller
      */
     public function doctorResolve(Request $request)
     {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Verify user is authorized as a Clinical Auditor Doctor
+        $isDoctor = ($user->role === 'expert' && $user->expert_specialization === 'doctor');
+        if (!$isDoctor) {
+            return back()->with('error', 'Security Exception: Unauthorized. Only Auditor Doctors can resolve claims.');
+        }
+
         $request->validate([
             'task_id' => 'required|uuid|exists:workflow_tasks,task_id',
             'action' => 'required|string|in:Approve,Deny',
@@ -186,7 +307,7 @@ class WorkflowController extends Controller
         ]);
 
         $task = WorkflowTask::findOrFail($request->task_id);
-        $doctor = User::where('expert_specialization', 'doctor')->first();
+        $doctor = $user;
 
         if ($task->status_code !== 2) {
             return back()->with('error', 'This task is not in the Yellow (Auditing) path.');
@@ -251,6 +372,17 @@ class WorkflowController extends Controller
      */
     public function updatePolicyRules(Request $request)
     {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Verify user is authorized as an Insurance Payer
+        $isPayer = ($user->role === 'requester') || ($user->company && $user->company->industry === 'insurance');
+        if (!$isPayer) {
+            return back()->with('error', 'Security Exception: Unauthorized. Only Insurance Payer accounts can configure rules.');
+        }
+
         $request->validate([
             'cpt_cap_99213' => 'required|numeric|min:0',
             'cpt_cap_70450' => 'required|numeric|min:0',
@@ -331,6 +463,43 @@ class WorkflowController extends Controller
                 'role' => 'requester',
                 'company_id' => $payer->company_id,
                 'is_active' => true,
+            ]);
+        }
+
+        // Seed additional insurance companies
+        $bupa = Company::where('name', 'Bupa Arabia (Payer)')->first();
+        if (!$bupa) {
+            Company::create([
+                'name' => 'Bupa Arabia (Payer)',
+                'industry' => 'insurance',
+                'size' => 'large',
+                'is_requester' => true,
+                'is_verified_provider' => true,
+                'cr_number' => 'INS-202689',
+            ]);
+        }
+
+        $alrajhi = Company::where('name', 'Al Rajhi Takaful (Payer)')->first();
+        if (!$alrajhi) {
+            Company::create([
+                'name' => 'Al Rajhi Takaful (Payer)',
+                'industry' => 'insurance',
+                'size' => 'medium',
+                'is_requester' => true,
+                'is_verified_provider' => true,
+                'cr_number' => 'INS-202690',
+            ]);
+        }
+
+        $medgulf = Company::where('name', 'Medgulf Insurance (Payer)')->first();
+        if (!$medgulf) {
+            Company::create([
+                'name' => 'Medgulf Insurance (Payer)',
+                'industry' => 'insurance',
+                'size' => 'large',
+                'is_requester' => true,
+                'is_verified_provider' => true,
+                'cr_number' => 'INS-202691',
             ]);
         }
 
