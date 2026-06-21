@@ -81,7 +81,8 @@ class ValidateGoldStandard implements ShouldQueue
                 'trust_score_after' => $trustScoreAfter,
             ]);
 
-            // Check for ban
+            // Check for ban (Temporarily disabled by admin request to let lawyer complete auditing)
+            /*
              if ($expert->trust_score < 60 && !$expert->is_banned) {
                 $banReason = $source === 'legal_workbench'
                     ? 'انخفض مؤشر الثقة عن 60 بسبب الفشل في أسئلة الاختبار.'
@@ -103,6 +104,7 @@ class ValidateGoldStandard implements ShouldQueue
                     'trust_score_after' => $trustScoreAfter,
                 ]);
              }
+            */
         }
     }
 
