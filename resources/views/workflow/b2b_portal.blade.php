@@ -233,6 +233,18 @@
                         </span>
                     </button>
                 </form>
+
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit"
+                        class="px-4 py-2 text-xs font-bold bg-slate-900/60 text-slate-400 border border-slate-800 hover:bg-slate-800 hover:text-white rounded-lg transition-all flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>
+                            <span x-show="locale === 'en'">Logout</span>
+                            <span x-show="locale === 'ar'">تسجيل الخروج</span>
+                        </span>
+                    </button>
+                </form>
             </div>
         </div>
     </header>
