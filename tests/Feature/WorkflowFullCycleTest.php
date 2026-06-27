@@ -1181,4 +1181,67 @@ class WorkflowFullCycleTest extends TestCase
         $this->assertContains('POLICY_PRICE_CAP',       $ruleKeys);
         $this->assertContains('TEMPORAL_DUPLICATE_CHECK', $ruleKeys);
     }
+
+    /** @test */
+    public function test_23_doctor_can_return_claim_to_hospital()
+    {
+        $task = $this->createYellowTask();
+
+        $response = $this->actingAs($this->doctor)
+            ->post(route('workflow.doctor_resolve'), [
+                'task_id' => $task->task_id,
+                'action'  => 'Return',
+                'comment' => 'Need more detailed MRI reports for ENT diagnosis.',
+            ]);
+
+        $response->assertRedirect(route('workflow.portal', ['role' => 'doctor']));
+        $response->assertSessionHas('success');
+
+        $task->refresh();
+        $this->assertEquals(4, $task->status_code);
+        $this->assertEquals('Return', $task->doctor_response);
+        $this->assertEquals('Need more detailed MRI reports for ENT diagnosis.', $task->doctor_comment);
+
+        $this->assertEquals(75.00, $this->doctor->fresh()->wallet_balance);
+        $this->assertDatabaseHas('wallet_transactions', [
+            'user_id' => $this->doctor->id,
+            'amount'  => 75.00,
+            'type'    => 'credit',
+        ]);
+    }
+
+    /** @test */
+    public function test_24_hospital_can_resubmit_returned_claim()
+    {
+        $task = WorkflowTask::create([
+            'task_id'          => (string) Str::uuid(),
+            'task_type'        => 'MEDICAL_CLAIM',
+            'status_code'      => 4,
+            'confidence_score' => 0.75,
+            'hospital_id'      => $this->hospital->company_id,
+            'insurance_id'     => $this->payer->company_id,
+            'payload'          => $this->yellowPayload(),
+            'original_payload' => $this->yellowPayload(),
+            'audit_trail'      => ['rule_engine_logs' => []],
+            'doctor_response'  => 'Return',
+            'doctor_comment'   => 'Need more detailed MRI reports.',
+        ]);
+
+        $response = $this->actingAs($this->hospitalUser)
+            ->post(route('workflow.resubmit'), [
+                'task_id'          => $task->task_id,
+                'additional_notes' => 'Here is the detailed MRI scan report: Scanner detected mucosal thickening.',
+            ]);
+
+        $response->assertRedirect(route('workflow.portal', ['role' => 'hospital']));
+        $response->assertSessionHas('success');
+
+        $task->refresh();
+        $this->assertEquals(2, $task->status_code);
+        $this->assertNull($task->doctor_response);
+        $this->assertNull($task->doctor_comment);
+
+        $this->assertStringContainsString('Scanner detected mucosal thickening.', $task->payload['clinical_notes']);
+        $this->assertStringContainsString('Need more detailed MRI reports.', $task->payload['clinical_notes']);
+    }
 }

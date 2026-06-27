@@ -60,6 +60,10 @@
             box-shadow: 0 0 25px rgba(239, 68, 68, 0.15);
         }
 
+        .glow-orange {
+            box-shadow: 0 0 25px rgba(249, 115, 22, 0.15);
+        }
+
         .animated-stripes {
             background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.05) 75%, transparent 75%, transparent);
             background-size: 40px 40px;
@@ -253,6 +257,27 @@
             </div>
         </div>
     @endif
+
+    @if($errors->any())
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+            <div
+                class="bg-rose-950/50 border border-rose-800 text-rose-300 p-4 rounded-2xl flex flex-col gap-2 shadow-lg glow-red text-start">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-rose-500 text-xl"></i>
+                    <div class="text-sm font-bold">
+                        <span x-show="locale === 'en'">Validation Errors:</span>
+                        <span x-show="locale === 'ar'">خطأ في البيانات المدخلة:</span>
+                    </div>
+                </div>
+                <ul class="list-disc list-inside text-xs ps-6">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
+
 
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
@@ -768,8 +793,13 @@
                                         <span x-show="locale === 'ar'">معرف / نوع المهمة</span>
                                     </th>
                                     <th class="pb-3 text-start">
-                                        <span x-show="locale === 'en'">Submitter / Payer</span>
-                                        <span x-show="locale === 'ar'">الجهة المقدمة / الدافع</span>
+                                        @if($activeRole === 'doctor')
+                                            <span x-show="locale === 'en'">Payer</span>
+                                            <span x-show="locale === 'ar'">الدافع</span>
+                                        @else
+                                            <span x-show="locale === 'en'">Submitter / Payer</span>
+                                            <span x-show="locale === 'ar'">الجهة المقدمة / الدافع</span>
+                                        @endif
                                     </th>
                                     <th class="pb-3 text-center font-bold">
                                         <span x-show="locale === 'en'">Confidence</span>
@@ -779,10 +809,12 @@
                                         <span x-show="locale === 'en'">Status</span>
                                         <span x-show="locale === 'ar'">الحالة</span>
                                     </th>
-                                    <th class="pb-3 text-end">
-                                        <span x-show="locale === 'en'">Cost (SAR)</span>
-                                        <span x-show="locale === 'ar'">التكلفة (ر.س)</span>
-                                    </th>
+                                    @if($activeRole !== 'doctor')
+                                        <th class="pb-3 text-end">
+                                            <span x-show="locale === 'en'">Cost (SAR)</span>
+                                            <span x-show="locale === 'ar'">التكلفة (ر.س)</span>
+                                        </th>
+                                    @endif
                                     <th class="pb-3 text-center">
                                         <span x-show="locale === 'en'">Action</span>
                                         <span x-show="locale === 'ar'">الإجراء</span>
@@ -820,10 +852,12 @@
                                             </span>
                                         </td>
                                         <td class="py-3.5">
-                                            <div class="text-xs text-slate-300">
-                                                <span x-show="locale === 'en'">Submitter: KFSH</span>
-                                                <span x-show="locale === 'ar'">المقدم: مستشفى الملك فيصل</span>
-                                            </div>
+                                            @if($activeRole !== 'doctor')
+                                                <div class="text-xs text-slate-300">
+                                                    <span x-show="locale === 'en'">Submitter: KFSH</span>
+                                                    <span x-show="locale === 'ar'">المقدم: مستشفى الملك فيصل</span>
+                                                </div>
+                                            @endif
                                             <div class="text-[10px] text-slate-500">
                                                 <span x-show="locale === 'en'">Payer: Tawuniya</span>
                                                 <span x-show="locale === 'ar'">الدافع: التعاونية</span>
@@ -858,7 +892,7 @@
                                                         <span x-show="locale === 'ar'">قيد التدقيق</span>
                                                     </span>
                                                 </span>
-                                            @else
+                                            @elseif($t->status_code === 3)
                                                 <span
                                                     class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-400 bg-rose-950/60 border border-rose-900 px-2 py-0.5 rounded-full glow-red">
                                                     <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
@@ -867,11 +901,22 @@
                                                         <span x-show="locale === 'ar'">احتيال SIU</span>
                                                     </span>
                                                 </span>
+                                            @elseif($t->status_code === 4)
+                                                <span
+                                                    class="inline-flex items-center gap-1 text-[10px] font-bold text-orange-400 bg-orange-950/60 border border-orange-900 px-2 py-0.5 rounded-full glow-orange">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+                                                    <span>
+                                                        <span x-show="locale === 'en'">Needs Info</span>
+                                                        <span x-show="locale === 'ar'">بحاجة لمعلومات</span>
+                                                    </span>
+                                                </span>
                                             @endif
                                         </td>
-                                        <td class="py-3.5 text-end font-semibold text-white">
-                                            {{ number_format($t->payload['claimed_amount'] ?? $t->original_payload['claimed_amount'] ?? 0, 2) }}
-                                        </td>
+                                        @if($activeRole !== 'doctor')
+                                            <td class="py-3.5 text-end font-semibold text-white">
+                                                {{ number_format($t->payload['claimed_amount'] ?? $t->original_payload['claimed_amount'] ?? 0, 2) }}
+                                            </td>
+                                        @endif
                                         <td class="py-3.5 text-center">
                                             <button
                                                 class="px-2.5 py-1 text-[10px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white rounded-md transition-all border border-slate-750"
@@ -891,7 +936,7 @@
 
                 <!-- Shared Container Workspace details preview panel (when task selected) -->
                 <div x-show="selectedTask" x-cloak class="glass-card rounded-3xl p-6 relative overflow-hidden"
-                    :class="selectedTask.status_code === 1 ? 'border-t-4 border-emerald-500 glow-green' : (selectedTask.status_code === 2 ? 'border-t-4 border-amber-500 glow-yellow' : 'border-t-4 border-rose-500 glow-red')">
+                    :class="selectedTask.status_code === 1 ? 'border-t-4 border-emerald-500 glow-green' : (selectedTask.status_code === 2 ? 'border-t-4 border-amber-500 glow-yellow' : (selectedTask.status_code === 4 ? 'border-t-4 border-orange-500 glow-orange' : 'border-t-4 border-rose-500 glow-red'))">
                     <!-- Close button -->
                     <button @click="selectedTask = null"
                         class="absolute right-4 top-4 text-slate-500 hover:text-white text-lg transition-all">
@@ -900,24 +945,26 @@
 
                     <div class="space-y-6">
 
-                        <!-- Header with dynamic signaling -->
+                         <!-- Header with dynamic signaling -->
                         <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                             <div class="text-start">
                                 <span class="text-[9px] uppercase font-bold tracking-widest"
-                                    :class="selectedTask.status_code === 1 ? 'text-emerald-400' : (selectedTask.status_code === 2 ? 'text-amber-400' : 'text-rose-400')">
+                                    :class="selectedTask.status_code === 1 ? 'text-emerald-400' : (selectedTask.status_code === 2 ? 'text-amber-400' : (selectedTask.status_code === 4 ? 'text-orange-400' : 'text-rose-400'))">
                                     <span x-show="selectedTask.status_code === 1">
                                         <span x-show="locale === 'en'">🟢 Greenfield Path (Approved)</span>
                                         <span x-show="locale === 'ar'">🟢 المسار الأخضر (مقبول تلقائياً)</span>
                                     </span>
                                     <span x-show="selectedTask.status_code === 2">
                                         <span x-show="locale === 'en'">🟡 Yellow path (In-Review)</span>
-                                        <span x-show="locale === 'ar'">🟡 المسار الأصفر (قيد التدقيق والتحقق
-                                            البشري)</span>
+                                        <span x-show="locale === 'ar'">🟡 المسار الأصفر (قيد التدقيق والتحقق البشري)</span>
                                     </span>
                                     <span x-show="selectedTask.status_code === 3">
                                         <span x-show="locale === 'en'">🔴 Red Path (SIU Isolated)</span>
-                                        <span x-show="locale === 'ar'">🔴 المسار الأحمر (معزول للتحقيق في
-                                            الاحتيال)</span>
+                                        <span x-show="locale === 'ar'">🔴 المسار الأحمر (معزول للتحقيق في الاحتيال)</span>
+                                    </span>
+                                    <span x-show="selectedTask.status_code === 4">
+                                        <span x-show="locale === 'en'">🟠 Orange Path (Returned / Needs Info)</span>
+                                        <span x-show="locale === 'ar'">🟠 المسار البرتقالي (معاد للمستشفى لطلب تقارير)</span>
                                     </span>
                                 </span>
                                 <h2 class="text-xl font-bold text-white mt-1">
@@ -959,43 +1006,43 @@
                                     </div>
                                 </template>
 
-                                <div>
+                                <div x-show="!(selectedTask.status_code === 2 && '{{ $activeRole }}' === 'doctor')">
                                     <span class="block text-[10px] text-slate-500 font-semibold uppercase">
                                         <span x-show="locale === 'en'">Patient Name</span>
                                         <span x-show="locale === 'ar'">اسم المريض</span>
                                     </span>
                                     <!-- Rendered with PHI lock if anonymized -->
-                                    <span class="font-bold text-sm"
+                                    <span class="font-bold text-sm inline-flex items-center gap-1"
                                         :class="selectedTask.status_code === 2 && '{{ $activeRole }}' === 'doctor' ? 'text-amber-400' : 'text-white'">
                                         <i x-show="selectedTask.status_code === 2 && '{{ $activeRole }}' === 'doctor'"
-                                            class="fa-solid fa-user-lock text-[10px] me-1"></i>
-                                        <span x-text="selectedTask.payload.patient_name || '[REDACTED]'"></span>
+                                            class="fa-solid fa-user-lock text-[10px]"></i>
+                                        <span dir="ltr" x-text="selectedTask.payload.patient_name || '[REDACTED]'"></span>
                                     </span>
                                 </div>
 
-                                <div>
+                                <div x-show="!(selectedTask.status_code === 2 && '{{ $activeRole }}' === 'doctor')">
                                     <span class="block text-[10px] text-slate-500 font-semibold uppercase">
                                         <span x-show="locale === 'en'">National ID</span>
                                         <span x-show="locale === 'ar'">رقم الهوية</span>
                                     </span>
-                                    <span class="font-bold text-sm"
+                                    <span class="font-bold text-sm inline-flex items-center gap-1"
                                         :class="selectedTask.status_code === 2 && '{{ $activeRole }}' === 'doctor' ? 'text-amber-400' : 'text-white'">
                                         <i x-show="selectedTask.status_code === 2 && '{{ $activeRole }}' === 'doctor'"
-                                            class="fa-solid fa-id-card-clip text-[10px] me-1"></i>
-                                        <span x-text="selectedTask.payload.patient_national_id || '[REDACTED]'"></span>
+                                            class="fa-solid fa-id-card-clip text-[10px]"></i>
+                                        <span dir="ltr" x-text="selectedTask.payload.patient_national_id || '[REDACTED]'"></span>
                                     </span>
                                 </div>
 
-                                <div>
+                                <div x-show="!(selectedTask.status_code === 2 && '{{ $activeRole }}' === 'doctor')">
                                     <span class="block text-[10px] text-slate-500 font-semibold uppercase">
                                         <span x-show="locale === 'en'">Contact / Phone</span>
                                         <span x-show="locale === 'ar'">رقم الاتصال / الهاتف</span>
                                     </span>
-                                    <span class="font-bold text-sm"
+                                    <span class="font-bold text-sm inline-flex items-center gap-1"
                                         :class="selectedTask.status_code === 2 && '{{ $activeRole }}' === 'doctor' ? 'text-amber-400' : 'text-white'">
                                         <i x-show="selectedTask.status_code === 2 && '{{ $activeRole }}' === 'doctor'"
-                                            class="fa-solid fa-lock text-[10px] me-1"></i>
-                                        <span x-text="selectedTask.payload.patient_phone || '[REDACTED]'"></span>
+                                            class="fa-solid fa-lock text-[10px]"></i>
+                                        <span dir="ltr" x-text="selectedTask.payload.patient_phone || '[REDACTED]'"></span>
                                     </span>
                                 </div>
 
@@ -1029,7 +1076,7 @@
                                         x-text="selectedTask.payload.icd_10_code"></span>
                                 </div>
 
-                                <div>
+                                <div x-show="!(selectedTask.status_code === 1 && '{{ $activeRole }}' === 'doctor')">
                                     <span class="block text-[10px] text-slate-500 font-semibold uppercase">
                                         <span x-show="locale === 'en'">Submitting Cost</span>
                                         <span x-show="locale === 'ar'">تكلفة تقديم الطلب</span>
@@ -1151,7 +1198,8 @@
 
                         <!-- Doctor Resolve Workbench form inside detail panel if doctor perspective and YELLOW status -->
                         <template x-if="selectedTask.status_code === 2 && '{{ $activeRole }}' === 'doctor'">
-                            <div class="bg-slate-950/60 p-5 rounded-3xl border border-slate-800 space-y-4 text-start">
+                            <div class="bg-slate-950/60 p-5 rounded-3xl border border-slate-800 space-y-4 text-start"
+                                 x-data="{ action: '', comment: '', clientError: '' }">
                                 <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
                                     <i class="fa-solid fa-stethoscope"></i>
                                     <h4>
@@ -1161,15 +1209,35 @@
                                     </h4>
                                 </div>
 
-                                <form action="{{ route('workflow.doctor_resolve') }}" method="POST" class="space-y-4">
+                                <form action="{{ route('workflow.doctor_resolve') }}" method="POST" class="space-y-4"
+                                      @submit="
+                                          clientError = '';
+                                          if (!action) {
+                                              $event.preventDefault();
+                                              clientError = locale === 'ar' ? 'الرجاء اختيار قرار التدقيق (موافقة أو رفض).' : 'Please choose an audit decision (Approve or Deny).';
+                                              return;
+                                          }
+                                          if (comment.trim().length < 5) {
+                                              $event.preventDefault();
+                                              clientError = locale === 'ar' ? 'يجب أن يكون تبرير القرار 5 أحرف على الأقل.' : 'The justification comment must be at least 5 characters.';
+                                              return;
+                                          }
+                                      ">
                                     @csrf
                                     <input type="hidden" name="task_id" :value="selectedTask.task_id">
 
-                                    <div class="flex flex-col sm:flex-row gap-4">
+                                    <!-- Client Validation Error -->
+                                    <div x-show="clientError" class="bg-rose-950/60 border border-rose-900 text-rose-300 p-3.5 rounded-2xl flex items-start gap-2.5 shadow-md text-xs glow-red text-start" x-cloak>
+                                        <i class="fa-solid fa-circle-exclamation text-rose-500 text-base mt-0.5"></i>
+                                        <div class="font-semibold" x-text="clientError"></div>
+                                    </div>
+
+                                    <div class="flex flex-col lg:flex-row gap-4">
                                         <label
-                                            class="flex-1 bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-emerald-500 transition-all">
+                                            class="flex-1 bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-emerald-500 transition-all"
+                                            :class="action === 'Approve' ? 'border-emerald-500 bg-emerald-950/20' : ''">
                                             <div class="flex items-center gap-2">
-                                                <input type="radio" name="action" value="Approve" required
+                                                <input type="radio" name="action" value="Approve" required x-model="action"
                                                     class="w-4 h-4 text-emerald-500 bg-slate-950 border-slate-800">
                                                 <span class="font-bold text-emerald-400 text-sm">
                                                     <span x-show="locale === 'en'">Adjudicate / Approve</span>
@@ -1183,9 +1251,27 @@
                                         </label>
 
                                         <label
-                                            class="flex-1 bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-rose-500 transition-all">
+                                            class="flex-1 bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-orange-500 transition-all"
+                                            :class="action === 'Return' ? 'border-orange-500 bg-orange-950/20' : ''">
                                             <div class="flex items-center gap-2">
-                                                <input type="radio" name="action" value="Deny" required
+                                                <input type="radio" name="action" value="Return" required x-model="action"
+                                                    class="w-4 h-4 text-orange-500 bg-slate-950 border-slate-800">
+                                                <span class="font-bold text-orange-400 text-sm">
+                                                    <span x-show="locale === 'en'">Return for Info</span>
+                                                    <span x-show="locale === 'ar'">إرجاع لطلب تقارير</span>
+                                                </span>
+                                            </div>
+                                            <span class="text-[9px] text-slate-500 font-bold uppercase">
+                                                <span x-show="locale === 'en'">Needs Hospital Correction</span>
+                                                <span x-show="locale === 'ar'">إكمال من المستشفى</span>
+                                            </span>
+                                        </label>
+
+                                        <label
+                                            class="flex-1 bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-rose-500 transition-all"
+                                            :class="action === 'Deny' ? 'border-rose-500 bg-rose-950/20' : ''">
+                                            <div class="flex items-center gap-2">
+                                                <input type="radio" name="action" value="Deny" required x-model="action"
                                                     class="w-4 h-4 text-rose-500 bg-slate-950 border-slate-800">
                                                 <span class="font-bold text-rose-400 text-sm">
                                                     <span x-show="locale === 'en'">Escalate / Deny</span>
@@ -1200,11 +1286,16 @@
                                     </div>
 
                                     <div>
-                                        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">
-                                            <span x-show="locale === 'en'">Clinical Decision Justification</span>
-                                            <span x-show="locale === 'ar'">تبرير القرار الإكلينيكي</span>
-                                        </label>
-                                        <textarea name="comment" rows="2" required
+                                        <div class="flex justify-between items-center mb-1">
+                                            <label class="block text-[10px] uppercase font-bold text-slate-400">
+                                                <span x-show="locale === 'en'">Clinical Decision Justification</span>
+                                                <span x-show="locale === 'ar'">تبرير القرار الإكلينيكي</span>
+                                            </label>
+                                            <span class="text-[9px] font-bold" :class="comment.trim().length >= 5 ? 'text-emerald-400' : 'text-rose-400'">
+                                                <span x-text="comment.trim().length"></span>/5
+                                            </span>
+                                        </div>
+                                        <textarea name="comment" rows="2" required x-model="comment"
                                             placeholder="Write clinical justification audit notes..."
                                             class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"></textarea>
                                     </div>
@@ -1215,6 +1306,72 @@
                                         <span>
                                             <span x-show="locale === 'en'">Commit Audit Decision & Earn 75.00 SAR</span>
                                             <span x-show="locale === 'ar'">اعتماد قرار التدقيق وكسب 75.00 ر.س</span>
+                                        </span>
+                                    </button>
+                                </form>
+                            </div>
+                        </template>
+
+                        <!-- Hospital Resubmit Workbench form inside detail panel if hospital perspective and RETURNED (status 4) -->
+                        <template x-if="selectedTask.status_code === 4 && '{{ $activeRole }}' === 'hospital'">
+                            <div class="bg-slate-950/60 p-5 rounded-3xl border border-orange-900/40 space-y-4 text-start glow-orange"
+                                 x-data="{ resubmitComment: '', clientResubmitError: '' }">
+                                <div class="flex items-center gap-2 text-orange-400 font-bold text-sm">
+                                    <i class="fa-solid fa-file-medical"></i>
+                                    <h4>
+                                        <span x-show="locale === 'en'">Complete Claim Justification & Resubmit</span>
+                                        <span x-show="locale === 'ar'">إستكمال تبرير المطالبة وإعادة التقديم</span>
+                                    </h4>
+                                </div>
+
+                                <!-- Doctor's Request details -->
+                                <div class="bg-orange-950/30 border border-orange-900/30 p-3.5 rounded-xl text-xs space-y-1.5">
+                                    <div class="font-extrabold text-orange-400">
+                                        <span x-show="locale === 'en'">Auditor Request Note:</span>
+                                        <span x-show="locale === 'ar'">ملاحظة طلب المدقق:</span>
+                                    </div>
+                                    <div class="text-orange-200 italic" x-text="selectedTask.doctor_comment"></div>
+                                </div>
+
+                                <form action="{{ route('workflow.resubmit') }}" method="POST" class="space-y-4"
+                                      @submit="
+                                          clientResubmitError = '';
+                                          if (resubmitComment.trim().length < 5) {
+                                              $event.preventDefault();
+                                              clientResubmitError = locale === 'ar' ? 'الرجاء إدخال تقرير أو تبرير طبي لا يقل عن 5 أحرف.' : 'Please enter a medical report or justification of at least 5 characters.';
+                                              return;
+                                          }
+                                      ">
+                                    @csrf
+                                    <input type="hidden" name="task_id" :value="selectedTask.task_id">
+
+                                    <!-- Client Validation Error -->
+                                    <div x-show="clientResubmitError" class="bg-rose-950/60 border border-rose-900 text-rose-300 p-3.5 rounded-2xl flex items-start gap-2.5 shadow-md text-xs glow-red text-start" x-cloak>
+                                        <i class="fa-solid fa-circle-exclamation text-rose-500 text-base mt-0.5"></i>
+                                        <div class="font-semibold" x-text="clientResubmitError"></div>
+                                    </div>
+
+                                    <div>
+                                        <div class="flex justify-between items-center mb-1">
+                                            <label class="block text-[10px] uppercase font-bold text-slate-400">
+                                                <span x-show="locale === 'en'">Additional Medical Reports / Justification</span>
+                                                <span x-show="locale === 'ar'">المستندات الطبية المرفقة / التبرير الإضافي</span>
+                                            </label>
+                                            <span class="text-[9px] font-bold" :class="resubmitComment.trim().length >= 5 ? 'text-emerald-400' : 'text-rose-400'">
+                                                <span x-text="resubmitComment.trim().length"></span> Chars
+                                            </span>
+                                        </div>
+                                        <textarea name="additional_notes" rows="3" required x-model="resubmitComment"
+                                            placeholder="Write additional diagnostic justifications or report notes..."
+                                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"></textarea>
+                                    </div>
+
+                                    <button type="submit"
+                                        class="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 glow-orange">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                        <span>
+                                            <span x-show="locale === 'en'">Submit Reports & Route back to Auditor</span>
+                                            <span x-show="locale === 'ar'">إرسال الملاحظات الإضافية وإعادتها للمدقق</span>
                                         </span>
                                     </button>
                                 </form>
@@ -1239,8 +1396,8 @@
                                     </span>
                                     <span
                                         class="font-bold px-2 py-0.5 rounded bg-slate-900 border border-slate-800 ms-1.5"
-                                        :class="selectedTask.doctor_response === 'Approve' ? 'text-emerald-400' : 'text-rose-400'"
-                                        x-text="selectedTask.doctor_response === 'Approve' ? (locale === 'ar' ? 'موافقة وتمرير' : 'Approve') : (locale === 'ar' ? 'رفض وتصعيد' : 'Deny')"></span>
+                                        :class="selectedTask.doctor_response === 'Approve' ? 'text-emerald-400' : (selectedTask.doctor_response === 'Return' ? 'text-orange-400' : 'text-rose-400')"
+                                        x-text="selectedTask.doctor_response === 'Approve' ? (locale === 'ar' ? 'موافقة وتمرير' : 'Approve') : (selectedTask.doctor_response === 'Return' ? (locale === 'ar' ? 'إرجاع لطلب تقارير' : 'Returned for Info') : (locale === 'ar' ? 'رفض وتصعيد' : 'Deny'))"></span>
                                 </div>
                                 <div class="text-white text-start">
                                     <span class="text-slate-500">

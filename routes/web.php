@@ -382,6 +382,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/b2b-portal/doctor/resolve', [App\Http\Controllers\Workflow\WorkflowController::class, 'doctorResolve'])->name('workflow.doctor_resolve');
     Route::post('/b2b-portal/payer/policy', [App\Http\Controllers\Workflow\WorkflowController::class, 'updatePolicyRules'])->name('workflow.payer_policy');
     Route::post('/b2b-portal/reset', [App\Http\Controllers\Workflow\WorkflowController::class, 'resetDemo'])->name('workflow.reset');
+    Route::post('/b2b-portal/hospital/resubmit', [App\Http\Controllers\Workflow\WorkflowController::class, 'resubmitClaim'])->name('workflow.resubmit');
 });
 
 

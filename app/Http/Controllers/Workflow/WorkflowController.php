@@ -302,7 +302,7 @@ class WorkflowController extends Controller
 
         $request->validate([
             'task_id' => 'required|uuid|exists:workflow_tasks,task_id',
-            'action' => 'required|string|in:Approve,Deny',
+            'action' => 'required|string|in:Approve,Return,Deny',
             'comment' => 'required|string|min:5|max:1000',
         ]);
 
@@ -316,7 +316,7 @@ class WorkflowController extends Controller
         $reward = 75.00; // 75 SAR micro-wallet credit
 
         DB::transaction(function () use ($task, $request, $doctor, $reward) {
-            $newStatusCode = $request->action === 'Approve' ? 1 : 3;
+            $newStatusCode = $request->action === 'Approve' ? 1 : ($request->action === 'Return' ? 4 : 3);
             $auditTrail = $task->audit_trail;
 
             // Generate financial ledger if approved
@@ -365,6 +365,70 @@ class WorkflowController extends Controller
 
         return redirect()->route('workflow.portal', ['role' => 'doctor'])
             ->with('success', "Claim task resolved. Decision committed: {$request->action}. Micro-wallet reward of {$reward} SAR awarded to auditor.");
+    }
+
+    /**
+     * Resubmit a returned Yellow Path claim with updated reports/clinical notes (Hospital action).
+     */
+    public function resubmitClaim(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Verify user is authorized as a Hospital provider (Supplier or Healthcare company)
+        $isHospital = ($user->role === 'supplier') || ($user->company && $user->company->industry === 'healthcare');
+        if (!$isHospital) {
+            return back()->with('error', 'Security Exception: Unauthorized. Only Healthcare Hospital accounts can update and resubmit claims.');
+        }
+
+        $request->validate([
+            'task_id' => 'required|uuid|exists:workflow_tasks,task_id',
+            'additional_notes' => 'required|string|min:5|max:2000',
+        ]);
+
+        $task = WorkflowTask::findOrFail($request->task_id);
+
+        if ($task->status_code !== 4) {
+            return back()->with('error', 'This claim task is not in the Returned (Needs Info) state.');
+        }
+
+        DB::transaction(function () use ($task, $request) {
+            $payload = $task->payload;
+            $originalPayload = $task->original_payload;
+
+            // Format additional notes to append to existing notes
+            $doctorCommentText = $task->doctor_comment ? " [Auditor Request: {$task->doctor_comment}]" : "";
+            $appendedNotes = "\n--- UPDATE (" . now()->toDateString() . ")$doctorCommentText ---\n" . $request->additional_notes;
+
+            // Append to payload clinical_notes
+            $payload['clinical_notes'] = ($payload['clinical_notes'] ?? '') . $appendedNotes;
+            if ($originalPayload) {
+                $originalPayload['clinical_notes'] = ($originalPayload['clinical_notes'] ?? '') . $appendedNotes;
+            }
+
+            // Update audit trail logs
+            $auditTrail = $task->audit_trail;
+            $auditTrail['resubmission_log'][] = [
+                'resubmitted_at' => now()->toIso8601String(),
+                'appended_notes' => $request->additional_notes,
+            ];
+
+            // Update task back to Yellow Path (In Audit)
+            $task->update([
+                'status_code' => 2, // YELLOW / In Audit
+                'payload' => $payload,
+                'original_payload' => $originalPayload,
+                'audit_trail' => $auditTrail,
+                'doctor_response' => null,
+                'doctor_comment' => null,
+                'doctor_completed_at' => null,
+            ]);
+        });
+
+        return redirect()->route('workflow.portal', ['role' => 'hospital'])
+            ->with('success', 'Claim updated with additional notes and resubmitted for clinical audit review successfully.');
     }
 
     /**
