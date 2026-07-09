@@ -78,7 +78,7 @@
 <body class="bg-[#f0f7f9] h-screen overflow-hidden flex font-sans antialiased text-gray-800">
 
     <!-- Sidebar (سجل المحادثات الجانبي) -->
-    <aside id="chat-sidebar" class="w-80 h-full glass-sidebar flex flex-col z-30 transition-all duration-300 shrink-0 transform translate-x-0 md:relative fixed right-0 top-0">
+    <aside id="chat-sidebar" class="w-80 h-full glass-sidebar flex flex-col z-30 transition-all duration-300 fixed right-0 top-0 transform translate-x-0">
         <!-- Sidebar Header: New Chat Button -->
         <div class="p-4 border-b border-white/60">
             <button onclick="startNewChat()" class="w-full py-3.5 px-4 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-blue-500/20 active:scale-[0.98] transition-all cursor-pointer font-bold text-sm shadow-md">
@@ -125,7 +125,7 @@
     </aside>
 
     <!-- Main Chat Window (النافذة الرئيسية) -->
-    <div class="flex-1 h-full flex flex-col relative overflow-hidden">
+    <div id="main-content" class="flex-1 h-full flex flex-col relative overflow-hidden transition-all duration-300 md:mr-80">
         
         <!-- Navbar -->
         <nav class="relative z-10 glass-panel border-b border-white/60 px-6 py-4 flex items-center justify-between">
@@ -237,15 +237,18 @@
             loadConversations();
         });
 
-        // إغلاق وفتح المنيو الجانبي في الموبايل
+        // إغلاق وفتح المنيو الجانبي في الموبايل والديسك توب
         function toggleSidebar() {
             const sidebar = document.getElementById('chat-sidebar');
+            const mainContent = document.getElementById('main-content');
             if (sidebar.classList.contains('translate-x-0')) {
                 sidebar.classList.remove('translate-x-0');
                 sidebar.classList.add('translate-x-full');
+                mainContent.classList.remove('md:mr-80');
             } else {
                 sidebar.classList.remove('translate-x-full');
                 sidebar.classList.add('translate-x-0');
+                mainContent.classList.add('md:mr-80');
             }
         }
 
@@ -306,6 +309,8 @@
             // إغلاق في الموبايل
             if (window.innerWidth < 768) {
                 document.getElementById('chat-sidebar').classList.add('translate-x-full');
+                document.getElementById('chat-sidebar').classList.remove('translate-x-0');
+                document.getElementById('main-content').classList.remove('md:mr-80');
             }
         }
 
@@ -403,6 +408,8 @@
                 // إغلاق في الموبايل
                 if (window.innerWidth < 768) {
                     document.getElementById('chat-sidebar').classList.add('translate-x-full');
+                    document.getElementById('chat-sidebar').classList.remove('translate-x-0');
+                    document.getElementById('main-content').classList.remove('md:mr-80');
                 }
 
             } catch (error) {
