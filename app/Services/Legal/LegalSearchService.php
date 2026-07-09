@@ -38,7 +38,8 @@ class LegalSearchService
             foreach ($keywords as $keyword) {
                 $q->orWhere('question', 'LIKE', '%' . $keyword . '%')
                   ->orWhere('case_text', 'LIKE', '%' . $keyword . '%')
-                  ->orWhere('correct_answer', 'LIKE', '%' . $keyword . '%');
+                  ->orWhere('correct_answer', 'LIKE', '%' . $keyword . '%')
+                  ->orWhere('proposed_answer', 'LIKE', '%' . $keyword . '%');
             }
 
             // If question mentions specific articles, find judgments that mention the same
@@ -64,6 +65,7 @@ class LegalSearchService
                 $found = false;
                 if ($task->question && mb_stripos($task->question, $keyword) !== false) { $score += 15; $found = true; }
                 if ($task->correct_answer && mb_stripos($task->correct_answer, $keyword) !== false) { $score += 8; $found = true; }
+                if ($task->proposed_answer && mb_stripos($task->proposed_answer, $keyword) !== false) { $score += 6; $found = true; }
                 if ($task->case_text && mb_stripos($task->case_text, $keyword) !== false) { $score += 3; $found = true; }
                 if ($found) $matchedKeywords++;
             }
@@ -78,7 +80,11 @@ class LegalSearchService
                 }
             }
 
-            if (!empty($task->correct_answer)) $score += 25;
+            if (!empty($task->correct_answer)) {
+                $score += 25; // مدققة من محامي — أولوية أعلى
+            } elseif (!empty($task->proposed_answer)) {
+                $score += 10; // مقترحة من AI — أولوية أقل لكن مقبولة
+            }
             
             // Domain Mismatch Penalty: If the query has family words, but the task has labor words
             $familyKeywords = ['نفقة', 'زوجة', 'طلاق', 'حضانة', 'مهر', 'خلع', 'أسرة'];

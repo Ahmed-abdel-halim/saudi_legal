@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\Legal\LegalSearchService;
 use App\Services\AzureSearchService;
+use App\Services\QdrantSearchService;
 use App\Services\Legal\LegalReferenceService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -15,15 +16,18 @@ class LegalAiController extends Controller
 {
     protected $searchService;
     protected $azureService;
+    protected $qdrantService;
     protected $referenceService;
 
     public function __construct(
-        LegalSearchService  $searchService,
-        AzureSearchService  $azureService,
+        LegalSearchService    $searchService,
+        AzureSearchService    $azureService,
+        QdrantSearchService   $qdrantService,
         LegalReferenceService $referenceService
     ) {
-        $this->searchService  = $searchService;
-        $this->azureService   = $azureService;
+        $this->searchService   = $searchService;
+        $this->azureService    = $azureService;
+        $this->qdrantService   = $qdrantService;
         $this->referenceService = $referenceService;
     }
 
@@ -37,15 +41,33 @@ class LegalAiController extends Controller
         $request->validate(['question' => 'required|string|max:1000']);
         $question = $request->question;
 
-        // 1. Smart Search: Azure Vector Search (إذا مفعّل) أو Keyword Search
-        $useAzure = config('azure.search.enabled', false);
+        // 1. Smart Search: Qdrant Vector → Azure Vector → Keyword (3-tier fallback)
+        $searchMethod = 'keyword'; // default
+        $contextTasks = collect();
 
-        if ($useAzure) {
-            Log::info('[LegalAi] Using Azure AI Search (Vector + Hybrid)');
+        // Tier 1: Qdrant Vector Search (مجاني)
+        if ($this->qdrantService->isEnabled()) {
+            Log::info('[LegalAi] Using Qdrant Vector Search');
+            $contextTasks = $this->qdrantService->search($question, 5);
+            if ($contextTasks->isNotEmpty()) {
+                $searchMethod = 'qdrant_vector';
+            }
+        }
+
+        // Tier 2: Azure AI Search (لو Qdrant فاضي أو مش مفعّل)
+        if ($contextTasks->isEmpty() && config('azure.search.enabled', false)) {
+            Log::info('[LegalAi] Falling back to Azure AI Search');
             $contextTasks = $this->azureService->hybridSearch($question, 5);
-        } else {
-            Log::info('[LegalAi] Using legacy keyword search');
+            if ($contextTasks->isNotEmpty()) {
+                $searchMethod = 'azure_vector';
+            }
+        }
+
+        // Tier 3: Keyword Search (fallback أخير)
+        if ($contextTasks->isEmpty()) {
+            Log::info('[LegalAi] Falling back to keyword search');
             $contextTasks = $this->searchService->search($question, 5);
+            $searchMethod = 'keyword';
         }
 
         $allArticles = collect();
@@ -134,8 +156,9 @@ class LegalAiController extends Controller
         $answer = $this->generateAiAnswer($question, $contextText);
 
         return response()->json([
-            'answer' => $answer,
-            'citations' => $citations
+            'answer'        => $answer,
+            'citations'     => $citations,
+            'search_method' => $searchMethod,
         ]);
     }
 
@@ -158,6 +181,7 @@ class LegalAiController extends Controller
 3. (الإجابة المباشرة): إذا طرح العميل سؤالاً محدداً، أجب عليه مباشرة ولا تقم بـ 'تحليل' أو 'تلخيص' أي نصوص قضائية مرفقة إلا إذا طلب العميل ذلك صراحةً.
 4. دائماً ابدأ إجابتك بـ 'أهلاً بك، بصفتي رديف القانوني...'.
 5. إذا كانت المراجع لا تحتوي على الإجابة، أخبر العميل بوضوح: 'عذراً، لم أجد نصوصاً نظامية محددة في المراجع الحالية للإجابة على سؤالك.'.
+6. (تنبيه هام): بعض المراجع المرفقة هي إجابات مقترحة من الذكاء الاصطناعي ولم يتم تدقيقها بعد من قبل محامٍ معتمد. استخدمها كمرشد عام، لكن نبّه العميل في نهاية إجابتك بأن 'هذه الاستشارة إرشادية ولا تغني عن الرجوع لمحامٍ مختص.'.
 
 المعلومات القانونية المتاحة (المراجع):
 " . $context . "

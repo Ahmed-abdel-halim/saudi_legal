@@ -45,4 +45,11 @@ return [
         'key' => env('GEMINI_API_KEY'),
     ],
 
+    'qdrant' => [
+        'url'        => env('QDRANT_URL', ''),
+        'api_key'    => env('QDRANT_API_KEY', ''),
+        'collection' => env('QDRANT_COLLECTION', 'legal-documents'),
+        'enabled'    => env('QDRANT_ENABLED', false),
+    ],
+
 ];
