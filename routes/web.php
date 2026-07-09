@@ -24,6 +24,9 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // SAUDI LEGAL AI Assistant Public Routes (Temporary)
 Route::get('/legal-assistant', [\App\Http\Controllers\Legal\LegalAiController::class, 'index'])->name('legal_assistant.public');
 Route::post('/legal-assistant/ask', [\App\Http\Controllers\Legal\LegalAiController::class, 'ask'])->name('legal_assistant.public.ask');
+Route::get('/legal-assistant/conversations', [\App\Http\Controllers\Legal\LegalAiController::class, 'getConversations'])->name('legal_assistant.conversations');
+Route::get('/legal-assistant/conversations/{uuid}', [\App\Http\Controllers\Legal\LegalAiController::class, 'getMessages'])->name('legal_assistant.messages');
+Route::delete('/legal-assistant/conversations/{uuid}', [\App\Http\Controllers\Legal\LegalAiController::class, 'deleteConversation'])->name('legal_assistant.delete');
 
 // Careers Route
 Route::get('/careers', [App\Http\Controllers\CareerController::class, 'index'])->name('careers');

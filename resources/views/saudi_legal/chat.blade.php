@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Legal Assistant | Radiif</title>
+    <title>المساعد القانوني الذكي | رديف</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,11 +11,10 @@
         body { font-family: 'Tajawal', sans-serif; }
         
         /* Premium Background Image */
-        /* Premium Background Image */
         .premium-bg {
             background-image: url('/images/backgroundchat.png');
-            background-size: 100% 100%; /* تمنع الزوم وتجعلها بحجمها الطبيعي */
-            background-position: top center; /* تبدأ الصورة من الأعلى */
+            background-size: 100% 100%;
+            background-position: top center;
             background-repeat: no-repeat;
             position: relative;
             overflow: hidden;
@@ -31,18 +30,21 @@
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
         }
 
+        .glass-sidebar {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.03);
+        }
+
         .glass-bubble {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 1);
             box-shadow: 0 10px 40px rgba(0,0,0,0.05);
-            border-radius: 2rem 2rem 0 2rem; /* Chat bubble tail */
+            border-radius: 2rem 2rem 0 2rem;
         }
-
-        /* Glowing Live RAG Circle (Hidden as it is in the bg image) */
-        /*
-        .glowing-circle { ... }
-        */
 
         /* Gradient Text */
         .text-gradient {
@@ -56,117 +58,388 @@
             box-shadow: 0 0 30px rgba(14, 165, 233, 0.2);
             border-color: rgba(14, 165, 233, 0.5);
         }
+
+        /* Scrollbar styles */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
-<body class="bg-[#f0f7f9] h-screen overflow-hidden flex flex-col font-sans antialiased text-gray-800">
+<body class="bg-[#f0f7f9] h-screen overflow-hidden flex font-sans antialiased text-gray-800">
 
-    <!-- Navbar -->
-    <nav class="relative z-10 glass-panel border-b border-white/60 px-6 py-4 flex items-center justify-between">
-        <!-- Right: Logo & Title -->
-        <div class="flex items-center gap-4">
-            <a href="{{ url('/') }}" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition shadow-sm">
-                <i class="fa-solid fa-arrow-right"></i>
-            </a>
+    <!-- Sidebar (سجل المحادثات الجانبي) -->
+    <aside id="chat-sidebar" class="w-80 h-full glass-sidebar flex flex-col z-30 transition-all duration-300 shrink-0 transform translate-x-0 md:relative fixed right-0 top-0">
+        <!-- Sidebar Header: New Chat Button -->
+        <div class="p-4 border-b border-white/60">
+            <button onclick="startNewChat()" class="w-full py-3.5 px-4 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-blue-500/20 active:scale-[0.98] transition-all cursor-pointer font-bold text-sm shadow-md">
+                <i class="fa-solid fa-plus text-xs"></i>
+                محادثة جديدة
+            </button>
+        </div>
+
+        <!-- Sidebar Content: Chat List -->
+        <div class="flex-1 overflow-y-auto px-3 py-4 custom-scrollbar flex flex-col gap-2" id="conversations-list">
+            <!-- Loading Skeleton -->
+            <div class="animate-pulse flex flex-col gap-3 p-2">
+                <div class="h-10 bg-gray-200/60 rounded-xl"></div>
+                <div class="h-10 bg-gray-200/60 rounded-xl"></div>
+                <div class="h-10 bg-gray-200/60 rounded-xl"></div>
+            </div>
+        </div>
+
+        <!-- Sidebar Footer: Logged User info -->
+        <div class="p-4 border-t border-white/60 bg-white/20 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                    <i class="fa-solid fa-robot text-xl"></i>
+                <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold shadow-sm">
+                    @auth
+                        {{ mb_substr(auth()->user()->name, 0, 1) }}
+                    @else
+                        ز
+                    @endauth
                 </div>
-                <div>
-                    <h1 class="text-xl font-black text-gray-800 tracking-tight">المساعد القانوني السعودي الذكي</h1>
-                    <p class="text-xs font-bold text-teal-600 tracking-widest uppercase flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
-                        LIVE RAG ENGINE | 15,954 ARTICLES
-                    </p>
+                <div class="flex flex-col">
+                    <span class="text-xs font-black text-gray-700">
+                        @auth
+                            {{ auth()->user()->name }}
+                        @else
+                            زائر الخدمة
+                        @endauth
+                    </span>
+                    <span class="text-[9px] font-bold text-gray-400">الوصول المجاني</span>
                 </div>
             </div>
+            <button onclick="toggleSidebar()" class="md:hidden w-8 h-8 rounded-lg bg-gray-200/60 text-gray-600 flex items-center justify-center text-xs hover:bg-gray-200">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
         </div>
+    </aside>
 
-        <!-- Center: Main Title -->
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
-            <h2 class="text-3xl font-black text-gradient tracking-tight">المنقذ القانوني السعودي الذكي</h2>
-        </div>
-
-        <!-- Left: Badge -->
-        <div class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-900 to-indigo-900 rounded-full shadow-lg shadow-indigo-900/20">
-            <i class="fa-regular fa-gem text-blue-300"></i>
-            <span class="text-xs font-bold text-white tracking-widest">PREMIUM EXPERT ACCESS</span>
-        </div>
-    </nav>
-
-<div class="premium-bg flex-1 w-full flex flex-col relative overflow-hidden">
-        <main id="chat-container" class="flex-1 relative z-10 flex flex-col max-w-7xl mx-auto w-full px-4 pt-10 pb-4 overflow-y-auto" style="scrollbar-width: none;">
-            <div class="flex-1 flex items-center justify-between relative mb-12" id="welcome-visuals">
-                <div class="w-1/3 flex justify-start pl-10 relative">
-                     <div class="w-64 h-64 rounded-full flex items-center justify-center relative"></div>
-                </div>
-
-                <div class="w-1/3 flex justify-center relative z-20"></div>
-
-                <div class="w-1/3 flex flex-col items-end pr-10 relative">
-                    <div class="glass-bubble p-6 max-w-sm mb-6 relative z-20" style="margin-top: -60px;">
-                        <p class="text-sm text-gray-700 leading-relaxed font-medium">
-                            مرحباً بك في المساعد القانوني السعودي، أنا مدعوم بكافة الأنظمة والتشريعات الصادرة عن هيئة الخبراء <span class="font-bold text-teal-600">(15,954 مادة قانونية)</span>.
-                            <br><br>
-                            كيف يمكنني مساعدتك اليوم؟ يمكنك سؤالي عن أي مادة قانونية أو استشارة تجارية.
-                        </p>
-                        <div class="absolute -right-4 -top-4 w-10 h-10 rounded-xl bg-blue-100 border-2 border-white flex items-center justify-center text-blue-600 shadow-md">
-                            <i class="fa-solid fa-robot"></i>
-                        </div>
+    <!-- Main Chat Window (النافذة الرئيسية) -->
+    <div class="flex-1 h-full flex flex-col relative overflow-hidden">
+        
+        <!-- Navbar -->
+        <nav class="relative z-10 glass-panel border-b border-white/60 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                        <i class="fa-solid fa-scale-balanced text-lg animate-pulse"></i>
                     </div>
-                    <div class="w-32 h-32 flex items-center justify-center -mr-4 relative"></div>
+                    <div>
+                        <h1 class="text-lg font-black text-gray-800 tracking-tight">رديف القانوني</h1>
+                        <p class="text-[10px] font-bold text-teal-600 tracking-wider flex items-center gap-1 uppercase">
+                            <span class="w-1.5 h-1.5 rounded-full bg-teal-500 animate-ping"></span>
+                            ACTIVE VECTOR ENGINE | 53,765 POINTS
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex flex-col gap-3 w-full max-w-4xl mx-auto" id="suggested-queries">
-                <h3 class="text-sm font-bold text-gray-500 text-right px-2">أسئلة مقترحة:</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" dir="rtl">
-                    <button onclick="document.getElementById('question-input').value='ما هي شروط تملك الأجانب للعقار في السعودية؟'; submitQuestion();" class="glass-panel rounded-2xl p-4 flex items-center gap-4 hover:bg-white/80 transition group text-right cursor-pointer">
-                        <div class="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-house-user"></i></div>
-                        <div class="flex-1">
-                            <h4 class="font-black text-gray-800 text-sm group-hover:text-teal-600 transition">تملك العقارات</h4>
-                            <p class="text-xs text-gray-500 mt-1 line-clamp-2">شروط تملك الأجانب للعقار</p>
-                        </div>
-                    </button>
-                    <button onclick="document.getElementById('question-input').value='ما هي عقوبة الموظف العام في حال ثبوت جريمة الرشوة؟'; submitQuestion();" class="glass-panel rounded-2xl p-4 flex items-center gap-4 hover:bg-white/80 transition group text-right cursor-pointer">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-gavel"></i></div>
-                        <div class="flex-1">
-                            <h4 class="font-black text-gray-800 text-sm group-hover:text-blue-600 transition">الجرائم الجنائية</h4>
-                            <p class="text-xs text-gray-500 mt-1 line-clamp-2">عقوبة جريمة الرشوة للموظف</p>
-                        </div>
-                    </button>
-                    <button onclick="document.getElementById('question-input').value='متى يسقط حق الزوجة في المطالبة بالنفقة؟'; submitQuestion();" class="glass-panel rounded-2xl p-4 flex items-center gap-4 hover:bg-white/80 transition group text-right cursor-pointer">
-                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-scale-balanced"></i></div>
-                        <div class="flex-1">
-                            <h4 class="font-black text-gray-800 text-sm group-hover:text-emerald-600 transition">الأحوال الشخصية</h4>
-                            <p class="text-xs text-gray-500 mt-1 line-clamp-2">حالات سقوط النفقة عن الزوجة</p>
-                        </div>
-                    </button>
+            <!-- Title in center -->
+            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden lg:block">
+                <h2 class="text-2xl font-black text-gradient tracking-tight">المستشار القضائي والنظامي الذكي</h2>
+            </div>
+
+            <!-- Exit button -->
+            <a href="{{ url('/') }}" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-50 transition shadow-sm">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+        </nav>
+
+        <!-- Chat Container -->
+        <div class="premium-bg flex-1 w-full flex flex-col relative overflow-hidden">
+            <main id="chat-container" class="flex-1 relative z-10 flex flex-col max-w-7xl mx-auto w-full px-4 pt-10 pb-4 overflow-y-auto custom-scrollbar">
+                
+                <!-- Welcome visuals / screen -->
+                <div class="flex-1 flex flex-col items-center justify-center relative mb-12" id="welcome-visuals">
+                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl shadow-xl shadow-blue-500/20 mb-6">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div class="glass-bubble p-8 max-w-2xl text-center relative border border-white/80">
+                        <h2 class="text-xl font-black text-gray-800 mb-3">مرحباً بك في مستشارك القانوني الذكي!</h2>
+                        <p class="text-sm text-gray-600 leading-relaxed font-medium">
+                            أنا هنا لمساعدتك في استخراج السوابق والأحكام القضائية، وقراءة نصوص الأنظمة والتشريعات السعودية المترابطة بالمعنى الدلالي. محادثتي الآن مزودة بالذاكرة الكاملة لحفظ سياق حديثك.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Suggested queries -->
+                <div class="flex flex-col gap-3 w-full max-w-4xl mx-auto" id="suggested-queries">
+                    <h3 class="text-sm font-bold text-gray-500 text-right px-2">أسئلة مقترحة للبدء:</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" dir="rtl">
+                        <button onclick="setQuery('ما هي شروط تملك الأجانب للعقار في السعودية؟')" class="glass-panel rounded-2xl p-4 flex items-center gap-4 hover:bg-white/80 transition group text-right cursor-pointer">
+                            <div class="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-house-user"></i></div>
+                            <div class="flex-1">
+                                <h4 class="font-black text-gray-800 text-sm group-hover:text-teal-600 transition">تملك العقارات</h4>
+                                <p class="text-xs text-gray-500 mt-1 line-clamp-1">شروط تملك الأجانب للعقار</p>
+                            </div>
+                        </button>
+                        <button onclick="setQuery('ما هي عقوبة الموظف العام في حال ثبوت جريمة الرشوة؟')" class="glass-panel rounded-2xl p-4 flex items-center gap-4 hover:bg-white/80 transition group text-right cursor-pointer">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-gavel"></i></div>
+                            <div class="flex-1">
+                                <h4 class="font-black text-gray-800 text-sm group-hover:text-blue-600 transition">الجرائم الجنائية</h4>
+                                <p class="text-xs text-gray-500 mt-1 line-clamp-1">عقوبة جريمة الرشوة للموظف</p>
+                            </div>
+                        </button>
+                        <button onclick="setQuery('متى يسقط حق الزوجة في المطالبة بالنفقة؟')" class="glass-panel rounded-2xl p-4 flex items-center gap-4 hover:bg-white/80 transition group text-right cursor-pointer">
+                            <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-scale-balanced"></i></div>
+                            <div class="flex-1">
+                                <h4 class="font-black text-gray-800 text-sm group-hover:text-emerald-600 transition">الأحوال الشخصية</h4>
+                                <p class="text-xs text-gray-500 mt-1 line-clamp-1">حالات سقوط النفقة عن الزوجة</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat messages log -->
+                <div id="chat-messages" class="flex flex-col w-full max-w-4xl mx-auto mt-6 px-2 pb-4">
+                </div>
+                
+            </main>
+
+            <!-- Chat input area -->
+            <div class="w-full relative z-20 pb-6 pt-2">
+                <div class="max-w-4xl mx-auto px-4">
+                    <div class="relative w-full input-glow transition-all duration-300 rounded-full bg-white border border-white shadow-xl shadow-blue-900/5">
+                        <input type="text" id="question-input" 
+                            class="w-full bg-transparent border-none focus:ring-0 px-8 py-5 text-gray-800 font-medium placeholder-gray-400 outline-none pr-20"
+                            placeholder="اكتب سؤالك القانوني هنا... (مثال: ما هي شروط تملك العقار؟)"
+                            onkeypress="if(event.key === 'Enter') submitQuestion()">
+                        
+                        <button onclick="submitQuestion()" id="btn-send" class="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg shadow-blue-500/40 cursor-pointer z-50">
+                            <i class="fa-solid fa-paper-plane text-lg rtl:-scale-x-100"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div id="chat-messages" class="flex flex-col w-full max-w-4xl mx-auto mt-6 px-2 pb-4">
-            </div>
-            
-        </main>
-
-        <div class="w-full relative z-20 pb-6 pt-2">
-            <div class="max-w-4xl mx-auto px-4">
-                <div class="relative w-full input-glow transition-all duration-300 rounded-full bg-white/80 backdrop-blur-xl border border-white shadow-xl shadow-blue-900/5">
-                    <input type="text" id="question-input" 
-                        class="w-full bg-transparent border-none focus:ring-0 px-8 py-5 text-gray-800 font-medium placeholder-gray-400 outline-none pr-20"
-                        placeholder="اكتب سؤالك القانوني هنا... (مثال: ما هي شروط تملك العقار؟)"
-                        onkeypress="if(event.key === 'Enter') submitQuestion()">
-                    
-                    <button onclick="submitQuestion()" id="btn-send" class="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg shadow-blue-500/40 cursor-pointer z-50">
-                        <i class="fa-solid fa-paper-plane text-lg rtl:-scale-x-100"></i>
-                    </button>
-                </div>
-            </div>
         </div>
-
     </div>
 
+    <!-- Script logic -->
     <script>
+        let currentConversationUuid = null;
+
+        // عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConversations();
+        });
+
+        // إغلاق وفتح المنيو الجانبي في الموبايل
+        function toggleSidebar() {
+            const sidebar = document.getElementById('chat-sidebar');
+            if (sidebar.classList.contains('translate-x-0')) {
+                sidebar.classList.remove('translate-x-0');
+                sidebar.classList.add('translate-x-full');
+            } else {
+                sidebar.classList.remove('translate-x-full');
+                sidebar.classList.add('translate-x-0');
+            }
+        }
+
+        // وضع نص السؤال المقترح في الخانة
+        function setQuery(text) {
+            document.getElementById('question-input').value = text;
+            submitQuestion();
+        }
+
+        // جلب سجل المحادثات السابقة
+        async function loadConversations() {
+            const listContainer = document.getElementById('conversations-list');
+            try {
+                const response = await fetch("{{ route('legal_assistant.conversations') }}");
+                const conversations = await response.json();
+                
+                if (conversations.length === 0) {
+                    listContainer.innerHTML = `
+                        <div class="text-center py-8 text-xs font-bold text-gray-400">
+                            <i class="fa-regular fa-comment-dots text-2xl mb-2 block"></i>
+                            لا توجد محادثات سابقة
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                conversations.forEach(c => {
+                    const activeClass = c.uuid === currentConversationUuid ? 'bg-white/80 border-blue-200 shadow-sm text-blue-700 font-bold' : 'hover:bg-white/40 text-gray-700 border-transparent';
+                    html += `
+                        <div class="group flex items-center justify-between p-3 rounded-xl border transition-all duration-200 cursor-pointer ${activeClass}" onclick="loadConversation('${c.uuid}')">
+                            <div class="flex items-center gap-2.5 overflow-hidden flex-1">
+                                <i class="fa-regular fa-message text-sm text-gray-400 shrink-0"></i>
+                                <span class="text-xs truncate text-right flex-1">${c.title}</span>
+                            </div>
+                            <button onclick="deleteConversation('${c.uuid}', event)" class="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-md hover:bg-red-50 hover:text-red-600 text-gray-400 flex items-center justify-center transition-all">
+                                <i class="fa-regular fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+                listContainer.innerHTML = html;
+
+            } catch (error) {
+                console.error("Failed to load conversations:", error);
+                listContainer.innerHTML = `<span class="text-xs text-red-500 font-bold text-center">فشل تحميل السجل</span>`;
+            }
+        }
+
+        // بدء محادثة جديدة وتصفير الشاشة
+        function startNewChat() {
+            currentConversationUuid = null;
+            document.getElementById('chat-messages').innerHTML = '';
+            document.getElementById('welcome-visuals').style.display = 'flex';
+            document.getElementById('suggested-queries').style.display = 'flex';
+            loadConversations();
+            
+            // إغلاق في الموبايل
+            if (window.innerWidth < 768) {
+                document.getElementById('chat-sidebar').classList.add('translate-x-full');
+            }
+        }
+
+        // تحميل رسائل محادثة معينة عند النقر عليها
+        async function loadConversation(uuid) {
+            currentConversationUuid = uuid;
+            const chatMessages = document.getElementById('chat-messages');
+            const mainContainer = document.getElementById('chat-container');
+            
+            // إخفاء الواجهة الترحيبية
+            document.getElementById('welcome-visuals').style.display = 'none';
+            document.getElementById('suggested-queries').style.display = 'none';
+
+            // عرض تأثير التحميل (Skeleton)
+            chatMessages.innerHTML = `
+                <div class="animate-pulse flex flex-col gap-6 w-full max-w-4xl mx-auto p-4">
+                    <div class="h-10 bg-white/80 rounded-2xl w-2/3 self-start shadow-sm"></div>
+                    <div class="h-28 bg-white/80 rounded-2xl w-full self-end shadow-sm"></div>
+                </div>
+            `;
+
+            // تحديث حالة المحادثة النشطة في القائمة
+            loadConversations();
+
+            try {
+                const response = await fetch(`/legal-assistant/conversations/${uuid}`);
+                const data = await response.json();
+                
+                chatMessages.innerHTML = '';
+                
+                data.messages.forEach(m => {
+                    if (m.role === 'user') {
+                        const userHtml = `
+                            <div class="flex justify-start mb-8">
+                                <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-3xl rounded-tr-none px-6 py-4 shadow-xl shadow-blue-900/20 max-w-[85%] border border-blue-500/30">
+                                    <p class="text-base font-bold leading-relaxed">${m.message}</p>
+                                </div>
+                            </div>
+                        `;
+                        chatMessages.insertAdjacentHTML('beforeend', userHtml);
+                    } else {
+                        // إعداد المراجع
+                        let citationsContainer = '';
+                        if (m.citations && m.citations.length > 0) {
+                            const citationsHtml = m.citations.map((c, index) => `
+                                <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 rounded-2xl p-4 hover:shadow-md transition-all cursor-pointer group">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <div class="w-8 h-8 rounded-lg ${c.type === 'law_article' ? 'bg-teal-50 text-teal-600 group-hover:bg-teal-500' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-500'} flex items-center justify-center text-xs font-black group-hover:text-white transition-colors shrink-0">${index + 1}</div>
+                                        <h5 class="text-xs font-black text-gray-800 line-clamp-1 flex-1">${c.title}</h5>
+                                        <span class="text-[10px] font-bold ${c.type === 'law_article' ? 'text-teal-700 bg-teal-50 border-teal-100' : 'text-blue-700 bg-blue-50 border-blue-100'} border px-2 py-1 rounded-md shrink-0">${c.article || 'مرجع'}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600 leading-relaxed font-medium max-h-60 overflow-y-auto custom-scrollbar pr-2 whitespace-pre-wrap">${c.text}</p>
+                                </div>
+                            `).join('');
+                            
+                            citationsContainer = `
+                                <div class="mt-8 pt-5 border-t border-gray-100 relative z-10">
+                                    <div class="flex items-center gap-2 mb-4 justify-end">
+                                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest">المصادر القانونية المؤكدة</span>
+                                        <i class="fa-solid fa-book-open text-gray-300"></i>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        ${citationsHtml}
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        const formattedAnswer = m.message ? m.message.replace(/\n/g, '<br>') : '';
+                        const aiHtml = `
+                            <div class="flex justify-end mb-8">
+                                <div class="bg-white/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 px-8 py-7 w-full md:max-w-[95%] rounded-3xl rounded-tl-none relative overflow-hidden">
+                                    <div class="absolute -top-10 -left-10 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl"></div>
+                                    
+                                    <div class="flex items-center justify-between mb-6 border-b border-gray-100/80 pb-4 relative z-10">
+                                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-50 to-teal-100/50 flex items-center justify-center text-teal-600 shadow-sm border border-teal-100">
+                                            <i class="fa-solid fa-scale-balanced text-lg"></i>
+                                        </div>
+                                        <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-blue-700">المستشار القانوني الذكي</span>
+                                    </div>
+                                    
+                                    <div class="prose prose-teal max-w-none text-gray-800 leading-loose font-medium text-right text-sm relative z-10">
+                                        ${formattedAnswer}
+                                    </div>
+                                    ${citationsContainer}
+                                </div>
+                            </div>
+                        `;
+                        chatMessages.insertAdjacentHTML('beforeend', aiHtml);
+                    }
+                });
+
+                mainContainer.scrollTop = mainContainer.scrollHeight;
+
+                // إغلاق في الموبايل
+                if (window.innerWidth < 768) {
+                    document.getElementById('chat-sidebar').classList.add('translate-x-full');
+                }
+
+            } catch (error) {
+                console.error("Failed to load messages:", error);
+                chatMessages.innerHTML = `<span class="text-sm text-red-500 font-bold text-center">فشل تحميل الرسائل.</span>`;
+            }
+        }
+
+        // حذف محادثة
+        async function deleteConversation(uuid, event) {
+            event.stopPropagation(); // منع تحميل المحادثة عند الضغط على الحذف
+            
+            if(!confirm('هل تريد حذف هذه المحادثة بالكامل؟')) return;
+
+            try {
+                const response = await fetch(`/legal-assistant/conversations/${uuid}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                if(data.success) {
+                    if (currentConversationUuid === uuid) {
+                        startNewChat();
+                    } else {
+                        loadConversations();
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to delete conversation:", error);
+            }
+        }
+
+        // إرسال السؤال الجديد
         async function submitQuestion() {
             const input = document.getElementById('question-input');
             const chatMessages = document.getElementById('chat-messages');
@@ -174,11 +447,13 @@
             const question = input.value.trim();
             if(!question) return;
 
+            // إخفاء المحتويات الترحيبية
             const visuals = document.getElementById('welcome-visuals');
             if(visuals) visuals.style.display = 'none';
             const suggestions = document.getElementById('suggested-queries');
             if(suggestions) suggestions.style.display = 'none';
 
+            // إضافة رسالة المستخدم للشاشة
             const userMsgHtml = `
                 <div class="flex justify-start mb-8">
                     <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-3xl rounded-tr-none px-6 py-4 shadow-xl shadow-blue-900/20 max-w-[85%] border border-blue-500/30">
@@ -195,7 +470,7 @@
                         <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
                         <div class="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
                         <div class="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                        <span class="text-xs font-bold text-gray-500 ml-2">جاري استخراج المواد القانونية...</span>
+                        <span class="text-xs font-bold text-gray-500 ml-2">جاري استخراج السوابق والأنظمة القانونية...</span>
                     </div>
                 </div>
             `;
@@ -214,12 +489,20 @@
                         'X-CSRF-TOKEN': "{{ csrf_token() }}",
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ question: question })
+                    body: JSON.stringify({ 
+                        question: question,
+                        conversation_uuid: currentConversationUuid
+                    })
                 });
 
                 const data = await response.json();
                 
                 document.getElementById(loadingId).remove();
+
+                // تحديث الـ UUID للمحادثة الحالية إذا كانت جديدة
+                if (!currentConversationUuid && data.conversation_uuid) {
+                    currentConversationUuid = data.conversation_uuid;
+                }
 
                 let citationsContainer = '';
                 if(data.citations && data.citations.length > 0) {
@@ -268,6 +551,9 @@
                     </div>
                 `;
                 chatMessages.insertAdjacentHTML('beforeend', aiMsgHtml);
+                
+                // إعادة تحميل قائمة المحادثات لتحديث العنوان
+                loadConversations();
 
             } catch (error) {
                 console.error(error);
