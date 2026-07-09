@@ -358,9 +358,9 @@
                             const citationsHtml = m.citations.map((c, index) => `
                                 <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 rounded-2xl p-4 hover:shadow-md transition-all cursor-pointer group">
                                     <div class="flex items-center gap-3 mb-3">
-                                        <div class="w-8 h-8 rounded-lg ${c.type === 'law_article' ? 'bg-teal-50 text-teal-600 group-hover:bg-teal-500' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-500'} flex items-center justify-center text-xs font-black group-hover:text-white transition-colors shrink-0">${index + 1}</div>
+                                        <div class="w-8 h-8 rounded-lg ${c.type === 'law_article' || c.type === 'article' ? 'bg-teal-50 text-teal-600 group-hover:bg-teal-500' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-500'} flex items-center justify-center text-xs font-black group-hover:text-white transition-colors shrink-0">${index + 1}</div>
                                         <h5 class="text-xs font-black text-gray-800 line-clamp-1 flex-1">${c.title}</h5>
-                                        <span class="text-[10px] font-bold ${c.type === 'law_article' ? 'text-teal-700 bg-teal-50 border-teal-100' : 'text-blue-700 bg-blue-50 border-blue-100'} border px-2 py-1 rounded-md shrink-0">${c.article || 'مرجع'}</span>
+                                        <span class="text-[10px] font-bold ${c.type === 'law_article' || c.type === 'article' ? 'text-teal-700 bg-teal-50 border-teal-100' : 'text-blue-700 bg-blue-50 border-blue-100'} border px-2 py-1 rounded-md shrink-0">${c.article || 'مرجع'}</span>
                                     </div>
                                     <p class="text-xs text-gray-600 leading-relaxed font-medium max-h-60 overflow-y-auto custom-scrollbar pr-2 whitespace-pre-wrap">${c.text}</p>
                                 </div>
@@ -516,9 +516,9 @@
                     const citationsHtml = data.citations.map((c, index) => `
                         <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 rounded-2xl p-4 hover:shadow-md transition-all cursor-pointer group">
                             <div class="flex items-center gap-3 mb-3">
-                                <div class="w-8 h-8 rounded-lg ${c.type === 'law_article' ? 'bg-teal-50 text-teal-600 group-hover:bg-teal-500' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-500'} flex items-center justify-center text-xs font-black group-hover:text-white transition-colors shrink-0">${index + 1}</div>
+                                <div class="w-8 h-8 rounded-lg ${c.type === 'law_article' || c.type === 'article' ? 'bg-teal-50 text-teal-600 group-hover:bg-teal-500' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-500'} flex items-center justify-center text-xs font-black group-hover:text-white transition-colors shrink-0">${index + 1}</div>
                                 <h5 class="text-xs font-black text-gray-800 line-clamp-1 flex-1">${c.title}</h5>
-                                <span class="text-[10px] font-bold ${c.type === 'law_article' ? 'text-teal-700 bg-teal-50 border-teal-100' : 'text-blue-700 bg-blue-50 border-blue-100'} border px-2 py-1 rounded-md shrink-0">${c.article || 'مرجع'}</span>
+                                <span class="text-[10px] font-bold ${c.type === 'law_article' || c.type === 'article' ? 'text-teal-700 bg-teal-50 border-teal-100' : 'text-blue-700 bg-blue-50 border-blue-100'} border px-2 py-1 rounded-md shrink-0">${c.article || 'مرجع'}</span>
                             </div>
                             <p class="text-xs text-gray-600 leading-relaxed font-medium max-h-60 overflow-y-auto custom-scrollbar pr-2 whitespace-pre-wrap">${c.text}</p>
                         </div>

@@ -230,9 +230,17 @@ class LegalAiController extends Controller
                 elseif ($task->source_type == 'article') { $typeLabel = "مادة نظامية"; $badgeLabel = "نص نظام"; }
             }
 
-            $ref = $task->case_reference ?? (isset($task->id) ? "مرجع #{$task->id}" : "مرجع عام");
-            if (trim($ref) == "مادة رقم" || trim($ref) == "null" || empty(trim($ref))) {
-                $ref = $task->question ?? "مرجع عام";
+            if (isset($task->source_type) && $task->source_type == 'article') {
+                $systemName = $task->law_system_name ?? '';
+                $ref = $task->question;
+                if (!empty($systemName)) {
+                    $ref .= " - " . $systemName;
+                }
+            } else {
+                $ref = $task->case_reference ?? (isset($task->id) ? "مرجع #{$task->id}" : "مرجع عام");
+                if (trim($ref) == "مادة رقم" || trim($ref) == "null" || empty(trim($ref))) {
+                    $ref = $task->question ?? "مرجع عام";
+                }
             }
 
             $textToShow = $task->case_text ?: $task->correct_answer;
