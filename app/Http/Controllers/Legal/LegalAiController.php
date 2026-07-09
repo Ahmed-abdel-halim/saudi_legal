@@ -173,9 +173,8 @@ class LegalAiController extends Controller
         if ($this->qdrantService->isEnabled()) {
             Log::info('[LegalAi] Using Qdrant Split Search for: ' . $searchQuery);
 
-            // أ. بحث عن أحكام قضائية وسوابق
-            $cases = $this->qdrantService->search($searchQuery, 3);
-            $cases = $cases->filter(fn($c) => ($c->source_type ?? '') !== 'article')->take(3);
+            // أ. بحث عن أحكام قضائية وسوابق (تستثنى منها المواد)
+            $cases = $this->qdrantService->search($searchQuery, 3, ['!source_type' => 'article']);
 
             // ب. بحث عن نصوص أنظمة وقوانين مخصصة
             $lawArticles = $this->qdrantService->search($searchQuery, 2, ['source_type' => 'article']);

@@ -513,15 +513,32 @@ class QdrantSearchService
     private function buildFilter(array $filters): array
     {
         $must = [];
+        $mustNot = [];
 
         foreach ($filters as $field => $value) {
-            $must[] = [
-                'key'   => $field,
-                'match' => ['value' => $value],
-            ];
+            if (str_starts_with($field, '!')) {
+                $realField = substr($field, 1);
+                $mustNot[] = [
+                    'key'   => $realField,
+                    'match' => ['value' => $value],
+                ];
+            } else {
+                $must[] = [
+                    'key'   => $field,
+                    'match' => ['value' => $value],
+                ];
+            }
         }
 
-        return ['must' => $must];
+        $filter = [];
+        if (! empty($must)) {
+            $filter['must'] = $must;
+        }
+        if (! empty($mustNot)) {
+            $filter['must_not'] = $mustNot;
+        }
+
+        return $filter;
     }
 
     /**
