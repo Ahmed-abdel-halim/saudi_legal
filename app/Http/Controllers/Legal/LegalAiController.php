@@ -198,8 +198,10 @@ class LegalAiController extends Controller
             $exactMatches = \App\Models\LegalTask::where(function($q) use ($extractedNumbers) {
                 foreach ($extractedNumbers as $num) {
                     $q->orWhere('case_reference', $num)
-                      ->orWhere('case_reference', 'LIKE', "%{$num}%")
                       ->orWhere('id', (int)$num);
+                    if (strlen($num) >= 6) {
+                        $q->orWhere('case_reference', 'LIKE', "%{$num}%");
+                    }
                 }
             })->get();
             
