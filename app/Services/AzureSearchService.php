@@ -330,7 +330,15 @@ class AzureSearchService
         $cacheKeys = [];
         $keyToIdxMap = [];
         foreach ($texts as $i => $text) {
+            $text = trim($text);
             $text = mb_substr($text, 0, 5000);
+            
+            // إذا كان النص فارغاً تماماً، نضع له متجه صفري مباشرة ولا نرسله لـ Gemini
+            if ($text === '') {
+                $embeddings[$i] = array_fill(0, 768, 0.0);
+                continue;
+            }
+
             $cacheKey = 'embed_' . md5($text);
             $cacheKeys[$i] = $cacheKey;
             $keyToIdxMap[$cacheKey] = $i;
@@ -354,7 +362,7 @@ class AzureSearchService
         $requestsMap = []; // لربط فهرس طلب الـ batch بالفهرس الأصلي
         foreach ($texts as $i => $text) {
             if ($embeddings[$i] === null) {
-                $text = mb_substr($text, 0, 5000);
+                $text = trim(mb_substr($text, 0, 5000));
                 $requests[] = [
                     'model'   => "models/{$this->embeddingModel}",
                     'content' => ['parts' => [['text' => $text]]],
@@ -369,38 +377,55 @@ class AzureSearchService
             return $embeddings;
         }
 
-        // 4. طلب الـ embeddings من Gemini للقيم المتبقية
-        try {
-            $response = Http::withHeaders(['Content-Type' => 'application/json'])
-                ->timeout(30)
-                ->post(
-                    "https://generativelanguage.googleapis.com/v1beta/models/{$this->embeddingModel}:batchEmbedContents?key={$this->geminiKey}",
-                    ['requests' => $requests]
-                );
+        // 4. طلب الـ embeddings من Gemini للقيم المتبقية (مع آلية إعادة المحاولة عند حدوث أخطاء مؤقتة)
+        $maxRetries = 3;
+        $retryDelay = 2; // ثوانٍ
+        $response = null;
 
-            if ($response->successful()) {
-                $results = $response->json('embeddings', []);
-                foreach ($results as $idx => $result) {
-                    $originalIdx = $requestsMap[$idx];
-                    $vector = $result['values'] ?? [];
-                    if (!empty($vector)) {
-                        $embeddings[$originalIdx] = $vector;
-                        // حفظ في الكاش بشكل منفرد
-                        $cacheKey = $cacheKeys[$originalIdx];
-                        Cache::put($cacheKey, $vector, now()->addHours(24));
-                    }
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            try {
+                $response = Http::withHeaders(['Content-Type' => 'application/json'])
+                    ->timeout(30)
+                    ->post(
+                        "https://generativelanguage.googleapis.com/v1beta/models/{$this->embeddingModel}:batchEmbedContents?key={$this->geminiKey}",
+                        ['requests' => $requests]
+                    );
+
+                if ($response->successful()) {
+                    break; // نجاح الطلب، اخرج من حلقة المحاولات
                 }
-            } else {
-                Log::warning('[AzureSearch] Batch embedding API failed', [
+
+                Log::warning("[AzureSearch] Batch embedding API failed (Attempt {$attempt}/{$maxRetries})", [
                     'status' => $response->status(),
                     'body' => $response->body()
                 ]);
+
+            } catch (\Throwable $e) {
+                Log::warning("[AzureSearch] Batch embedding API error (Attempt {$attempt}/{$maxRetries}): " . $e->getMessage());
             }
-        } catch (\Throwable $e) {
-            Log::error('[AzureSearch] Batch embedding Exception: ' . $e->getMessage());
+
+            if ($attempt < $maxRetries) {
+                sleep($retryDelay);
+                $retryDelay *= 2; // backoff مضاعف
+            }
         }
 
-        // 5. ملء أي قيم فشلت بـ zero vector كـ fallback
+        // 5. حفظ وحزم النتائج الناجحة
+        if ($response && $response->successful()) {
+            $results = $response->json('embeddings', []);
+            foreach ($results as $idx => $result) {
+                $originalIdx = $requestsMap[$idx];
+                $vector = $result['values'] ?? [];
+                if (!empty($vector)) {
+                    $embeddings[$originalIdx] = $vector;
+                    // حفظ في الكاش بشكل منفرد
+                    $cacheKey = $cacheKeys[$originalIdx];
+                    Cache::put($cacheKey, $vector, now()->addHours(24));
+                }
+            }
+        }
+
+        // 6. ملء أي قيم فشلت بـ zero vector كـ fallback
         foreach ($embeddings as $i => $vector) {
             if ($vector === null) {
                 $embeddings[$i] = array_fill(0, 768, 0.0);
