@@ -348,7 +348,7 @@ class AzureSearchService
         try {
             $cachedValues = Cache::many(array_values($cacheKeys));
             foreach ($cachedValues as $key => $val) {
-                if ($val !== null && is_array($val)) {
+                if ($val !== null && is_array($val) && count($val) === 768) {
                     $idx = $keyToIdxMap[$key];
                     $embeddings[$idx] = $val;
                 }
