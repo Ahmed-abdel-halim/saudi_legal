@@ -45,7 +45,7 @@ class LegalAiController extends Controller
     /**
      * جلب سجل المحادثات الخاصة بالمستخدم (للـ Sidebar)
      */
-    public function getConversations()
+    public function getConversations(Request $request)
     {
         $userId = auth()->id();
         $conversations = collect();
@@ -55,10 +55,22 @@ class LegalAiController extends Controller
                 ->orderBy('updated_at', 'desc')
                 ->get(['uuid', 'title', 'updated_at']);
         } else {
-            // جلب المحادثات من جلسة الزائر (Guest Session)
-            $uuids = session()->get('ai_conversations', []);
-            if (! empty($uuids)) {
-                $conversations = AiConversation::whereIn('uuid', $uuids)
+            // جلب المحادثات من جلسة الزائر (Guest Session) ومن الـ LocalStorage الممرر
+            $sessionUuids = session()->get('ai_conversations', []);
+            
+            $guestUuids = [];
+            if ($request->has('guest_uuids')) {
+                $guestUuids = explode(',', $request->input('guest_uuids'));
+                $guestUuids = array_filter($guestUuids, fn($u) => !empty($u) && Str::isUuid($u));
+            }
+            
+            $allUuids = array_unique(array_merge($sessionUuids, $guestUuids));
+            
+            // تحديث الجلسة لمطابقتها مع التزامن
+            session()->put('ai_conversations', $allUuids);
+
+            if (! empty($allUuids)) {
+                $conversations = AiConversation::whereIn('uuid', $allUuids)
                     ->orderBy('updated_at', 'desc')
                     ->get(['uuid', 'title', 'updated_at']);
             }

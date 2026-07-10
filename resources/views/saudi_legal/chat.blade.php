@@ -231,6 +231,38 @@
     <!-- Script logic -->
     <script>
         let currentConversationUuid = null;
+        const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
+
+        function getLocalGuestConversations() {
+            try {
+                const data = localStorage.getItem('guest_ai_conversations');
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveGuestConversationUuid(uuid) {
+            try {
+                const uuids = getLocalGuestConversations();
+                if (!uuids.includes(uuid)) {
+                    uuids.push(uuid);
+                    localStorage.setItem('guest_ai_conversations', JSON.stringify(uuids));
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function removeLocalGuestConversation(uuid) {
+            try {
+                let uuids = getLocalGuestConversations();
+                uuids = uuids.filter(id => id !== uuid);
+                localStorage.setItem('guest_ai_conversations', JSON.stringify(uuids));
+            } catch (e) {
+                console.error(e);
+            }
+        }
 
         // عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', () => {
@@ -262,7 +294,14 @@
         async function loadConversations() {
             const listContainer = document.getElementById('conversations-list');
             try {
-                const response = await fetch("{{ route('legal_assistant.conversations') }}");
+                let url = "{{ route('legal_assistant.conversations') }}";
+                if (!isLoggedIn) {
+                    const localUuids = getLocalGuestConversations();
+                    if (localUuids.length > 0) {
+                        url += '?guest_uuids=' + encodeURIComponent(localUuids.join(','));
+                    }
+                }
+                const response = await fetch(url);
                 const conversations = await response.json();
                 
                 if (conversations.length === 0) {
@@ -438,6 +477,9 @@
                 
                 const data = await response.json();
                 if(data.success) {
+                    if (!isLoggedIn) {
+                        removeLocalGuestConversation(uuid);
+                    }
                     if (currentConversationUuid === uuid) {
                         startNewChat();
                     } else {
@@ -519,6 +561,9 @@
                 // تحديث الـ UUID للمحادثة الحالية إذا كانت جديدة
                 if (!currentConversationUuid && data.conversation_uuid) {
                     currentConversationUuid = data.conversation_uuid;
+                    if (!isLoggedIn) {
+                        saveGuestConversationUuid(data.conversation_uuid);
+                    }
                 }
 
                 let citationsContainer = '';
