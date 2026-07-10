@@ -97,33 +97,40 @@ class IndexLegalDataToAzure extends Command
         $indexed = 0;
         $failed  = 0;
 
-        $total = LegalTask::whereNotNull('correct_answer')->count();
+        $query = LegalTask::whereNotNull('question')
+            ->where('question', '!=', '');
+
+        $total = $query->count();
+        if ($total === 0) {
+            $this->warn('   لا توجد مهام للفهرسة.');
+            return [0, 0];
+        }
+
         $bar   = $this->output->createProgressBar($total);
         $bar->start();
 
-        LegalTask::whereNotNull('correct_answer')
-            ->chunkById($chunkSize, function ($tasks) use (&$indexed, &$failed, $dryRun, $bar) {
-                $docs = $tasks->map(fn($t) => [
-                    'id'             => 'task_' . $t->id,
-                    'question'       => $t->question ?? '',
-                    'answer'         => $t->correct_answer ?? '',
-                    'case_text'      => $t->case_text ?? '',
-                    'domain'         => $t->domain ?? 'general',
-                    'source_type'    => 'judgment',
-                    'law_system'     => $t->law_system_name ?? '',
-                    'case_reference' => $t->case_reference ?? '',
-                ])->toArray();
+        $query->chunkById($chunkSize, function ($tasks) use (&$indexed, &$failed, $dryRun, $bar) {
+            $docs = $tasks->map(fn($t) => [
+                'id'             => 'task_' . $t->id,
+                'question'       => $t->question ?? '',
+                'answer'         => $t->correct_answer ?: $t->proposed_answer ?: '',
+                'case_text'      => $t->case_text ?? '',
+                'domain'         => $t->domain ?? 'general',
+                'source_type'    => 'judgment',
+                'law_system'     => $t->law_system_name ?? '',
+                'case_reference' => $t->case_reference ?? '',
+            ])->toArray();
 
-                if (!$dryRun) {
-                    $result   = $this->azure->indexBatch($docs);
-                    $indexed += $result['success'];
-                    $failed  += $result['failed'];
-                } else {
-                    $indexed += count($docs);
-                }
+            if (!$dryRun) {
+                $result   = $this->azure->indexBatch($docs);
+                $indexed += $result['success'];
+                $failed  += $result['failed'];
+            } else {
+                $indexed += count($docs);
+            }
 
-                $bar->advance(count($docs));
-            });
+            $bar->advance(count($docs));
+        });
 
         $bar->finish();
         $this->newLine();
