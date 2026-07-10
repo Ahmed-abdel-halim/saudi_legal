@@ -369,8 +369,26 @@ class LegalAiController extends Controller
             'parts' => [['text' => $prompt]],
         ];
 
-        // 6. استدعاء Gemini وصياغة الإجابة
-        $answer = $this->callGeminiApi($contents);
+        // 6. استدعاء النموذج وصياغة الإجابة (دعم التبديل التلقائي بين Azure OpenAI و Gemini)
+        $azureKey = trim(env('AZURE_OPENAI_KEY'));
+        if (!empty($azureKey)) {
+            $messages = [];
+            foreach ($history as $msg) {
+                $messages[] = [
+                    'role'    => $msg->role === 'model' ? 'assistant' : $msg->role,
+                    'content' => $msg->message,
+                ];
+            }
+            $messages[] = [
+                'role'    => 'user',
+                'content' => $prompt,
+            ];
+            $answer = $this->callAzureOpenAiApi($messages);
+            $searchMethod .= '_azure';
+        } else {
+            $answer = $this->callGeminiApi($contents);
+            $searchMethod .= '_gemini';
+        }
 
         // 7. حفظ الرسائل الجديدة في قاعدة البيانات وتحديث وقت المحادثة
         AiMessage::create([
@@ -451,8 +469,10 @@ class LegalAiController extends Controller
      */
     private function rewriteQuery(string $question, $history): string
     {
-        $apiKey = trim(config('services.gemini.key'));
-        if (empty($apiKey)) {
+        $azureKey = trim(env('AZURE_OPENAI_KEY'));
+        $geminiKey = trim(config('services.gemini.key'));
+
+        if (empty($azureKey) && empty($geminiKey)) {
             return $question;
         }
 
@@ -468,24 +488,101 @@ class LegalAiController extends Controller
             . "\nوالسؤال الجديد للعميل: '{$question}'\n\n"
             . "أعد صياغة السؤال الجديد ليكون عبارة بحث قانونية مستقلة ومفهومة باللغة العربية للبحث في الأنظمة السعودية والأحكام القضائية. أرجع فقط عبارة البحث المحدثة دون أي شرح أو نصوص إضافية إطلاقاً.";
 
-        try {
-            $response = Http::withoutVerifying()
-                ->timeout(15)
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . $apiKey, [
-                    'contents' => [['parts' => [['text' => $prompt]]]],
-                ]);
+        if (!empty($azureKey)) {
+            try {
+                $endpoint   = trim(env('AZURE_OPENAI_ENDPOINT'));
+                $deployment = trim(env('AZURE_OPENAI_DEPLOYMENT', 'gpt-4o'));
+                $apiVersion = trim(env('AZURE_OPENAI_API_VERSION', '2024-02-15-preview'));
+                $url = rtrim($endpoint, '/') . "/openai/deployments/{$deployment}/chat/completions?api-version={$apiVersion}";
 
-            if ($response->successful()) {
-                $rewritten = trim($response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '');
-                if (! empty($rewritten)) {
-                    Log::info('[LegalAi] Query rewritten: ' . $rewritten);
-                    return $rewritten;
+                $response = Http::withoutVerifying()
+                    ->withHeaders([
+                        'api-key'      => $azureKey,
+                        'Content-Type' => 'application/json',
+                    ])
+                    ->timeout(15)
+                    ->post($url, [
+                        'messages' => [
+                            ['role' => 'user', 'content' => $prompt]
+                        ],
+                        'temperature' => 0.0,
+                    ]);
+
+                if ($response->successful()) {
+                    $rewritten = trim($response->json('choices.0.message.content') ?? '');
+                    if (! empty($rewritten)) {
+                        Log::info('[LegalAi] Query rewritten via Azure: ' . $rewritten);
+                        return $rewritten;
+                    }
                 }
+            } catch (\Exception $e) {
+                Log::warning('[LegalAi] Query rewriting via Azure failed: ' . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            Log::warning('[LegalAi] Query rewriting failed: ' . $e->getMessage());
+        } else {
+            try {
+                $response = Http::withoutVerifying()
+                    ->timeout(15)
+                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . $geminiKey, [
+                        'contents' => [['parts' => [['text' => $prompt]]]],
+                    ]);
+
+                if ($response->successful()) {
+                    $rewritten = trim($response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '');
+                    if (! empty($rewritten)) {
+                        Log::info('[LegalAi] Query rewritten: ' . $rewritten);
+                        return $rewritten;
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning('[LegalAi] Query rewriting failed: ' . $e->getMessage());
+            }
         }
 
         return $question;
+    }
+
+    /**
+     * استدعاء Azure OpenAI API مع تمرير كامل المحادثة والـ Fallbacks
+     */
+    private function callAzureOpenAiApi(array $messages)
+    {
+        $endpoint   = trim(env('AZURE_OPENAI_ENDPOINT'));
+        $key        = trim(env('AZURE_OPENAI_KEY'));
+        $deployment = trim(env('AZURE_OPENAI_DEPLOYMENT', 'gpt-4o'));
+        $apiVersion = trim(env('AZURE_OPENAI_API_VERSION', '2024-02-15-preview'));
+
+        if (empty($endpoint) || empty($key)) {
+            return "مرحباً! (بيانات Azure OpenAI غير مكتملة في ملف .env).";
+        }
+
+        $endpoint = rtrim($endpoint, '/');
+
+        try {
+            $url = "{$endpoint}/openai/deployments/{$deployment}/chat/completions?api-version={$apiVersion}";
+
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'api-key'      => $key,
+                    'Content-Type' => 'application/json',
+                ])
+                ->timeout(80)
+                ->post($url, [
+                    'messages'    => $messages,
+                    'temperature' => 0.3,
+                ]);
+
+            Log::info("Azure OpenAI Response Status: " . $response->status() . " | Body: " . mb_substr($response->body(), 0, 500));
+
+            if ($response->successful()) {
+                return $response->json('choices.0.message.content') ?? "عذراً، لم أتمكن من صياغة الإجابة.";
+            }
+
+            $errorBody = $response->body();
+            Log::error("Azure OpenAI API Error: " . $response->status() . " - " . $errorBody);
+            return "عذراً، حدث خطأ فني أثناء الاتصال بـ Azure (الرمز: " . $response->status() . ").";
+
+        } catch (\Exception $e) {
+            return "خطأ في الاتصال بمحرك Azure: " . $e->getMessage();
+        }
     }
 }
