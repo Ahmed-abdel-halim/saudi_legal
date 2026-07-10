@@ -359,7 +359,7 @@ class QdrantSearchService
 
         try {
             $response = Http::withHeaders(['api-key' => $this->qdrantApiKey])
-                ->timeout(5)
+                ->timeout(15)
                 ->get("{$this->qdrantUrl}/collections");
 
             if ($response->successful()) {
