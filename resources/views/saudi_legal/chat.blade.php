@@ -294,7 +294,7 @@
         async function loadConversations() {
             const listContainer = document.getElementById('conversations-list');
             try {
-                let url = "{{ route('legal_assistant.conversations') }}";
+                let url = '/legal-assistant/conversations';
                 if (!isLoggedIn) {
                     const localUuids = getLocalGuestConversations();
                     if (localUuids.length > 0) {
@@ -534,7 +534,7 @@
             mainContainer.scrollTop = mainContainer.scrollHeight;
 
             try {
-                const response = await fetch("{{ route('legal_assistant.public.ask') }}", {
+                const response = await fetch('/legal-assistant/ask', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
