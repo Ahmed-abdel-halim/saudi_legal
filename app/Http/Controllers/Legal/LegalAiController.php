@@ -252,6 +252,12 @@ class LegalAiController extends Controller
             $searchMethod = ($searchMethod === 'keyword') ? 'hybrid_exact' : $searchMethod . '_hybrid';
         }
 
+        // إزالة التكرار في الأحكام المتطابقة النص لمنع التكرار البصري في المراجع والـ Context
+        $contextTasks = $contextTasks->unique(function ($task) {
+            $text = trim($task->case_text ?: $task->correct_answer ?: '');
+            return md5($text);
+        });
+
         // استخراج المواد المشارة إليها من الأحكام لتوسيع السياق
         if ($contextTasks->isNotEmpty()) {
             foreach ($contextTasks as $task) {
