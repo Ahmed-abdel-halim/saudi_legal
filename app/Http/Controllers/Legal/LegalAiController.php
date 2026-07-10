@@ -245,7 +245,7 @@ class LegalAiController extends Controller
 
         // دمج النتائج المطابقة تماماً برقم القضية في بداية السياق لضمان قراءتها
         if ($exactMatches->isNotEmpty()) {
-            $contextTasks = $exactMatches->merge($contextTasks)->unique('id');
+            $contextTasks = $exactMatches->toBase()->merge($contextTasks)->unique('id');
             // تحديد طريقة البحث كبحث هجين مخصص بالرقم
             $searchMethod = ($searchMethod === 'keyword') ? 'hybrid_exact' : $searchMethod . '_hybrid';
         }
