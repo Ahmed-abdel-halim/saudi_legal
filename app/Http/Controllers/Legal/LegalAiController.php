@@ -255,6 +255,9 @@ class LegalAiController extends Controller
         // إزالة التكرار في الأحكام المتطابقة النص لمنع التكرار البصري في المراجع والـ Context
         $contextTasks = $contextTasks->unique(function ($task) {
             $text = trim($task->case_text ?: $task->correct_answer ?: '');
+            if ($text === '') {
+                return 'empty_' . ($task->id ?? uniqid());
+            }
             return md5($text);
         });
 
