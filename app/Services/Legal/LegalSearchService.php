@@ -39,7 +39,11 @@ class LegalSearchService
                 $q->orWhere('question', 'LIKE', '%' . $keyword . '%')
                   ->orWhere('case_text', 'LIKE', '%' . $keyword . '%')
                   ->orWhere('correct_answer', 'LIKE', '%' . $keyword . '%')
-                  ->orWhere('proposed_answer', 'LIKE', '%' . $keyword . '%');
+                  ->orWhere('proposed_answer', 'LIKE', '%' . $keyword . '%')
+                  ->orWhere('case_reference', 'LIKE', '%' . $keyword . '%');
+                if (is_numeric($keyword)) {
+                    $q->orWhere('id', (int)$keyword);
+                }
             }
 
             // If question mentions specific articles, find judgments that mention the same

@@ -181,15 +181,44 @@ class LegalAiController extends Controller
         $contextTasks = collect();
         $allArticles  = collect();
 
+        // أ. استخراج أي مواد مذكورة في السؤال نفسه مباشرة
+        $queryArticles = $this->referenceService->getMentionedArticles($searchQuery);
+        foreach ($queryArticles as $art) {
+            $allArticles->push($art);
+        }
+
+        // ب. استخراج أرقام القضايا أو المراجع المحددة في السؤال مباشرة وتضمينها
+        $extractedNumbers = [];
+        if (preg_match_all('/\b\d{3,}\b/u', $searchQuery, $numMatches)) {
+            $extractedNumbers = array_unique($numMatches[0]);
+        }
+
+        $exactMatches = collect();
+        if (!empty($extractedNumbers)) {
+            $exactMatches = \App\Models\LegalTask::where(function($q) use ($extractedNumbers) {
+                foreach ($extractedNumbers as $num) {
+                    $q->orWhere('case_reference', $num)
+                      ->orWhere('case_reference', 'LIKE', "%{$num}%")
+                      ->orWhere('id', (int)$num);
+                }
+            })->get();
+            
+            foreach ($exactMatches as $match) {
+                $match->source_type = $match->source_type ?? 'judgment';
+            }
+        }
+
         // Tier 1: Qdrant Vector Search (Split retrieval لتجنب طغيان الأحكام على المواد)
         if ($this->qdrantService->isEnabled()) {
             Log::info('[LegalAi] Using Qdrant Split Search for: ' . $searchQuery);
 
             // أ. بحث عن أحكام قضائية وسوابق (تستثنى منها المواد)
-            $cases = $this->qdrantService->search($searchQuery, 3, ['!source_type' => 'article']);
+            // زيادة عدد النتائج لـ 5 لزيادة شمولية السياق
+            $cases = $this->qdrantService->search($searchQuery, 5, ['!source_type' => 'article']);
 
             // ب. بحث عن نصوص أنظمة وقوانين مخصصة
-            $lawArticles = $this->qdrantService->search($searchQuery, 2, ['source_type' => 'article']);
+            // زيادة عدد النتائج لـ 3
+            $lawArticles = $this->qdrantService->search($searchQuery, 3, ['source_type' => 'article']);
 
             // ج. دمج وتفعيل الطريقة
             $contextTasks = $cases->merge($lawArticles);
@@ -212,6 +241,13 @@ class LegalAiController extends Controller
             Log::info('[LegalAi] Falling back to keyword search');
             $contextTasks = $this->searchService->search($searchQuery, 5);
             $searchMethod = 'keyword';
+        }
+
+        // دمج النتائج المطابقة تماماً برقم القضية في بداية السياق لضمان قراءتها
+        if ($exactMatches->isNotEmpty()) {
+            $contextTasks = $exactMatches->merge($contextTasks)->unique('id');
+            // تحديد طريقة البحث كبحث هجين مخصص بالرقم
+            $searchMethod = ($searchMethod === 'keyword') ? 'hybrid_exact' : $searchMethod . '_hybrid';
         }
 
         // استخراج المواد المشارة إليها من الأحكام لتوسيع السياق
