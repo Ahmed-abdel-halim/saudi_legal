@@ -491,9 +491,9 @@ class AzureSearchService
                     [
                         'name' => 'legal-semantic-config',
                         'prioritizedFields' => [
-                            'titleField'         => ['fieldName' => 'question'],
-                            'contentFields'      => [['fieldName' => 'answer'], ['fieldName' => 'case_text']],
-                            'keywordsFields'     => [['fieldName' => 'law_system'], ['fieldName' => 'domain']],
+                            'titleField'                 => ['fieldName' => 'question'],
+                            'prioritizedContentFields'   => [['fieldName' => 'answer'], ['fieldName' => 'case_text']],
+                            'prioritizedKeywordsFields'  => [['fieldName' => 'law_system'], ['fieldName' => 'domain']],
                         ]
                     ]
                 ]
