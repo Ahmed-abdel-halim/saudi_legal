@@ -355,7 +355,7 @@ class LegalAiController extends Controller
         try {
             $response = Http::withoutVerifying()
                 ->timeout(80)
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . $apiKey, [
+                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey, [
                     'contents' => $contents,
                 ]);
 
@@ -363,11 +363,11 @@ class LegalAiController extends Controller
                 return $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? "عذراً، لم أتمكن من صياغة الإجابة.";
             }
 
-            // Fallback to Gemini 2.5 Pro if Flash fails
+            // Fallback to Gemini 1.5 Pro if Flash fails
             if ($response->status() == 404 || $response->status() == 403) {
                 $response = Http::withoutVerifying()
                     ->timeout(80)
-                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=" . $apiKey, [
+                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=" . $apiKey, [
                         'contents' => $contents,
                     ]);
 
@@ -410,7 +410,7 @@ class LegalAiController extends Controller
         try {
             $response = Http::withoutVerifying()
                 ->timeout(15)
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . $apiKey, [
+                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey, [
                     'contents' => [['parts' => [['text' => $prompt]]]],
                 ]);
 

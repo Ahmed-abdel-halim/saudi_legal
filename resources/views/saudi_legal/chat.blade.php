@@ -337,6 +337,9 @@
 
             try {
                 const response = await fetch(`/legal-assistant/conversations/${uuid}`);
+                if (!response.ok) {
+                    throw new Error("HTTP status " + response.status);
+                }
                 const data = await response.json();
                 
                 chatMessages.innerHTML = '';
@@ -502,7 +505,14 @@
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error("HTTP status " + response.status);
+                }
+
                 const data = await response.json();
+                if (!data || !data.answer) {
+                    throw new Error("Empty answer from API");
+                }
                 
                 document.getElementById(loadingId).remove();
 
