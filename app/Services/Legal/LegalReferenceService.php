@@ -232,16 +232,39 @@ class LegalReferenceService
             'ضريبه'    => 'نظام الضريبة',
         ];
 
+        $closestPos = null;
+        $detectedSystem = null;
+
         foreach ($map as $key => $fullName) {
-            if (str_contains($norm, $key)) {
-                if (str_contains($norm, 'لائحه') || str_contains($norm, 'تنفيذيه')) {
-                    return "اللائحة التنفيذية ل" . $fullName;
+            $pos = mb_strpos($norm, $key);
+            if ($pos !== false) {
+                // تجنب مطابقة 'تنفيذية' أو 'التنفيذية' على أنها 'نظام التنفيذ'
+                if ($key === 'تنفيذ' && (mb_substr($norm, $pos, 7) === 'تنفيذيه' || mb_substr($norm, $pos, 8) === 'التنفيذيه')) {
+                    continue;
                 }
-                return $fullName;
+                if ($closestPos === null || $pos < $closestPos) {
+                    $closestPos = $pos;
+                    $detectedSystem = $fullName;
+                }
             }
         }
 
+        if ($detectedSystem !== null) {
+            if (str_contains($norm, 'لائحه') || str_contains($norm, 'تنفيذيه')) {
+                return "اللائحة التنفيذية ل" . $detectedSystem;
+            }
+            return $detectedSystem;
+        }
+
         return null;
+    }
+
+    private function sqlNormalizeArabic($str)
+    {
+        $str = preg_replace('/[أإآا]/u', '_', $str);
+        $str = preg_replace('/[ةه]/u', '_', $str);
+        $str = preg_replace('/[ىي]/u', '_', $str);
+        return $str;
     }
 
     private function findArticle($number, $systemName = null)
@@ -250,14 +273,15 @@ class LegalReferenceService
         $query = LegalArticle::query();
 
         $arabicText    = $this->numberToArabicText($number);
-        $arabicTextAlt = str_replace('ون', 'ين', $arabicText);
+        $sqlText       = $this->sqlNormalizeArabic($arabicText);
+        $sqlTextAlt    = str_replace('ون', 'ين', $sqlText);
 
-        $query->where(function($q) use ($number, $arabicText, $arabicTextAlt) {
+        $query->where(function($q) use ($number, $sqlText, $sqlTextAlt) {
             $q->where('article_title', 'LIKE', "% {$number}%")
               ->orWhere('article_title', 'LIKE', "%({$number})%")
               ->orWhere('article_title', 'LIKE', "%{$number} %")
-              ->orWhere('article_title', 'LIKE', "%{$arabicText}%")
-              ->orWhere('article_title', 'LIKE', "%{$arabicTextAlt}%");
+              ->orWhere('article_title', 'LIKE', "%{$sqlText}%")
+              ->orWhere('article_title', 'LIKE', "%{$sqlTextAlt}%");
         });
 
         if ($systemName) {
@@ -266,7 +290,8 @@ class LegalReferenceService
             $query->where(function($q) use ($keywords, $norm) {
                 $mainKeywords = array_filter($keywords, function($w) { return mb_strlen($w) > 3; });
                 foreach ($mainKeywords as $word) {
-                    $q->where('legislation_title', 'LIKE', "%{$word}%");
+                    $sqlWord = $this->sqlNormalizeArabic($word);
+                    $q->where('legislation_title', 'LIKE', "%{$sqlWord}%");
                 }
                 if (str_contains($norm, 'اثبات')) $q->orWhere('legislation_title', 'LIKE', '%إثبات%');
             });
@@ -355,11 +380,64 @@ class LegalReferenceService
 
     private function numberToArabicText($n)
     {
+        $n = (int) $n;
+        if ($n <= 0) return (string)$n;
+
         $map = [
-            1 => 'الأولى', 2 => 'الثانية', 10 => 'العاشرة',
-            92 => 'الثانية والتسعون', 97 => 'السابعة والتسعون', 98 => 'الثامنة والتسعون',
-            164 => 'الرابعة بعد المائة',
+            1 => 'الأولى', 2 => 'الثانية', 3 => 'الثالثة', 4 => 'الرابعة', 5 => 'الخامسة',
+            6 => 'السادسة', 7 => 'السابعة', 8 => 'الثامنة', 9 => 'التاسعة', 10 => 'العاشرة',
+            11 => 'الحادية عشرة', 12 => 'الثانية عشرة', 13 => 'الثالثة عشرة', 14 => 'الرابعة عشرة',
+            15 => 'الخامسة عشرة', 16 => 'السادسة عشرة', 17 => 'السابعة عشرة', 18 => 'الثامنة عشرة',
+            19 => 'التاسعة عشرة',
         ];
-        return $map[(int)$n] ?? (string)$n;
+
+        if (isset($map[$n])) {
+            return $map[$n];
+        }
+
+        $tens = [
+            20 => 'العشرون', 30 => 'الثلاثون', 40 => 'الأربعون', 50 => 'الخمسون',
+            60 => 'الستون', 70 => 'السبعون', 80 => 'الثمانون', 90 => 'التسعون',
+        ];
+
+        if ($n < 100) {
+            $unit = $n % 10;
+            $ten = $n - $unit;
+            
+            $unitText = '';
+            if ($unit === 1) $unitText = 'الحادية';
+            elseif ($unit === 2) $unitText = 'الثانية';
+            elseif ($unit === 3) $unitText = 'الثالثة';
+            elseif ($unit === 4) $unitText = 'الرابعة';
+            elseif ($unit === 5) $unitText = 'الخامسة';
+            elseif ($unit === 6) $unitText = 'السادسة';
+            elseif ($unit === 7) $unitText = 'السابعة';
+            elseif ($unit === 8) $unitText = 'الثامنة';
+            elseif ($unit === 9) $unitText = 'التاسعة';
+            
+            return $unitText . ' و' . $tens[$ten];
+        }
+
+        if ($n === 100) return 'المائة';
+
+        if ($n > 100 && $n < 200) {
+            $remainder = $n - 100;
+            if ($remainder === 1) {
+                return 'الواحدة بعد المائة';
+            }
+            return $this->numberToArabicText($remainder) . ' بعد المائة';
+        }
+
+        if ($n === 200) return 'المائتين';
+
+        if ($n > 200 && $n < 300) {
+            $remainder = $n - 200;
+            if ($remainder === 1) {
+                return 'الواحدة بعد المائتين';
+            }
+            return $this->numberToArabicText($remainder) . ' بعد المائتين';
+        }
+
+        return (string)$n;
     }
 }
