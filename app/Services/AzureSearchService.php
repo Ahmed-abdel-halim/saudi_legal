@@ -323,24 +323,45 @@ class AzureSearchService
      */
     private function getEmbeddingsBatch(array $texts): array
     {
-        $requests = [];
         $uncachedIndices = [];
         $embeddings = array_fill(0, count($texts), null);
 
+        // 1. بناء قائمة بمفاتيح الكاش ومطابقتها بالنصوص
+        $cacheKeys = [];
+        $keyToIdxMap = [];
         foreach ($texts as $i => $text) {
             $text = mb_substr($text, 0, 5000);
             $cacheKey = 'embed_' . md5($text);
-            $cached = Cache::get($cacheKey);
-            if ($cached !== null && is_array($cached)) {
-                $embeddings[$i] = $cached;
-            } else {
-                $uncachedIndices[] = $i;
+            $cacheKeys[$i] = $cacheKey;
+            $keyToIdxMap[$cacheKey] = $i;
+        }
+
+        // 2. جلب جميع مفاتيح الكاش بدفعة واحدة (Single SQL Query)
+        try {
+            $cachedValues = Cache::many(array_values($cacheKeys));
+            foreach ($cachedValues as $key => $val) {
+                if ($val !== null && is_array($val)) {
+                    $idx = $keyToIdxMap[$key];
+                    $embeddings[$idx] = $val;
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('[AzureSearch] Cache::many failed: ' . $e->getMessage());
+        }
+
+        // 3. بناء الطلبات للقيم غير الموجودة في الكاش
+        $requests = [];
+        $requestsMap = []; // لربط فهرس طلب الـ batch بالفهرس الأصلي
+        foreach ($texts as $i => $text) {
+            if ($embeddings[$i] === null) {
+                $text = mb_substr($text, 0, 5000);
                 $requests[] = [
                     'model'   => "models/{$this->embeddingModel}",
                     'content' => ['parts' => [['text' => $text]]],
                     'taskType' => 'RETRIEVAL_DOCUMENT',
                     'outputDimensionality' => 768,
                 ];
+                $requestsMap[] = $i;
             }
         }
 
@@ -348,6 +369,7 @@ class AzureSearchService
             return $embeddings;
         }
 
+        // 4. طلب الـ embeddings من Gemini للقيم المتبقية
         try {
             $response = Http::withHeaders(['Content-Type' => 'application/json'])
                 ->timeout(30)
@@ -359,12 +381,12 @@ class AzureSearchService
             if ($response->successful()) {
                 $results = $response->json('embeddings', []);
                 foreach ($results as $idx => $result) {
-                    $originalIdx = $uncachedIndices[$idx];
+                    $originalIdx = $requestsMap[$idx];
                     $vector = $result['values'] ?? [];
                     if (!empty($vector)) {
                         $embeddings[$originalIdx] = $vector;
-                        $text = mb_substr($texts[$originalIdx], 0, 5000);
-                        $cacheKey = 'embed_' . md5($text);
+                        // حفظ في الكاش بشكل منفرد
+                        $cacheKey = $cacheKeys[$originalIdx];
                         Cache::put($cacheKey, $vector, now()->addHours(24));
                     }
                 }
@@ -378,7 +400,7 @@ class AzureSearchService
             Log::error('[AzureSearch] Batch embedding Exception: ' . $e->getMessage());
         }
 
-        // ملء أي قيم فشلت بـ zero vector كـ fallback
+        // 5. ملء أي قيم فشلت بـ zero vector كـ fallback
         foreach ($embeddings as $i => $vector) {
             if ($vector === null) {
                 $embeddings[$i] = array_fill(0, 768, 0.0);
