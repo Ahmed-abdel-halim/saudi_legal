@@ -210,31 +210,33 @@ class LegalAiController extends Controller
             }
         }
 
-        // Tier 1: Qdrant Vector Search (Split retrieval لتجنب طغيان الأحكام على المواد)
-        if ($this->qdrantService->isEnabled()) {
-            Log::info('[LegalAi] Using Qdrant Split Search for: ' . $searchQuery);
+        // Tier 1: Azure AI Search (Split hybrid search)
+        if ($this->azureService->isEnabled()) {
+            Log::info('[LegalAi] Using Azure Split Search for: ' . $searchQuery);
 
             // أ. بحث عن أحكام قضائية وسوابق (تستثنى منها المواد)
-            // زيادة عدد النتائج لـ 5 لزيادة شمولية السياق
-            $cases = $this->qdrantService->search($searchQuery, 5, ['!source_type' => 'article']);
+            $cases = $this->azureService->hybridSearch($searchQuery, 5, ['!source_type' => 'article']);
 
             // ب. بحث عن نصوص أنظمة وقوانين مخصصة
-            // زيادة عدد النتائج لـ 3
-            $lawArticles = $this->qdrantService->search($searchQuery, 3, ['source_type' => 'article']);
+            $lawArticles = $this->azureService->hybridSearch($searchQuery, 3, ['source_type' => 'article']);
 
             // ج. دمج وتفعيل الطريقة
             $contextTasks = $cases->merge($lawArticles);
             if ($contextTasks->isNotEmpty()) {
-                $searchMethod = 'qdrant_vector';
+                $searchMethod = 'azure_vector';
             }
         }
 
-        // Tier 2: Azure AI Search (Hybrid fallback)
-        if ($contextTasks->isEmpty() && config('azure.search.enabled', false)) {
-            Log::info('[LegalAi] Falling back to Azure AI Search');
-            $contextTasks = $this->azureService->hybridSearch($searchQuery, 5);
+        // Tier 2: Qdrant Vector Search (Split retrieval fallback)
+        if ($contextTasks->isEmpty() && $this->qdrantService->isEnabled()) {
+            Log::info('[LegalAi] Falling back to Qdrant Split Search for: ' . $searchQuery);
+
+            $cases = $this->qdrantService->search($searchQuery, 5, ['!source_type' => 'article']);
+            $lawArticles = $this->qdrantService->search($searchQuery, 3, ['source_type' => 'article']);
+
+            $contextTasks = $cases->merge($lawArticles);
             if ($contextTasks->isNotEmpty()) {
-                $searchMethod = 'azure_vector';
+                $searchMethod = 'qdrant_vector';
             }
         }
 

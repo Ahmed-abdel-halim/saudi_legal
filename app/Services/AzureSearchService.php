@@ -509,6 +509,11 @@ class AzureSearchService
         });
     }
 
+    public function isEnabled(): bool
+    {
+        return $this->isConfigured() && config('azure.search.enabled', false);
+    }
+
     /**
      * بناء OData filter string من array
      */
@@ -521,7 +526,12 @@ class AzureSearchService
         $parts = [];
         foreach ($filters as $field => $value) {
             $escaped = str_replace("'", "''", $value);
-            $parts[] = "{$field} eq '{$escaped}'";
+            if (str_starts_with($field, '!')) {
+                $cleanField = substr($field, 1);
+                $parts[] = "{$cleanField} ne '{$escaped}'";
+            } else {
+                $parts[] = "{$field} eq '{$escaped}'";
+            }
         }
 
         return implode(' and ', $parts);
