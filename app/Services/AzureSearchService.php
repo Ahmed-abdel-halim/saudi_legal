@@ -104,7 +104,7 @@ class AzureSearchService
                 "{$this->endpoint}/indexes/{$this->indexName}/docs/search?api-version={$this->apiVersion}",
                 [
                     'count'  => true,
-                    'select' => 'id,question,answer,domain,source_type,case_reference,law_system',
+                    'select' => 'id,question,answer,case_text,domain,source_type,case_reference,law_system',
                     'filter' => $filterStr ?: null,
                     'vectorQueries' => [
                         [
@@ -473,7 +473,7 @@ class AzureSearchService
             'queryLanguage' => 'ar-SA',
             'count'         => true,
             'top'           => $topK,
-            'select'        => 'id,question,answer,domain,source_type,case_reference,law_system,relevance_score',
+            'select'        => 'id,question,answer,case_text,domain,source_type,case_reference,law_system',
             'filter'        => $filter ?: null,
             'vectorQueries' => [
                 [
