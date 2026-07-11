@@ -133,6 +133,8 @@ class LegalAiController extends Controller
 
     public function ask(Request $request)
     {
+        set_time_limit(180); // منع انتهاء الوقت عند بطء الاتصال بالشبكة
+
         $request->validate([
             'question'          => 'required|string|max:1000',
             'conversation_uuid' => 'nullable|string|uuid',

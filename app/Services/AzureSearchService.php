@@ -63,7 +63,7 @@ class AzureSearchService
             $response = Http::withHeaders([
                 'api-key'      => $this->apiKey,
                 'Content-Type' => 'application/json',
-            ])->post(
+            ])->timeout(15)->post(
                 "{$this->endpoint}/indexes/{$this->indexName}/docs/search?api-version={$this->apiVersion}",
                 $this->buildHybridSearchBody($query, $embedding, $topK, $filterStr)
             );
@@ -321,6 +321,7 @@ class AzureSearchService
             $text = mb_substr($text, 0, 5000);
 
             $response = Http::withHeaders(['Content-Type' => 'application/json'])
+                ->timeout(15)
                 ->post(
                     "https://generativelanguage.googleapis.com/v1beta/models/{$this->embeddingModel}:embedContent?key={$this->geminiKey}",
                     [
@@ -499,7 +500,7 @@ class AzureSearchService
                 'id'              => $doc['id'] ?? null,
                 'question'        => $doc['question'] ?? '',
                 'correct_answer'  => $doc['answer'] ?? '',
-                'case_text'       => $doc['answer'] ?? '',
+                'case_text'       => $doc['case_text'] ?? $doc['answer'] ?? '',
                 'source_type'     => $doc['source_type'] ?? 'unknown',
                 'case_reference'  => $doc['case_reference'] ?? '',
                 'law_system_name' => $doc['law_system'] ?? '',
