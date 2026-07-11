@@ -233,6 +233,72 @@
         let currentConversationUuid = null;
         const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
 
+        // دالة لعرض المصادر بطريقة ذكية (أول 4 ثم زرار عرض المزيد)
+        function renderCitations(citations, msgId) {
+            if (!citations || citations.length === 0) return '';
+            
+            const firstFour = citations.slice(0, 4);
+            const remaining = citations.slice(4);
+            
+            const renderCard = (c, index) => `
+                <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 rounded-2xl p-4 hover:shadow-md transition-all cursor-pointer group">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded-lg ${c.type === 'law_article' || c.type === 'article' ? 'bg-teal-50 text-teal-600 group-hover:bg-teal-500' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-500'} flex items-center justify-center text-xs font-black group-hover:text-white transition-colors shrink-0">${index + 1}</div>
+                        <h5 class="text-xs font-black text-gray-800 line-clamp-1 flex-1">${c.title}</h5>
+                        <span class="text-[10px] font-bold ${c.type === 'law_article' || c.type === 'article' ? 'text-teal-700 bg-teal-50 border-teal-100' : 'text-blue-700 bg-blue-50 border-blue-100'} border px-2 py-1 rounded-md shrink-0">${c.article || 'مرجع'}</span>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed font-medium max-h-60 overflow-y-auto custom-scrollbar pr-2 whitespace-pre-wrap">${c.text}</p>
+                </div>
+            `;
+            
+            const firstFourHtml = firstFour.map((c, index) => renderCard(c, index)).join('');
+            
+            let remainingHtml = '';
+            let moreBtnHtml = '';
+            if (remaining.length > 0) {
+                const remainingCards = remaining.map((c, index) => renderCard(c, index + 4)).join('');
+                remainingHtml = `
+                    <div id="more-citations-${msgId}" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 col-span-full">
+                        ${remainingCards}
+                    </div>
+                `;
+                
+                moreBtnHtml = `
+                    <div class="col-span-full flex justify-center mt-4" id="more-btn-wrapper-${msgId}">
+                        <button onclick="showMoreCitations('${msgId}')" class="px-5 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 hover:from-blue-100 hover:to-indigo-100 text-xs font-black text-blue-700 rounded-xl transition-all flex items-center gap-2 active:scale-95 cursor-pointer shadow-sm">
+                            <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                            <span>عرض المزيد من القضايا المرتبطة (${remaining.length})</span>
+                        </button>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="mt-8 pt-5 border-t border-gray-100 relative z-10">
+                    <div class="flex items-center gap-2 mb-4 justify-end">
+                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest">المصادر القانونية المؤكدة</span>
+                        <i class="fa-solid fa-book-open text-gray-300"></i>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${firstFourHtml}
+                        ${remainingHtml}
+                        ${moreBtnHtml}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showMoreCitations(msgId) {
+            const hiddenDiv = document.getElementById(`more-citations-${msgId}`);
+            const btnWrapper = document.getElementById(`more-btn-wrapper-${msgId}`);
+            if (hiddenDiv) {
+                hiddenDiv.classList.remove('hidden');
+            }
+            if (btnWrapper) {
+                btnWrapper.remove();
+            }
+        }
+
         function getLocalGuestConversations() {
             try {
                 const data = localStorage.getItem('guest_ai_conversations');
@@ -397,28 +463,8 @@
                         // إعداد المراجع
                         let citationsContainer = '';
                         if (m.citations && m.citations.length > 0) {
-                            const citationsHtml = m.citations.map((c, index) => `
-                                <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 rounded-2xl p-4 hover:shadow-md transition-all cursor-pointer group">
-                                    <div class="flex items-center gap-3 mb-3">
-                                        <div class="w-8 h-8 rounded-lg ${c.type === 'law_article' || c.type === 'article' ? 'bg-teal-50 text-teal-600 group-hover:bg-teal-500' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-500'} flex items-center justify-center text-xs font-black group-hover:text-white transition-colors shrink-0">${index + 1}</div>
-                                        <h5 class="text-xs font-black text-gray-800 line-clamp-1 flex-1">${c.title}</h5>
-                                        <span class="text-[10px] font-bold ${c.type === 'law_article' || c.type === 'article' ? 'text-teal-700 bg-teal-50 border-teal-100' : 'text-blue-700 bg-blue-50 border-blue-100'} border px-2 py-1 rounded-md shrink-0">${c.article || 'مرجع'}</span>
-                                    </div>
-                                    <p class="text-xs text-gray-600 leading-relaxed font-medium max-h-60 overflow-y-auto custom-scrollbar pr-2 whitespace-pre-wrap">${c.text}</p>
-                                </div>
-                            `).join('');
-                            
-                            citationsContainer = `
-                                <div class="mt-8 pt-5 border-t border-gray-100 relative z-10">
-                                    <div class="flex items-center gap-2 mb-4 justify-end">
-                                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest">المصادر القانونية المؤكدة</span>
-                                        <i class="fa-solid fa-book-open text-gray-300"></i>
-                                    </div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        ${citationsHtml}
-                                    </div>
-                                </div>
-                            `;
+                            const msgId = 'msg-' + Math.random().toString(36).substr(2, 9);
+                            citationsContainer = renderCitations(m.citations, msgId);
                         }
 
                         const formattedAnswer = m.message ? m.message.replace(/\n/g, '<br>') : '';
@@ -568,28 +614,8 @@
 
                 let citationsContainer = '';
                 if(data.citations && data.citations.length > 0) {
-                    const citationsHtml = data.citations.map((c, index) => `
-                        <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 rounded-2xl p-4 hover:shadow-md transition-all cursor-pointer group">
-                            <div class="flex items-center gap-3 mb-3">
-                                <div class="w-8 h-8 rounded-lg ${c.type === 'law_article' || c.type === 'article' ? 'bg-teal-50 text-teal-600 group-hover:bg-teal-500' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-500'} flex items-center justify-center text-xs font-black group-hover:text-white transition-colors shrink-0">${index + 1}</div>
-                                <h5 class="text-xs font-black text-gray-800 line-clamp-1 flex-1">${c.title}</h5>
-                                <span class="text-[10px] font-bold ${c.type === 'law_article' || c.type === 'article' ? 'text-teal-700 bg-teal-50 border-teal-100' : 'text-blue-700 bg-blue-50 border-blue-100'} border px-2 py-1 rounded-md shrink-0">${c.article || 'مرجع'}</span>
-                            </div>
-                            <p class="text-xs text-gray-600 leading-relaxed font-medium max-h-60 overflow-y-auto custom-scrollbar pr-2 whitespace-pre-wrap">${c.text}</p>
-                        </div>
-                    `).join('');
-                    
-                    citationsContainer = `
-                        <div class="mt-8 pt-5 border-t border-gray-100 relative z-10">
-                            <div class="flex items-center gap-2 mb-4 justify-end">
-                                <span class="text-xs font-black text-gray-400 uppercase tracking-widest">المصادر القانونية المؤكدة</span>
-                                <i class="fa-solid fa-book-open text-gray-300"></i>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                ${citationsHtml}
-                            </div>
-                        </div>
-                    `;
+                    const msgId = 'msg-' + Math.random().toString(36).substr(2, 9);
+                    citationsContainer = renderCitations(data.citations, msgId);
                 }
 
                 const formattedAnswer = data.answer ? data.answer.replace(/\n/g, '<br>') : '';

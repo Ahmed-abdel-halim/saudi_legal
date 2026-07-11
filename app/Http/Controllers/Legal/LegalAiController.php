@@ -263,6 +263,30 @@ class LegalAiController extends Controller
             return md5($text);
         });
 
+        // تفكيك المجموعة لـ أحكام وأنظمة لتطبيق الفرز على الأحكام فقط
+        $casesPart = $contextTasks->filter(fn($t) => (!isset($t->source_type) || $t->source_type !== 'article'));
+        $articlesPart = $contextTasks->filter(fn($t) => (isset($t->source_type) && $t->source_type === 'article'));
+
+        // فرز الأحكام: الاستئناف أولاً، ثم الأحدث (عن طريق المعرف ID تنازلياً)
+        $casesPart = $casesPart->sort(function ($a, $b) {
+            $aText = ($a->case_text ?? '') . ' ' . ($a->case_reference ?? '') . ' ' . ($a->question ?? '');
+            $bText = ($b->case_text ?? '') . ' ' . ($b->case_reference ?? '') . ' ' . ($b->question ?? '');
+            
+            $aHasAppeal = (mb_strpos($aText, 'استئناف') !== false) ? 1 : 0;
+            $bHasAppeal = (mb_strpos($bText, 'استئناف') !== false) ? 1 : 0;
+
+            if ($aHasAppeal !== $bHasAppeal) {
+                return $bHasAppeal <=> $aHasAppeal;
+            }
+
+            $aId = $a->id ?? 0;
+            $bId = $b->id ?? 0;
+            return $bId <=> $aId;
+        });
+
+        // إعادة الدمج (الأحكام المفرزة أولاً، ثم الأنظمة)
+        $contextTasks = $casesPart->merge($articlesPart);
+
         // استخراج المواد المشارة إليها من الأحكام لتوسيع السياق
         if ($contextTasks->isNotEmpty()) {
             foreach ($contextTasks as $task) {
