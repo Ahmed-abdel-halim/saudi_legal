@@ -205,24 +205,46 @@ class AzureSearchService
                 $batch[] = $doc;
             }
 
-            try {
-                $response = Http::withHeaders([
-                    'api-key'      => $this->apiKey,
-                    'Content-Type' => 'application/json',
-                ])->post(
-                    "{$this->endpoint}/indexes/{$this->indexName}/docs/index?api-version={$this->apiVersion}",
-                    ['value' => $batch]
-                );
+            $maxAzureRetries = 3;
+            $azureRetryDelay = 2; // ثوانٍ
+            $response = null;
 
-                if ($response->successful()) {
-                    $indexed += count($batch);
-                } else {
-                    $failed += count($batch);
-                    Log::error('[AzureSearch] Batch failed', ['body' => $response->body()]);
+            for ($attempt = 1; $attempt <= $maxAzureRetries; $attempt++) {
+                try {
+                    $response = Http::withHeaders([
+                        'api-key'      => $this->apiKey,
+                        'Content-Type' => 'application/json',
+                    ])
+                    ->timeout(90) // مهلة 90 ثانية لرفع الحزم الكبيرة (مثل الأحكام القضائية الطويلة)
+                    ->post(
+                        "{$this->endpoint}/indexes/{$this->indexName}/docs/index?api-version={$this->apiVersion}",
+                        ['value' => $batch]
+                    );
+
+                    if ($response->successful()) {
+                        break; // نجاح الطلب
+                    }
+
+                    Log::warning("[AzureSearch] Azure Upload failed (Attempt {$attempt}/{$maxAzureRetries})", [
+                        'status' => $response->status(),
+                        'body' => $response->body()
+                    ]);
+
+                } catch (\Throwable $e) {
+                    Log::warning("[AzureSearch] Azure Upload exception (Attempt {$attempt}/{$maxAzureRetries}): " . $e->getMessage());
                 }
-            } catch (\Throwable $e) {
+
+                if ($attempt < $maxAzureRetries) {
+                    sleep($azureRetryDelay);
+                    $azureRetryDelay *= 2; // مضاعفة وقت التأخير
+                }
+            }
+
+            if ($response && $response->successful()) {
+                $indexed += count($batch);
+            } else {
                 $failed += count($batch);
-                Log::error('[AzureSearch] Batch Exception: ' . $e->getMessage());
+                Log::error('[AzureSearch] Batch failed permanently after retries');
             }
         }
 
