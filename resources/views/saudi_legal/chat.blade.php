@@ -233,12 +233,13 @@
         let currentConversationUuid = null;
         const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
 
-        // دالة لعرض المصادر بطريقة ذكية (أول 4 ثم زرار عرض المزيد)
+        // دالة لعرض المصادر مقسمة: أحكام + مواد نظامية، كل مجموعة بزرار عرض المزيد / عرض أقل
         function renderCitations(citations, msgId) {
             if (!citations || citations.length === 0) return '';
             
-            const firstFour = citations.slice(0, 4);
-            const remaining = citations.slice(4);
+            // فصل الأحكام عن المواد النظامية
+            const judgments = citations.filter(c => c.type !== 'law_article' && c.type !== 'article');
+            const articles = citations.filter(c => c.type === 'law_article' || c.type === 'article');
             
             const renderCard = (c, index) => {
                 const isArticle = c.type === 'law_article' || c.type === 'article';
@@ -259,52 +260,80 @@
                     <p class="text-xs text-gray-600 leading-relaxed font-medium max-h-60 overflow-y-auto custom-scrollbar pr-2 whitespace-pre-wrap">${c.text}</p>
                 </div>
             `;};
-            
-            const firstFourHtml = firstFour.map((c, index) => renderCard(c, index)).join('');
-            
-            let remainingHtml = '';
-            let moreBtnHtml = '';
-            if (remaining.length > 0) {
-                const remainingCards = remaining.map((c, index) => renderCard(c, index + 4)).join('');
-                remainingHtml = `
-                    <div id="more-citations-${msgId}" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 col-span-full">
-                        ${remainingCards}
-                    </div>
-                `;
+
+            // دالة لبناء مجموعة واحدة (أحكام أو مواد) مع عرض المزيد / عرض أقل
+            function renderGroup(items, groupId, label, icon, colorFrom, colorTo) {
+                if (items.length === 0) return '';
                 
-                moreBtnHtml = `
-                    <div class="col-span-full flex justify-center mt-4" id="more-btn-wrapper-${msgId}">
-                        <button onclick="showMoreCitations('${msgId}')" class="px-5 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 hover:from-blue-100 hover:to-indigo-100 text-xs font-black text-blue-700 rounded-xl transition-all flex items-center gap-2 active:scale-95 cursor-pointer shadow-sm">
-                            <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                            <span>عرض المزيد من القضايا المرتبطة (${remaining.length})</span>
-                        </button>
+                const LIMIT = 4;
+                const visible = items.slice(0, LIMIT);
+                const hidden = items.slice(LIMIT);
+                
+                const visibleHtml = visible.map((c, i) => renderCard(c, i)).join('');
+                
+                let hiddenHtml = '';
+                let toggleBtns = '';
+                
+                if (hidden.length > 0) {
+                    const hiddenCards = hidden.map((c, i) => renderCard(c, i + LIMIT)).join('');
+                    hiddenHtml = `
+                        <div id="more-${groupId}" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 col-span-full">
+                            ${hiddenCards}
+                        </div>
+                    `;
+                    
+                    toggleBtns = `
+                        <div class="col-span-full flex justify-center mt-4" id="toggle-wrapper-${groupId}">
+                            <button onclick="toggleCitationGroup('${groupId}', true)" id="btn-more-${groupId}" class="px-5 py-2.5 bg-gradient-to-r ${colorFrom} ${colorTo} border border-blue-100 text-xs font-black text-blue-700 rounded-xl transition-all flex items-center gap-2 active:scale-95 cursor-pointer shadow-sm hover:shadow-md">
+                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                <span>عرض المزيد (${hidden.length})</span>
+                            </button>
+                            <button onclick="toggleCitationGroup('${groupId}', false)" id="btn-less-${groupId}" class="hidden px-5 py-2.5 bg-gradient-to-r ${colorFrom} ${colorTo} border border-blue-100 text-xs font-black text-blue-700 rounded-xl transition-all flex items-center gap-2 active:scale-95 cursor-pointer shadow-sm hover:shadow-md">
+                                <i class="fa-solid fa-chevron-up text-[10px]"></i>
+                                <span>عرض أقل</span>
+                            </button>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="mb-6">
+                        <div class="flex items-center gap-2 mb-3 justify-end">
+                            <span class="text-xs font-black text-gray-400 tracking-wider">${label}</span>
+                            <i class="fa-solid ${icon} text-gray-300 text-sm"></i>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${visibleHtml}
+                            ${hiddenHtml}
+                            ${toggleBtns}
+                        </div>
                     </div>
                 `;
             }
-            
+
+            const judgmentsHtml = renderGroup(judgments, `j-${msgId}`, 'السوابق والأحكام القضائية', 'fa-gavel', 'from-blue-50', 'to-indigo-50');
+            const articlesHtml = renderGroup(articles, `a-${msgId}`, 'النصوص النظامية والمواد القانونية', 'fa-book-open', 'from-teal-50', 'to-emerald-50');
+
             return `
                 <div class="mt-8 pt-5 border-t border-gray-100 relative z-10">
-                    <div class="flex items-center gap-2 mb-4 justify-end">
-                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest">المصادر القانونية المؤكدة</span>
-                        <i class="fa-solid fa-book-open text-gray-300"></i>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        ${firstFourHtml}
-                        ${remainingHtml}
-                        ${moreBtnHtml}
-                    </div>
+                    ${judgmentsHtml}
+                    ${articlesHtml}
                 </div>
             `;
         }
         
-        function showMoreCitations(msgId) {
-            const hiddenDiv = document.getElementById(`more-citations-${msgId}`);
-            const btnWrapper = document.getElementById(`more-btn-wrapper-${msgId}`);
-            if (hiddenDiv) {
-                hiddenDiv.classList.remove('hidden');
-            }
-            if (btnWrapper) {
-                btnWrapper.remove();
+        function toggleCitationGroup(groupId, expand) {
+            const hiddenDiv = document.getElementById(`more-${groupId}`);
+            const btnMore = document.getElementById(`btn-more-${groupId}`);
+            const btnLess = document.getElementById(`btn-less-${groupId}`);
+            if (expand) {
+                if (hiddenDiv) hiddenDiv.classList.remove('hidden');
+                if (btnMore) btnMore.classList.add('hidden');
+                if (btnLess) btnLess.classList.remove('hidden');
+            } else {
+                if (hiddenDiv) hiddenDiv.classList.add('hidden');
+                if (btnMore) btnMore.classList.remove('hidden');
+                if (btnLess) btnLess.classList.add('hidden');
             }
         }
 
