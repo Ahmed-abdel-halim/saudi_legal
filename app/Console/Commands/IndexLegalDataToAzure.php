@@ -181,12 +181,17 @@ class IndexLegalDataToAzure extends Command
         $indexed = 0;
         $failed  = 0;
 
-        $total = LegalQaPair::approved()->count();
+        $query = LegalQaPair::query();
+        $total = $query->count();
+        if ($total === 0) {
+            $this->warn('   لا توجد أسئلة وإجابات للفهرسة.');
+            return [0, 0];
+        }
+
         $bar   = $this->output->createProgressBar($total);
         $bar->start();
 
-        LegalQaPair::approved()
-            ->with('record:id,domain,sub_domain,source_reference')
+        $query->with('record:id,domain,sub_domain,source_reference')
             ->chunkById($chunkSize, function ($pairs) use (&$indexed, &$failed, $dryRun, $bar) {
                 $docs = $pairs->map(fn($qa) => [
                     'id'             => 'qa_' . $qa->id,
