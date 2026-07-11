@@ -347,6 +347,7 @@ class LegalAiController extends Controller
                 'title'   => $ref,
                 'article' => $badgeLabel,
                 'text'    => $textToShow,
+                'system'  => (isset($task->source_type) && $task->source_type == 'article') ? ($task->law_system_name ?? '') : '',
             ];
         }
 
@@ -358,9 +359,10 @@ class LegalAiController extends Controller
 
                 $citations[] = [
                     'type'    => 'law_article',
-                    'title'   => "{$article->article_title} - {$article->legislation_title}",
+                    'title'   => "{$article->article_title}",
                     'article' => "نص نظام",
                     'text'    => $article->content,
+                    'system'  => $article->legislation_title ?? '',
                 ];
             }
         }

@@ -240,16 +240,25 @@
             const firstFour = citations.slice(0, 4);
             const remaining = citations.slice(4);
             
-            const renderCard = (c, index) => `
+            const renderCard = (c, index) => {
+                const isArticle = c.type === 'law_article' || c.type === 'article';
+                const systemLine = (c.system && c.system.trim()) 
+                    ? `<div class="flex items-center gap-1.5 mb-2">
+                         <i class="fa-solid fa-landmark text-[10px] ${isArticle ? 'text-teal-500' : 'text-blue-500'}"></i>
+                         <span class="text-[11px] font-black ${isArticle ? 'text-teal-700' : 'text-blue-700'}">${c.system}</span>
+                       </div>` 
+                    : '';
+                return `
                 <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 rounded-2xl p-4 hover:shadow-md transition-all cursor-pointer group">
+                    ${systemLine}
                     <div class="flex items-center gap-3 mb-3">
-                        <div class="w-8 h-8 rounded-lg ${c.type === 'law_article' || c.type === 'article' ? 'bg-teal-50 text-teal-600 group-hover:bg-teal-500' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-500'} flex items-center justify-center text-xs font-black group-hover:text-white transition-colors shrink-0">${index + 1}</div>
+                        <div class="w-8 h-8 rounded-lg ${isArticle ? 'bg-teal-50 text-teal-600 group-hover:bg-teal-500' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-500'} flex items-center justify-center text-xs font-black group-hover:text-white transition-colors shrink-0">${index + 1}</div>
                         <h5 class="text-xs font-black text-gray-800 line-clamp-1 flex-1">${c.title}</h5>
-                        <span class="text-[10px] font-bold ${c.type === 'law_article' || c.type === 'article' ? 'text-teal-700 bg-teal-50 border-teal-100' : 'text-blue-700 bg-blue-50 border-blue-100'} border px-2 py-1 rounded-md shrink-0">${c.article || 'مرجع'}</span>
+                        <span class="text-[10px] font-bold ${isArticle ? 'text-teal-700 bg-teal-50 border-teal-100' : 'text-blue-700 bg-blue-50 border-blue-100'} border px-2 py-1 rounded-md shrink-0">${c.article || 'مرجع'}</span>
                     </div>
                     <p class="text-xs text-gray-600 leading-relaxed font-medium max-h-60 overflow-y-auto custom-scrollbar pr-2 whitespace-pre-wrap">${c.text}</p>
                 </div>
-            `;
+            `;};
             
             const firstFourHtml = firstFour.map((c, index) => renderCard(c, index)).join('');
             
