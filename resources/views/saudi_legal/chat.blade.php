@@ -124,6 +124,9 @@
         </div>
     </aside>
 
+    <!-- Backdrop for mobile sidebar -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/40 z-20 hidden backdrop-blur-sm transition-all duration-300"></div>
+
     <!-- Main Chat Window (النافذة الرئيسية) -->
     <div id="main-content" class="flex-1 h-full flex flex-col relative overflow-hidden transition-all duration-300 md:mr-80">
         
@@ -214,12 +217,12 @@
                 <div class="max-w-4xl mx-auto px-4">
                     <div class="relative w-full input-glow transition-all duration-300 rounded-full bg-white border border-white shadow-xl shadow-blue-900/5">
                         <input type="text" id="question-input" 
-                            class="w-full bg-transparent border-none focus:ring-0 px-8 py-5 text-gray-800 font-medium placeholder-gray-400 outline-none pr-20"
+                            class="w-full bg-transparent border-none focus:ring-0 px-6 md:px-8 py-4 md:py-5 text-sm md:text-base text-gray-800 font-medium placeholder-gray-400 outline-none pr-16 md:pr-20 text-right"
                             placeholder="اكتب سؤالك القانوني هنا... (مثال: ما هي شروط تملك العقار؟)"
                             onkeypress="if(event.key === 'Enter') submitQuestion()">
                         
-                        <button onclick="submitQuestion()" id="btn-send" class="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg shadow-blue-500/40 cursor-pointer z-50">
-                            <i class="fa-solid fa-paper-plane text-lg rtl:-scale-x-100"></i>
+                        <button onclick="submitQuestion()" id="btn-send" class="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg shadow-blue-500/40 cursor-pointer z-50">
+                            <i class="fa-solid fa-paper-plane text-base md:text-lg rtl:-scale-x-100"></i>
                         </button>
                     </div>
                 </div>
@@ -371,20 +374,40 @@
         // عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', () => {
             loadConversations();
+            
+            // تهيئة السايدبار وحالة الخلفية المظللة حسب حجم الشاشة
+            const sidebar = document.getElementById('chat-sidebar');
+            const mainContent = document.getElementById('main-content');
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('translate-x-full');
+                sidebar.classList.remove('translate-x-0');
+                mainContent.classList.remove('md:mr-80');
+            } else {
+                sidebar.classList.remove('translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                mainContent.classList.add('md:mr-80');
+            }
         });
 
         // إغلاق وفتح المنيو الجانبي في الموبايل والديسك توب
         function toggleSidebar() {
             const sidebar = document.getElementById('chat-sidebar');
             const mainContent = document.getElementById('main-content');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            
             if (sidebar.classList.contains('translate-x-0')) {
                 sidebar.classList.remove('translate-x-0');
                 sidebar.classList.add('translate-x-full');
                 mainContent.classList.remove('md:mr-80');
+                if (backdrop) backdrop.classList.add('hidden');
             } else {
                 sidebar.classList.remove('translate-x-full');
                 sidebar.classList.add('translate-x-0');
-                mainContent.classList.add('md:mr-80');
+                if (window.innerWidth >= 768) {
+                    mainContent.classList.add('md:mr-80');
+                } else {
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
             }
         }
 
@@ -454,6 +477,7 @@
                 document.getElementById('chat-sidebar').classList.add('translate-x-full');
                 document.getElementById('chat-sidebar').classList.remove('translate-x-0');
                 document.getElementById('main-content').classList.remove('md:mr-80');
+                document.getElementById('sidebar-backdrop')?.classList.add('hidden');
             }
         }
 
@@ -491,8 +515,8 @@
                     if (m.role === 'user') {
                         const userHtml = `
                             <div class="flex justify-start mb-8">
-                                <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-3xl rounded-tr-none px-6 py-4 shadow-xl shadow-blue-900/20 max-w-[85%] border border-blue-500/30">
-                                    <p class="text-base font-bold leading-relaxed">${m.message}</p>
+                                <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-3xl rounded-tr-none px-4 md:px-6 py-3 md:py-4 shadow-xl shadow-blue-900/20 max-w-[90%] md:max-w-[85%] border border-blue-500/30">
+                                    <p class="text-sm md:text-base font-bold leading-relaxed">${m.message}</p>
                                 </div>
                             </div>
                         `;
@@ -508,7 +532,7 @@
                         const formattedAnswer = m.message ? m.message.replace(/\n/g, '<br>') : '';
                         const aiHtml = `
                             <div class="flex justify-end mb-8">
-                                <div class="bg-white/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 px-8 py-7 w-full md:max-w-[95%] rounded-3xl rounded-tl-none relative overflow-hidden">
+                                <div class="bg-white/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 px-4 md:px-8 py-5 md:py-7 w-full md:max-w-[95%] rounded-3xl rounded-tl-none relative overflow-hidden">
                                     <div class="absolute -top-10 -left-10 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl"></div>
                                     
                                     <div class="flex items-center justify-between mb-6 border-b border-gray-100/80 pb-4 relative z-10">
@@ -536,6 +560,7 @@
                     document.getElementById('chat-sidebar').classList.add('translate-x-full');
                     document.getElementById('chat-sidebar').classList.remove('translate-x-0');
                     document.getElementById('main-content').classList.remove('md:mr-80');
+                    document.getElementById('sidebar-backdrop')?.classList.add('hidden');
                 }
 
             } catch (error) {
@@ -592,8 +617,8 @@
             // إضافة رسالة المستخدم للشاشة
             const userMsgHtml = `
                 <div class="flex justify-start mb-8">
-                    <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-3xl rounded-tr-none px-6 py-4 shadow-xl shadow-blue-900/20 max-w-[85%] border border-blue-500/30">
-                        <p class="text-base font-bold leading-relaxed">${question}</p>
+                    <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-3xl rounded-tr-none px-4 md:px-6 py-3 md:py-4 shadow-xl shadow-blue-900/20 max-w-[90%] md:max-w-[85%] border border-blue-500/30">
+                        <p class="text-sm md:text-base font-bold leading-relaxed">${question}</p>
                     </div>
                 </div>
             `;
@@ -602,7 +627,7 @@
             const loadingId = 'loading-' + Date.now();
             const loadingHtml = `
                 <div id="${loadingId}" class="flex justify-end mb-8">
-                    <div class="bg-white/95 backdrop-blur-2xl shadow-xl ring-1 ring-black/5 rounded-3xl rounded-tl-none px-6 py-4 flex items-center gap-3">
+                    <div class="bg-white/95 backdrop-blur-2xl shadow-xl ring-1 ring-black/5 rounded-3xl rounded-tl-none px-4 md:px-6 py-3 md:py-4 flex items-center gap-3">
                         <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
                         <div class="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
                         <div class="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
@@ -659,7 +684,7 @@
                 const formattedAnswer = data.answer ? data.answer.replace(/\n/g, '<br>') : '';
                 const aiMsgHtml = `
                     <div class="flex justify-end mb-8">
-                        <div class="bg-white/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 px-8 py-7 w-full md:max-w-[95%] rounded-3xl rounded-tl-none relative overflow-hidden">
+                        <div class="bg-white/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 px-4 md:px-8 py-5 md:py-7 w-full md:max-w-[95%] rounded-3xl rounded-tl-none relative overflow-hidden">
                             <div class="absolute -top-10 -left-10 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl"></div>
                             
                             <div class="flex items-center justify-between mb-6 border-b border-gray-100/80 pb-4 relative z-10">
