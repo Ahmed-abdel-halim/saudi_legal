@@ -211,7 +211,27 @@ class LegalReferenceService
     {
         $norm = $this->normalizeArabic($text);
 
-        // Core Saudi Laws Mapping
+        // 1. محاولة استخراج اسم النظام ديناميكياً من قاعدة البيانات (مع آلية الـ Back-off للمطابقة المخصصة)
+        if (preg_match('/(?:نظام|تنظيم|لائح[ةه]|قانون)\s+([أ-ي]+(?:\s+[أ-ي]+){0,2})/u', $text, $m)) {
+            $words = preg_split('/\s+/', trim($m[1]));
+            $count = count($words);
+            
+            for ($i = $count; $i >= 1; $i--) {
+                $extracted = implode(' ', array_slice($words, 0, $i));
+                if (mb_strlen($extracted) > 2) {
+                    $sqlWord = $this->sqlNormalizeArabic($extracted);
+                    $dbSystem = LegalArticle::where('legislation_title', 'LIKE', "%{$sqlWord}%")
+                        ->orderByRaw('LENGTH(legislation_title) ASC')
+                        ->value('legislation_title');
+                        
+                    if ($dbSystem) {
+                        return $dbSystem;
+                    }
+                }
+            }
+        }
+
+        // 2. Fallback للـ Core Saudi Laws Mapping المبرمجة سابقاً لضمان عدم تأثر أي كود قديم
         $map = [
             'اثبات'    => 'نظام الإثبات',
             'مرافعات'  => 'نظام المرافعات الشرعية',
