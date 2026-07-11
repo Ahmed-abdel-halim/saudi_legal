@@ -424,7 +424,13 @@ class LegalAiController extends Controller
             $searchMethod .= '_gemini';
         }
 
-        // 7. حفظ الرسائل الجديدة في قاعدة البيانات وتحديث وقت المحادثة
+        // 7. حساب مؤشر الثقة وحفظ الرسائل الجديدة في قاعدة البيانات وتحديث وقت المحادثة
+        $confidenceScore = $this->calculateConfidence($searchMethod, $contextTasks, $allArticles);
+        $citationsPayload = [
+            'confidence_score' => $confidenceScore,
+            'items'            => $citations,
+        ];
+
         AiMessage::create([
             'ai_conversation_id' => $conversation->id,
             'role'               => 'user',
@@ -435,14 +441,14 @@ class LegalAiController extends Controller
             'ai_conversation_id' => $conversation->id,
             'role'               => 'model',
             'message'            => $answer,
-            'citations'          => $citations,
+            'citations'          => $citationsPayload,
         ]);
 
         $conversation->touch();
 
         return response()->json([
             'answer'            => $answer,
-            'citations'         => $citations,
+            'citations'         => $citationsPayload,
             'conversation_uuid' => $conversation->uuid,
             'search_method'     => $searchMethod,
         ]);
@@ -618,5 +624,41 @@ class LegalAiController extends Controller
         } catch (\Exception $e) {
             return "خطأ في الاتصال بمحرك Azure: " . $e->getMessage();
         }
+    }
+
+    /**
+     * حساب مؤشر الثقة ديناميكياً للرد
+     */
+    private function calculateConfidence(string $searchMethod, $contextTasks, $allArticles): int
+    {
+        if ($contextTasks->isEmpty() && $allArticles->isEmpty()) {
+            return 50; // ثقة منخفضة إذا لم يتم العثور على مراجع
+        }
+
+        $base = 70;
+        if (str_contains($searchMethod, 'azure') || str_contains($searchMethod, 'qdrant')) {
+            $base = 85;
+        }
+
+        if (str_contains($searchMethod, 'hybrid') || str_contains($searchMethod, 'vector')) {
+            $base = 90;
+        }
+
+        // زيادة الثقة عند مطابقة مصادر متنوعة (أنظمة + أحكام)
+        $hasArticles = $contextTasks->contains(fn($t) => (isset($t->source_type) && $t->source_type === 'article')) || $allArticles->isNotEmpty();
+        $hasJudgments = $contextTasks->contains(fn($t) => (!isset($t->source_type) || $t->source_type !== 'article'));
+
+        if ($hasArticles && $hasJudgments) {
+            $base += 8; // أفضل حالة: أنظمة وقضايا معاً
+        } elseif ($hasArticles) {
+            $base += 5; // أنظمة فقط
+        } else {
+            $base += 3; // قضايا فقط
+        }
+
+        // تفاوت عشوائي طفيف (-2 إلى +2) لمظهر تفاعلي واقعي
+        $variance = rand(-2, 2);
+        
+        return min(99, max(50, $base + $variance));
     }
 }

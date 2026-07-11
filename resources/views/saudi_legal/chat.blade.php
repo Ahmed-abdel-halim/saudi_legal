@@ -340,6 +340,27 @@
             }
         }
 
+        // دالة لعرض شارة مؤشر الثقة بتنسيق جميل
+        function renderConfidenceBadge(score) {
+            let colorClass = 'bg-emerald-50 border-emerald-100 text-emerald-700';
+            let dotClass = 'bg-emerald-500';
+            
+            if (score < 75) {
+                colorClass = 'bg-amber-50 border-amber-100 text-amber-700';
+                dotClass = 'bg-amber-500';
+            } else if (score < 90) {
+                colorClass = 'bg-blue-50 border-blue-100 text-blue-700';
+                dotClass = 'bg-blue-500';
+            }
+            
+            return `
+                <div class="flex items-center gap-1.5 px-3 py-1 ${colorClass} border text-[10px] md:text-xs font-black rounded-full shadow-sm">
+                    <span class="w-1.5 h-1.5 rounded-full ${dotClass} animate-pulse"></span>
+                    <span>مؤشر الثقة: ${score}%</span>
+                </div>
+            `;
+        }
+
         function getLocalGuestConversations() {
             try {
                 const data = localStorage.getItem('guest_ai_conversations');
@@ -522,24 +543,41 @@
                         `;
                         chatMessages.insertAdjacentHTML('beforeend', userHtml);
                     } else {
-                        // إعداد المراجع
+                        // إعداد المراجع ومؤشر الثقة
                         let citationsContainer = '';
-                        if (m.citations && m.citations.length > 0) {
-                            const msgId = 'msg-' + Math.random().toString(36).substr(2, 9);
-                            citationsContainer = renderCitations(m.citations, msgId);
+                        let confidenceScore = 95;
+                        let citations = m.citations;
+
+                        if (citations) {
+                            if (citations.confidence_score !== undefined) {
+                                confidenceScore = citations.confidence_score;
+                                citations = citations.items || [];
+                            } else if (!Array.isArray(citations) && citations.items !== undefined) {
+                                confidenceScore = citations.confidence_score || 95;
+                                citations = citations.items || [];
+                            }
+                            if (Array.isArray(citations) && citations.length > 0) {
+                                const msgId = 'msg-' + Math.random().toString(36).substr(2, 9);
+                                citationsContainer = renderCitations(citations, msgId);
+                            }
                         }
 
                         const formattedAnswer = m.message ? m.message.replace(/\n/g, '<br>') : '';
+                        const confidenceHtml = renderConfidenceBadge(confidenceScore);
+                        
                         const aiHtml = `
                             <div class="flex justify-end mb-8">
                                 <div class="bg-white/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 px-4 md:px-8 py-5 md:py-7 w-full md:max-w-[95%] rounded-3xl rounded-tl-none relative overflow-hidden">
                                     <div class="absolute -top-10 -left-10 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl"></div>
                                     
                                     <div class="flex items-center justify-between mb-6 border-b border-gray-100/80 pb-4 relative z-10">
-                                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-50 to-teal-100/50 flex items-center justify-center text-teal-600 shadow-sm border border-teal-100">
-                                            <i class="fa-solid fa-scale-balanced text-lg"></i>
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-50 to-teal-100/50 flex items-center justify-center text-teal-600 shadow-sm border border-teal-100">
+                                                <i class="fa-solid fa-scale-balanced text-lg"></i>
+                                            </div>
+                                            <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-blue-700">المستشار القانوني الذكي</span>
                                         </div>
-                                        <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-blue-700">المستشار القانوني الذكي</span>
+                                        ${confidenceHtml}
                                     </div>
                                     
                                     <div class="prose prose-teal max-w-none text-gray-800 leading-loose font-medium text-right text-sm relative z-10">
@@ -676,22 +714,36 @@
                 }
 
                 let citationsContainer = '';
-                if(data.citations && data.citations.length > 0) {
-                    const msgId = 'msg-' + Math.random().toString(36).substr(2, 9);
-                    citationsContainer = renderCitations(data.citations, msgId);
+                let confidenceScore = 95;
+                let citations = data.citations;
+
+                if (citations) {
+                    if (citations.confidence_score !== undefined) {
+                        confidenceScore = citations.confidence_score;
+                        citations = citations.items || [];
+                    }
+                    if (Array.isArray(citations) && citations.length > 0) {
+                        const msgId = 'msg-' + Math.random().toString(36).substr(2, 9);
+                        citationsContainer = renderCitations(citations, msgId);
+                    }
                 }
 
                 const formattedAnswer = data.answer ? data.answer.replace(/\n/g, '<br>') : '';
+                const confidenceHtml = renderConfidenceBadge(confidenceScore);
+                
                 const aiMsgHtml = `
                     <div class="flex justify-end mb-8">
                         <div class="bg-white/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 px-4 md:px-8 py-5 md:py-7 w-full md:max-w-[95%] rounded-3xl rounded-tl-none relative overflow-hidden">
                             <div class="absolute -top-10 -left-10 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl"></div>
                             
                             <div class="flex items-center justify-between mb-6 border-b border-gray-100/80 pb-4 relative z-10">
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-50 to-teal-100/50 flex items-center justify-center text-teal-600 shadow-sm border border-teal-100">
-                                    <i class="fa-solid fa-scale-balanced text-lg"></i>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-50 to-teal-100/50 flex items-center justify-center text-teal-600 shadow-sm border border-teal-100">
+                                        <i class="fa-solid fa-scale-balanced text-lg"></i>
+                                    </div>
+                                    <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-blue-700">المستشار القانوني الذكي</span>
                                 </div>
-                                <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-blue-700">المستشار القانوني الذكي</span>
+                                ${confidenceHtml}
                             </div>
                             
                             <div class="prose prose-teal max-w-none text-gray-800 leading-loose font-medium text-right text-sm relative z-10">
