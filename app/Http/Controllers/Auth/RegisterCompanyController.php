@@ -21,6 +21,10 @@ class RegisterCompanyController extends Controller
             return redirect()->route('dashboard');
         }
 
+        if ($request->has('ref')) {
+            session(['referred_by_user_id' => $request->get('ref')]);
+        }
+
         return view('auth.register-company', [
             'type' => $request->get('type', 'supplier')
         ]);
@@ -83,6 +87,8 @@ class RegisterCompanyController extends Controller
                 'status' => 'active',
             ]);
 
+            $referredBy = session('referred_by_user_id');
+
             // Create user and link to company
             $user = User::create([
                 'name' => $request->input('full-name'),
@@ -90,7 +96,10 @@ class RegisterCompanyController extends Controller
                 'password' => Hash::make($request->input('password')),
                 'company_id' => $company->company_id,
                 'role' => $request->input('registration-type') === 'supplier' ? 'supplier' : 'requester',
+                'referred_by' => $referredBy,
             ]);
+
+            session()->forget('referred_by_user_id');
 
             // Store user ID in session for OTP verification
             session(['verify_otp_user_id' => $user->id, 'email' => $user->email]);

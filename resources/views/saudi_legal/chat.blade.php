@@ -97,6 +97,20 @@
             </div>
         </div>
 
+        <!-- Sidebar Usage Limit Widget (مؤشر حدود الاستخدام والرسائل المجانية) -->
+        <div id="usage-limit-widget" class="px-4 py-3.5 mx-3 mb-4 bg-white/70 border border-white/60 rounded-2xl shadow-sm hidden">
+            <div class="flex items-center justify-between text-[11px] font-bold mb-1.5 text-gray-700">
+                <span id="usage-limit-label">الرسائل المتبقية:</span>
+                <span id="usage-limit-ratio">...</span>
+            </div>
+            <div class="w-full bg-gray-200/80 rounded-full h-1.5 overflow-hidden">
+                <div id="usage-limit-bar" class="bg-gradient-to-r from-blue-500 to-teal-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <div id="usage-limit-action" class="mt-2 text-center">
+                <!-- Injected link/button -->
+            </div>
+        </div>
+
         <!-- Sidebar Footer: Logged User info -->
         <div class="p-4 border-t border-white/60 bg-white/20 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
@@ -361,6 +375,101 @@
             `;
         }
 
+        let userReferralLink = '';
+        
+        function updateUsageUi(usage) {
+            if (!usage) return;
+            
+            const widget = document.getElementById('usage-limit-widget');
+            const labelSpan = document.getElementById('usage-limit-label');
+            const ratioSpan = document.getElementById('usage-limit-ratio');
+            const bar = document.getElementById('usage-limit-bar');
+            const actionDiv = document.getElementById('usage-limit-action');
+            
+            userReferralLink = usage.referral_link || '';
+            
+            widget.classList.remove('hidden');
+            const remaining = Math.max(0, usage.limit - usage.count);
+            labelSpan.textContent = 'الرسائل المتبقية:';
+            ratioSpan.textContent = `${remaining} رسالة`;
+            
+            const percentage = Math.min(100, (usage.count / usage.limit) * 100);
+            bar.style.width = `${percentage}%`;
+            
+            // تلوين البار حسب الاستهلاك
+            if (percentage >= 90) {
+                bar.className = "bg-gradient-to-r from-rose-500 to-orange-500 h-full rounded-full transition-all duration-300";
+            } else if (percentage >= 70) {
+                bar.className = "bg-gradient-to-r from-amber-500 to-yellow-500 h-full rounded-full transition-all duration-300";
+            } else {
+                bar.className = "bg-gradient-to-r from-blue-500 to-teal-500 h-full rounded-full transition-all duration-300";
+            }
+            
+            // تعيين الرابط أو الزر
+            if (!usage.is_logged_in) {
+                actionDiv.innerHTML = `
+                    <a href="/register/company" class="text-[10px] font-black text-blue-600 hover:underline flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-user-plus"></i> سجل مجاناً لفتح 10 رسائل إضافية!
+                    </a>
+                `;
+            } else {
+                actionDiv.innerHTML = `
+                    <button onclick="copyReferralLink()" class="text-[10px] font-black text-teal-600 hover:underline flex items-center justify-center gap-1 mx-auto cursor-pointer border-none bg-transparent">
+                        <i class="fa-solid fa-share-nodes"></i> انسخ رابط الدعوة لفتح 20 رسالة إضافية!
+                    </button>
+                `;
+            }
+            
+            // إظهار المودال مباشرة إذا انتهى الرصيد
+            if (usage.count >= usage.limit) {
+                showLimitModal(usage.is_logged_in);
+            }
+        }
+
+        function showLimitModal(isLoggedIn) {
+            const modal = document.getElementById('limit-modal');
+            const box = document.getElementById('limit-modal-box');
+            const title = document.getElementById('limit-modal-title');
+            const desc = document.getElementById('limit-modal-description');
+            const actions = document.getElementById('limit-modal-actions');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 50);
+            
+            if (!isLoggedIn) {
+                title.textContent = 'لقد استنفدت الرسائل التجريبية!';
+                desc.textContent = 'لقد استخدمت الحد الأقصى المتاح للزوار وهو 10 رسائل. للتكملة والحصول على 10 رسائل إضافية، يرجى تسجيل بياناتك مجاناً.';
+                actions.innerHTML = `
+                    <a href="/register/company" class="py-3 px-4 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all block">
+                        تسجيل حساب جديد مجاناً
+                    </a>
+                    <a href="/login" class="text-sm font-bold text-gray-500 hover:text-gray-700 mt-2 block">
+                        لديك حساب بالفعل؟ تسجيل الدخول
+                    </a>
+                `;
+            } else {
+                title.textContent = 'لقد نفدت رسائلك المجانية للأعضاء!';
+                desc.textContent = 'لقد استخدمت 20 رسالة مجانية. لفتح 20 رسالة إضافية ومواصلة استشاراتك القانونية، يرجى نسخ رابط الدعوة وإرساله لصديق للتسجيل في منصتنا.';
+                actions.innerHTML = `
+                    <button onclick="copyReferralLink()" class="w-full py-3.5 px-4 bg-gradient-to-br from-teal-500 to-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-teal-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer border-none">
+                        <i class="fa-solid fa-copy"></i> نسخ رابط الدعوة الخاص بك
+                    </button>
+                `;
+            }
+        }
+        
+        function copyReferralLink() {
+            const link = userReferralLink || (window.location.origin + '/register/company');
+            navigator.clipboard.writeText(link).then(() => {
+                alert('تم نسخ رابط الدعوة الخاص بك بنجاح! شاركه مع صديق لفتح 20 رسالة إضافية فور تسجيله.');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
         function getLocalGuestConversations() {
             try {
                 const data = localStorage.getItem('guest_ai_conversations');
@@ -450,7 +559,15 @@
                     }
                 }
                 const response = await fetch(url);
-                const conversations = await response.json();
+                const resData = await response.json();
+                
+                let conversations = [];
+                if (Array.isArray(resData)) {
+                    conversations = resData;
+                } else {
+                    conversations = resData.conversations || [];
+                    updateUsageUi(resData.usage);
+                }
                 
                 if (conversations.length === 0) {
                     listContainer.innerHTML = `
@@ -680,6 +797,13 @@
             document.getElementById('btn-send').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
             mainContainer.scrollTop = mainContainer.scrollHeight;
 
+            // منع الإرسال محلياً إذا تم تخطي الحد
+            const remainingSpan = document.getElementById('usage-limit-ratio');
+            if (remainingSpan && remainingSpan.textContent === '0 رسالة') {
+                showLimitModal(isLoggedIn);
+                return;
+            }
+
             try {
                 const response = await fetch('/legal-assistant/ask', {
                     method: 'POST',
@@ -695,10 +819,23 @@
                 });
 
                 if (!response.ok) {
+                    if (response.status === 403) {
+                        try {
+                            const errData = await response.json();
+                            if (errData.error === 'limit_reached') {
+                                document.getElementById(loadingId)?.remove();
+                                showLimitModal(isLoggedIn);
+                                return;
+                            }
+                        } catch(e) {}
+                    }
                     throw new Error("HTTP status " + response.status);
                 }
 
                 const data = await response.json();
+                if (data.usage) {
+                    updateUsageUi(data.usage);
+                }
                 if (!data || !data.answer) {
                     throw new Error("Empty answer from API");
                 }
@@ -774,6 +911,22 @@
                 mainContainer.scrollTop = mainContainer.scrollHeight;
             }
         }
+    <!-- Limit Reached Modal (شاشة حظر تخطي الحد المجاني) -->
+    <div id="limit-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-white/95 rounded-3xl p-8 max-w-md w-full shadow-2xl border border-white text-center transform transition-all duration-300 scale-95 opacity-0" id="limit-modal-box">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-orange-500/20 mx-auto mb-5">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3 class="text-lg font-black text-gray-800 mb-2" id="limit-modal-title">لقد نفدت رسائلك المجانية!</h3>
+            <p class="text-sm text-gray-600 leading-relaxed mb-6 font-semibold" id="limit-modal-description">
+                يرجى التسجيل لفتح 10 رسائل إضافية مجاناً ومتابعة استشارتك القانونية.
+            </p>
+            <div class="flex flex-col gap-3" id="limit-modal-actions">
+                <!-- Action buttons -->
+            </div>
+        </div>
+    </div>
+
     </script>
 </body>
 </html>

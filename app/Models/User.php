@@ -43,6 +43,7 @@ class User extends Authenticatable
         'is_active_for_hire',
         'national_id',
         'school_name',
+        'referred_by',
         'expert_domain',
         'expert_specialization',
         'avatar_path',

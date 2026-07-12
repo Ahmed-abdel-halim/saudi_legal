@@ -76,7 +76,21 @@ class LegalAiController extends Controller
             }
         }
 
-        return response()->json($conversations);
+        $messageCount = 0;
+        $limit = 10;
+        $this->checkMessageLimit($request, $messageCount, $limit);
+        $referralLink = auth()->check() ? route('register.company', ['ref' => auth()->id()]) : null;
+
+        return response()->json([
+            'conversations' => $conversations,
+            'usage' => [
+                'count'        => $messageCount,
+                'limit'        => $limit,
+                'remaining'    => max(0, $limit - $messageCount),
+                'is_logged_in' => auth()->check(),
+                'referral_link'=> $referralLink,
+            ]
+        ]);
     }
 
     /**
@@ -142,6 +156,23 @@ class LegalAiController extends Controller
 
         $question = $request->question;
         $uuid     = $request->conversation_uuid;
+
+        // 0. التحقق من حد الرسائل والمحادثات المسموح بها للمستخدم
+        $messageCount = 0;
+        $limit = 10;
+        $this->checkMessageLimit($request, $messageCount, $limit);
+
+        if ($messageCount >= $limit) {
+            $isLoggedIn = auth()->check();
+            return response()->json([
+                'error'         => 'limit_reached',
+                'limit_type'    => $isLoggedIn ? 'referral_required' : 'registration_required',
+                'message'       => $isLoggedIn
+                    ? 'لقد وصلت إلى الحد الأقصى للمحادثات المجانية للأعضاء (20 رسالة). ادعُ صديقاً لفتح 20 رسالة إضافية!'
+                    : 'لقد وصلت إلى الحد الأقصى للمحادثات للزوار (10 رسائل). يرجى تسجيل بياناتك لفتح 10 رسائل إضافية مجاناً!',
+                'referral_link' => $isLoggedIn ? route('register.company', ['ref' => auth()->id()]) : null,
+            ], 403);
+        }
 
         // 1. تحديد أو إنشاء المحادثة
         $conversation = null;
@@ -446,11 +477,24 @@ class LegalAiController extends Controller
 
         $conversation->touch();
 
+        // حساب الاستخدام المحدث لإرساله للواجهة الأمامية
+        $messageCount = 0;
+        $limit = 10;
+        $this->checkMessageLimit($request, $messageCount, $limit);
+        $referralLink = auth()->check() ? route('register.company', ['ref' => auth()->id()]) : null;
+
         return response()->json([
             'answer'            => $answer,
             'citations'         => $citationsPayload,
             'conversation_uuid' => $conversation->uuid,
             'search_method'     => $searchMethod,
+            'usage'             => [
+                'count'        => $messageCount,
+                'limit'        => $limit,
+                'remaining'    => max(0, $limit - $messageCount),
+                'is_logged_in' => auth()->check(),
+                'referral_link'=> $referralLink,
+            ]
         ]);
     }
 
@@ -660,5 +704,51 @@ class LegalAiController extends Controller
         $variance = rand(-2, 2);
         
         return min(99, max(50, $base + $variance));
+    }
+
+    /**
+     * التحقق من حد الرسائل المسموح بها للزائر / العضو / الإحالة
+     */
+    private function checkMessageLimit(Request $request, &$messageCount, &$limit)
+    {
+        if (auth()->check()) {
+            $user = auth()->user();
+            
+            // حساب الرسائل المرسلة بواسطة العضو المسجل
+            $messageCount = AiMessage::where('role', 'user')
+                ->whereHas('conversation', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                })
+                ->count();
+                
+            // التحقق مما إذا كان قد قام بدعوة صديق واحد على الأقل
+            $hasReferrals = \App\Models\User::where('referred_by', $user->id)->exists();
+            
+            // 20 رسالة أساسية للأعضاء، وإذا دعا صديقاً تصبح 40 رسالة (20 إضافية)
+            $limit = $hasReferrals ? 40 : 20;
+        } else {
+            // حساب الرسائل المرسلة كزائر بناءً على الجلسة
+            $sessionUuids = session()->get('ai_conversations', []);
+            
+            $guestUuids = [];
+            if ($request->has('guest_uuids')) {
+                $guestUuids = explode(',', $request->input('guest_uuids'));
+                $guestUuids = array_filter($guestUuids, fn($u) => !empty($u) && Str::isUuid($u));
+            }
+            
+            $allUuids = array_unique(array_merge($sessionUuids, $guestUuids));
+            if ($request->has('conversation_uuid') && !in_array($request->conversation_uuid, $allUuids)) {
+                $allUuids[] = $request->conversation_uuid;
+            }
+            
+            $messageCount = AiMessage::where('role', 'user')
+                ->whereHas('conversation', function ($q) use ($allUuids) {
+                    $q->whereIn('uuid', $allUuids);
+                })
+                ->count();
+                
+            // 10 رسائل للزوار
+            $limit = 10;
+        }
     }
 }

@@ -14,11 +14,15 @@ class RegisterStudentController extends Controller
     /**
      * Show the student registration form.
      */
-    public function showRegistrationForm()
+    public function showRegistrationForm(Request $request)
     {
         // If user is already authenticated, redirect to dashboard
         if (Auth::check()) {
             return redirect()->route('dashboard.expert');
+        }
+
+        if ($request->has('ref')) {
+            session(['referred_by_user_id' => $request->get('ref')]);
         }
 
         return view('auth.register-student');
@@ -59,7 +63,8 @@ class RegisterStudentController extends Controller
 
         try {
             // Create user
-            // Create user explicitly to ensure role is set correctly
+            $referredBy = session('referred_by_user_id');
+
             $user = new User();
             $user->name = $request->input('full-name');
             $user->email = $request->input('email');
@@ -68,7 +73,10 @@ class RegisterStudentController extends Controller
             $user->national_id = $request->input('national-id');
             $user->school_name = $request->input('school-name');
             $user->is_active = true;
+            $user->referred_by = $referredBy;
             $user->save();
+
+            session()->forget('referred_by_user_id');
 
             // Store user ID in session for OTP verification
             session(['verify_otp_user_id' => $user->id, 'email' => $user->email]);
