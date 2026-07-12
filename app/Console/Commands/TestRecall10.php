@@ -1,0 +1,192 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Models\LegalTask;
+use App\Models\LegalArticle;
+use App\Services\AzureSearchService;
+use Illuminate\Console\Command;
+
+class TestRecall10 extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'test:recall10 {--limit=50 : عدد الحالات المختبرة}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'تشغيل تقييم Recall@10 لمحرك البحث Azure AI Search';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle(AzureSearchService $azure): int
+    {
+        $this->info("🚀 بدء تقييم Recall@10 على Azure AI Search...");
+        
+        if (!$azure->isEnabled()) {
+            $this->error("❌ محرك البحث Azure AI Search غير مفعل في إعدادات البيئة.");
+            return Command::FAILURE;
+        }
+
+        $limit = (int) $this->option('limit');
+
+        // جلب عينات بربط نظامي وعينات عامة
+        $annotatedTasks = LegalTask::whereNotNull('question')
+            ->where('question', '!=', '')
+            ->whereNotNull('law_system_name')
+            ->where('law_system_name', '!=', '')
+            ->whereNotNull('law_article_number')
+            ->where('law_article_number', '!=', '')
+            ->whereNotNull('case_text')
+            ->where('case_text', '!=', '')
+            ->inRandomOrder()
+            ->limit(intval($limit / 2))
+            ->get();
+
+        $remainingCount = $limit - $annotatedTasks->count();
+
+        $randomTasks = LegalTask::whereNotNull('question')
+            ->where('question', '!=', '')
+            ->whereNotNull('case_text')
+            ->where('case_text', '!=', '')
+            ->whereNotIn('id', $annotatedTasks->pluck('id'))
+            ->inRandomOrder()
+            ->limit($remainingCount)
+            ->get();
+
+        $tasks = $annotatedTasks->merge($randomTasks);
+
+        $this->info("تم جلب " . $annotatedTasks->count() . " حالة بربط نظامي و " . $randomTasks->count() . " حالة عامة.");
+
+        $results = [];
+        $caseHits = 0;
+        $articleHits = 0;
+        $totalArticlesTested = 0;
+
+        $bar = $this->output->createProgressBar($tasks->count());
+        $bar->start();
+
+        foreach ($tasks as $task) {
+            $query = $task->question;
+            $targetCaseId = 'task_' . $task->id;
+            $targetQaId = 'qa_' . $task->id;
+            
+            // البحث عن المادة النظامية
+            $targetArticleId = null;
+            $articleTitle = null;
+            if (!empty($task->law_system_name) && !empty($task->law_article_number)) {
+                $cleanSystem = preg_replace('/[أإآ]/u', 'ا', $task->law_system_name);
+                $cleanSystem = str_replace(['ة','ى'], ['ه','ي'], $cleanSystem);
+                
+                $article = LegalArticle::where('legislation_title', 'LIKE', '%' . $cleanSystem . '%')
+                    ->where('article_title', 'LIKE', '%' . $task->law_article_number . '%')
+                    ->first();
+                    
+                if ($article) {
+                    $targetArticleId = 'article_' . $article->id;
+                    $articleTitle = "المادة {$article->article_title} - {$article->legislation_title}";
+                    $totalArticlesTested++;
+                } else {
+                    $article = LegalArticle::where('article_title', 'LIKE', '%' . $task->law_article_number . '%')
+                        ->first();
+                    if ($article) {
+                        $targetArticleId = 'article_' . $article->id;
+                        $articleTitle = "المادة {$article->article_title} - {$article->legislation_title}";
+                        $totalArticlesTested++;
+                    }
+                }
+            }
+            
+            $caseMatched = false;
+            $articleMatched = false;
+            
+            try {
+                // البحث في القضايا والأحكام
+                $casesResult = $azure->hybridSearch($query, 10, ['!source_type' => 'article']);
+                foreach ($casesResult as $doc) {
+                    if ($doc->id == $task->id || $doc->id == $targetCaseId || $doc->id == $targetQaId) {
+                        $caseMatched = true;
+                    }
+                }
+                
+                // البحث في المواد النظامية
+                if ($targetArticleId) {
+                    $articlesResult = $azure->hybridSearch($query, 10, ['source_type' => 'article']);
+                    foreach ($articlesResult as $doc) {
+                        if ($doc->id == $targetArticleId) {
+                            $articleMatched = true;
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                // تجاهل خطأ البحث الفردي
+            }
+            
+            if ($caseMatched) $caseHits++;
+            if ($articleMatched) $articleHits++;
+            
+            $results[] = [
+                'task_id'           => $task->id,
+                'question'          => $task->question,
+                'target_case_id'    => $targetCaseId,
+                'target_article_id' => $targetArticleId,
+                'article_title'     => $articleTitle,
+                'case_matched'      => $caseMatched,
+                'article_matched'   => $articleMatched,
+            ];
+
+            $bar->advance();
+        }
+
+        $bar->finish();
+        $this->newLine(2);
+
+        $caseRecall = ($caseHits / count($results)) * 100;
+        $articleRecall = $totalArticlesTested > 0 ? ($articleHits / $totalArticlesTested) * 100 : 0;
+
+        $this->table(
+            ['المقياس', 'النسبة المسترجعة'],
+            [
+                ['الأحكام والسوابق (Judgments Recall@10)', "{$caseRecall}%"],
+                ['المواد والأنظمة (Articles Recall@10)', "{$articleRecall}%"],
+            ]
+        );
+
+        // إنشاء التقرير
+        $markdown = "# تقرير تقييم الاسترجاع Recall@10 للمستشار القانوني\n\n";
+        $markdown .= "مقياس **Recall@10** هو أحد المقاييس المعيارية لتقييم أنظمة استرجاع المعلومات (RAG). يقيس هذا التقييم ما إذا كان **المستند المصدر الصحيح** يظهر ضمن **أول 10 نتائج مسترجعة** عند السؤال عنه.\n\n";
+        $markdown .= "## خلاصة نتائج التقييم\n";
+        $markdown .= "- **عدد الحالات المختبرة:** {$limit} حالة\n";
+        $markdown .= "- **نسبة استرجاع الأحكام والسوابق (Judgments Recall@10):** `{$caseRecall}%` (تم العثور على الحكم المصدر في {$caseHits} من أصل {$limit} سؤالاً)\n";
+        if ($totalArticlesTested > 0) {
+            $markdown .= "- **نسبة استرجاع المواد والأنظمة (Articles Recall@10):** `{$articleRecall}%` (تم العثور على المادة النظامية المحددة في {$articleHits} من أصل {$totalArticlesTested} حالة تحتوي على ربط نظامي)\n";
+        }
+        $markdown .= "\n## تفاصيل الاختبار\n\n";
+        $markdown .= "| الرقم | السؤال | المعرف المستهدف (الحكم) | هل تم الاسترجاع؟ | المادة المستهدفة | هل تم الاسترجاع؟ |\n";
+        $markdown .= "|---|---|---|---|---|---|\n";
+
+        foreach ($results as $index => $res) {
+            $num = $index + 1;
+            $qShort = mb_substr($res['question'], 0, 50) . (mb_strlen($res['question']) > 50 ? '...' : '');
+            $caseStatus = $res['case_matched'] ? '✅ نعم' : '❌ لا';
+            $artStatus = $res['target_article_id'] ? ($res['article_matched'] ? '✅ نعم' : '❌ لا') : 'غير محدد';
+            $artTitle = $res['article_title'] ?: '-';
+            
+            $markdown .= "| {$num} | {$qShort} | `{$res['target_case_id']}` | {$caseStatus} | {$artTitle} | {$artStatus} |\n";
+        }
+
+        $reportPath = base_path('recall10_report.md');
+        file_put_contents($reportPath, $markdown);
+        
+        $this->info("📄 تم حفظ التقرير المفصل في: recall10_report.md");
+
+        return Command::SUCCESS;
+    }
+}
