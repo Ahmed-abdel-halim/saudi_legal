@@ -911,6 +911,8 @@
                 mainContainer.scrollTop = mainContainer.scrollHeight;
             }
         }
+    </script>
+
     <!-- Limit Reached Modal (شاشة حظر تخطي الحد المجاني) -->
     <div id="limit-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 hidden">
         <div class="bg-white/95 rounded-3xl p-8 max-w-md w-full shadow-2xl border border-white text-center transform transition-all duration-300 scale-95 opacity-0" id="limit-modal-box">
@@ -927,6 +929,5 @@
         </div>
     </div>
 
-    </script>
 </body>
 </html>
