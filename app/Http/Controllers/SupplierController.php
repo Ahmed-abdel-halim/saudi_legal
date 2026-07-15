@@ -98,9 +98,22 @@ class SupplierController extends Controller
         });
 
         // Sort by service count and rating
-        return $companies->sortByDesc(function ($company) {
+        $sortedCompanies = $companies->sortByDesc(function ($company) {
             return ($company->service_count * 100) + ($company->avg_rating * 10);
         })->values();
+
+        // Paginate collection manually on 9 items
+        $page = request()->get('page', 1);
+        $perPage = 9;
+        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            $sortedCompanies->forPage($page, $perPage),
+            $sortedCompanies->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        return $paginated;
     }
 
     private function fetchIndustriesFromDatabase()

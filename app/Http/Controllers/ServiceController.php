@@ -142,7 +142,7 @@ class ServiceController extends Controller
                    ->orderBy('price', 'asc');
 
         // 7. Paginate
-        $results = $unionQuery->paginate(12);
+        $results = $unionQuery->paginate(9);
         
         // 8. Transform attributes for view compatibility
         $results->getCollection()->transform(function ($service) {

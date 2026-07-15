@@ -42,46 +42,103 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
     {{-- Tailwind Configuration --}}
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
-                        'sans': ['Cairo', 'sans-serif'],
+                        'sans': ['Tajawal', 'sans-serif'],
                     },
                     colors: {
-                        'dark-navy': '#0F172A',
-                        'slate-light': '#F8FAFC',
-                        'brand-primary': '#4F46E5',
+                        'dark-navy':       '#0b1120',
+                        'dark-card':       '#111827',
+                        'dark-border':     '#1f2d40',
+                        'slate-light':     '#F8FAFC',
+                        'brand-primary':   '#4F46E5',
                         'brand-secondary': '#8B5CF6',
-                        'brand-dark': '#1E293B',
-                        'brand-magenta': '#d946ef',
-                        'brand-teal': '#0d9488',
-                        'brand-cyan': '#06b6d4',
+                        'brand-dark':      '#1E293B',
+                        'brand-green':     '#0d9488',
+                        'brand-green-dim': '#0f766e',
+                        'brand-teal':      '#0d9488',
+                        'brand-cyan':      '#06b6d4',
                     },
                     backgroundImage: {
                         'gradient-primary': 'linear-gradient(135deg, #4F46E5 0%, #8B5CF6 100%)',
+                        'gradient-green':   'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)',
                     },
                     boxShadow: {
-                        'glow': '0 0 20px rgba(79, 70, 229, 0.4)',
-                        'teal-glow': '0 0 15px rgba(13, 148, 136, 0.3)',
+                        'glow':       '0 0 20px rgba(79, 70, 229, 0.4)',
+                        'green-glow': '0 0 20px rgba(13, 148, 136, 0.35)',
+                        'teal-glow':  '0 0 15px rgba(13, 148, 136, 0.3)',
                     }
                 }
             }
         }
     </script>
+    <script>
+        // Init theme immediately to prevent layout shift
+        if (!localStorage.getItem('color-theme')) {
+            localStorage.setItem('color-theme', 'dark');
+        }
+        if (localStorage.getItem('color-theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 
     {{-- Custom Styles --}}
     <style>
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid #e2e8f0;
+        /* ─── Typography ─── */
+        body, input, button, select, textarea { font-family: 'Tajawal', sans-serif; }
+        body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+        /* ─── Global Background Grid ─── */
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            background-image:
+                radial-gradient(ellipse at 20% 20%, var(--radial-1) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 80%, var(--radial-2) 0%, transparent 55%);
         }
+
+        /* Subtle dot-grid overlay on the entire page */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(circle, var(--grid-dot) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ─── Glassmorphism Navbar ─── */
+        .glass {
+            background: rgba(255, 255, 255, 0.82);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        .dark .glass {
+            background: rgba(11, 17, 32, 0.82);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        /* ─── Scrollbar ─── */
+        * { scrollbar-width: thin; scrollbar-color: rgba(13,148,136,0.3) transparent; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(13,148,136,0.35); border-radius: 999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(13,148,136,0.6); }
+
+        /* ─── Ensure content above body::before ─── */
+        header, main, footer { position: relative; z-index: 1; }
     </style>
 
     @stack('styles')
 </head>
 
-<body class="bg-slate-light text-gray-800 flex flex-col min-h-screen" dir="{{ $direction }}">
+<body class="text-slate-100 flex flex-col min-h-screen" dir="{{ $direction }}">
 
     @if(request()->hasCookie('impersonation_token') && \Illuminate\Support\Facades\Auth::check())
         <div class="bg-red-600 text-white text-center py-2 px-4 flex justify-between items-center fixed top-0 w-full z-[100] shadow-md">
@@ -99,62 +156,89 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
         <style>body { padding-top: 48px; }</style>
     @endif
 
-    <header class="fixed w-full top-0 z-50 transition-all duration-300 glass shadow-sm @if(request()->hasCookie('impersonation_token')) mt-[48px] @endif" x-data="{ mobileMenuOpen: false }">
+    <header class="fixed w-full top-0 z-50 transition-all duration-500 glass @if(request()->hasCookie('impersonation_token')) mt-[48px] @endif" 
+            x-data="{ 
+                mobileMenuOpen: false, 
+                scrolled: false, 
+                darkMode: localStorage.getItem('color-theme') === 'dark' 
+            }" 
+            x-init="
+                window.addEventListener('scroll', () => { scrolled = window.scrollY > 20 });
+                $watch('darkMode', val => {
+                    if (val) {
+                        document.documentElement.classList.add('dark');
+                        localStorage.setItem('color-theme', 'dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                        localStorage.setItem('color-theme', 'light');
+                    }
+                });
+                if (darkMode) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            " 
+            :class="scrolled ? 'shadow-lg shadow-black/30' : ''">
         <nav class="container mx-auto px-6 py-3">
             <div class="flex justify-between items-center h-16">
 
                 {{-- Logo --}}
                 <a href="{{ route('home') }}" class="flex items-center gap-3 group">
                     <img src="{{ asset('images/icon.png') }}"
-                        onerror="this.src='https://placehold.co/40x40/4F46E5/FFFFFF?text=R'"
+                        onerror="this.src='https://placehold.co/40x40/0d9488/0b1120?text=R'"
                         alt="Logo"
-                        class="h-10 w-10 rounded-full shadow-sm object-cover">
-                    <span class="text-2xl font-bold text-dark-navy group-hover:text-brand-primary transition-colors">
+                        class="h-10 w-10 rounded-full shadow-md object-cover ring-2 ring-brand-green/30">
+                    <span class="text-xl font-black text-slate-900 dark:text-white group-hover:text-brand-green transition-colors duration-300">
                         {{ $platformName }}
                     </span>
                 </a>
 
                 {{-- Desktop Navigation --}}
-                <div class="hidden lg:flex items-center gap-5 text-sm">
+                <div class="hidden lg:flex items-center gap-6 text-sm">
                     <a href="{{ route('legal_assistant.public') }}"
-                        class="text-brand-primary font-bold transition whitespace-nowrap bg-brand-primary/10 px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-brand-primary/20 hover:bg-brand-primary hover:text-white group text-xs">
-                        <i class="fa-solid fa-robot group-hover:animate-bounce"></i> {{ $currentLang === 'en' ? 'AI Legal Assistant' : 'المساعد القانوني' }}
+                        class="text-brand-green font-bold transition whitespace-nowrap bg-brand-green/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-brand-green/25 hover:bg-brand-green hover:text-dark-navy group text-xs">
+                        <i class="fa-solid fa-robot group-hover:animate-bounce"></i>
+                        @if($currentLang === 'en') AI Legal Assistant @else المساعد القانوني @endif
                     </a>
                     <a href="{{ route('how-it-works') }}"
-                        class="text-gray-600 hover:text-brand-primary font-bold transition whitespace-nowrap">
+                        class="text-slate-600 dark:text-slate-300 hover:text-brand-green font-semibold transition-colors duration-200 whitespace-nowrap">
                         {{ __('header.NAV_HOW_IT_WORKS', [], $currentLang) }}
                     </a>
                     <a href="{{ route('services.browse') }}"
-                        class="text-gray-600 hover:text-brand-primary font-bold transition whitespace-nowrap">
+                        class="text-slate-600 dark:text-slate-300 hover:text-brand-green font-semibold transition-colors duration-200 whitespace-nowrap">
                         {{ __('header.NAV_SERVICES', [], $currentLang) }}
                     </a>
                     <a href="{{ route('requests.browse') }}"
-                        class="text-gray-600 hover:text-brand-primary font-bold transition whitespace-nowrap">
+                        class="text-slate-600 dark:text-slate-300 hover:text-brand-green font-semibold transition-colors duration-200 whitespace-nowrap">
                         {{ __('header.NAV_REQUESTS', [], $currentLang) }}
                     </a>
                     <a href="{{ route('suppliers.browse') }}"
-                        class="text-gray-600 hover:text-brand-primary font-bold transition whitespace-nowrap">
+                        class="text-slate-600 dark:text-slate-300 hover:text-brand-green font-semibold transition-colors duration-200 whitespace-nowrap">
                         {{ __('header.NAV_SUPPLIERS', [], $currentLang) }}
                     </a>
                 </div>
 
                 {{-- Desktop Actions --}}
                 <div class="hidden lg:flex items-center gap-3 text-sm">
+                    {{-- Theme Toggle Button --}}
+                    <button @click="darkMode = !darkMode" class="text-slate-500 dark:text-slate-300 hover:text-brand-green p-2 rounded-full transition-all duration-200 border border-slate-200 dark:border-white/10 hover:border-brand-green/30 flex items-center justify-center" aria-label="Toggle Theme">
+                        <!-- Moon Icon (shown in light mode) -->
+                        <svg x-show="!darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                        <!-- Sun Icon (shown in dark mode) -->
+                        <svg x-show="darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" x-cloak><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.46 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z"></path></svg>
+                    </button>
+
                     {{-- Language Switcher --}}
                     <a href="{{ $switchLangUrl }}"
-                        class="text-xs font-bold text-gray-500 hover:text-brand-primary border border-gray-200 px-2.5 py-1 rounded-full transition">
+                        class="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-brand-green border border-slate-200 dark:border-white/10 hover:border-brand-green/30 px-2.5 py-1.5 rounded-full transition-all duration-200">
                         {{ $targetLangText }}
                     </a>
 
-                    {{-- Authentication Links --}}
                     @guest
-                    {{-- Guest: Show Login and Register buttons --}}
+                    {{-- Guest: Show Start Now button directed to Login --}}
                     <a href="{{ route('login') }}"
-                        class="text-gray-600 hover:text-brand-primary font-bold transition">
-                        {{ __('header.BTN_LOGIN', [], $currentLang) }}
-                    </a>
-                    <a href="{{ route('register.company', ['type' => 'supplier']) }}"
-                        class="bg-brand-primary text-white px-4 py-2 rounded-full font-bold shadow-lg hover:bg-opacity-90 transition-all">
+                        class="bg-gradient-to-r from-brand-green to-brand-teal text-dark-navy px-5 py-2 rounded-full font-black shadow-green-glow hover:opacity-90 transition-all duration-200 hover:-translate-y-0.5">
                         {{ __('header.BTN_START_NOW', [], $currentLang) }}
                     </a>
                     @else
@@ -276,7 +360,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white hidden"></span>
                     </a>
                     <a href="{{ Auth::user() && in_array(Auth::user()->role, ['expert', 'freelancer']) ? route('dashboard.expert') : route('dashboard') }}"
-                        class="bg-brand-primary text-white px-4 py-2 rounded-full font-bold shadow-lg hover:bg-opacity-90 transition-all">
+                        class="bg-gradient-to-r from-brand-green to-brand-teal text-dark-navy px-5 py-2 rounded-full font-black shadow-green-glow hover:opacity-90 transition-all duration-200 hover:-translate-y-0.5">
                         {{ __('header.BTN_DASHBOARD', [], $currentLang) }}
                     </a>
                     <form action="{{ route('logout') }}" method="POST" class="inline">
@@ -337,12 +421,8 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         {{ $targetLangText }}
                     </a>
                     @guest
-                    {{-- Guest: Show Login and Register buttons --}}
+                    {{-- Guest: Show Start Now button directed to Login --}}
                     <a href="{{ route('login') }}"
-                        class="text-gray-600 font-bold">
-                        {{ __('header.BTN_LOGIN', [], $currentLang) }}
-                    </a>
-                    <a href="{{ route('register.company', ['type' => 'supplier']) }}"
                         class="bg-brand-primary text-white px-6 py-2.5 rounded-full font-bold text-center">
                         {{ __('header.BTN_START_NOW', [], $currentLang) }}
                     </a>

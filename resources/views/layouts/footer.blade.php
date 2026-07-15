@@ -12,17 +12,18 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
 @endphp
 
 {{-- Footer Section --}}
-<footer class="bg-dark-navy text-white pt-16 pb-8 mt-auto" style="background-color: #0B1120;" dir="{{ $direction }}">
+<footer class="pt-16 pb-8 mt-auto" style="background-color: #060c18; border-top: 1px solid rgba(13,148,136,0.12);" dir="{{ $direction }}">
     <div class="container mx-auto px-4 lg:px-8 max-w-[1400px]">
         <div class="flex flex-col lg:flex-row justify-between gap-12 lg:gap-8 mb-12">
             
             {{-- Column 1: Logo and Description (Right side in RTL) --}}
             <div class="lg:w-1/4">
-                <a href="{{ route('home') }}" class="flex items-center gap-3 mb-6">
-                    <div class="bg-brand-primary rounded-lg text-white font-bold h-10 w-10 flex items-center justify-center text-xl">
-                        R
-                    </div>
-                    <span class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
+                <a href="{{ route('home') }}" class="flex items-center gap-3 mb-6 group">
+                    <img src="{{ asset('images/icon.png') }}"
+                        onerror="this.src='https://placehold.co/40x40/10b981/0b1120?text=R'"
+                        alt="Logo"
+                        class="h-10 w-10 rounded-full shadow-md object-cover ring-2 ring-brand-green/20">
+                    <span class="text-xl font-black text-white group-hover:text-brand-green transition-colors duration-300">
                         {{ __('footer.PLATFORM_NAME', [], $currentLang) }}
                     </span>
                 </a>
@@ -40,10 +41,10 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 <div>
                     <h4 class="text-lg font-bold mb-6 text-white">{{ __('footer.NAV_ABOUT', [], $currentLang) }}</h4>
                     <ul class="space-y-3 text-sm">
-                        <li><a href="{{ route('about') }}" class="text-gray-400 hover:text-brand-primary transition-all block">{{ __('footer.NAV_MENU_ABOUT', [], $currentLang) }}</a></li>
-                        <li><a href="{{ route('contact') }}" class="text-gray-400 hover:text-brand-primary transition-all block">{{ __('footer.NAV_MENU_CONTACT', [], $currentLang) }}</a></li>
-                        <li><a href="{{ route('careers') }}" class="text-gray-400 hover:text-brand-primary transition-all block">{{ __('footer.NAV_MENU_CAREERS', [], $currentLang) }}</a></li>
-                        <li><a href="{{ route('blog') }}" class="text-gray-400 hover:text-brand-primary transition-all block">{{ __('footer.NAV_MENU_BLOG', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('about') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_ABOUT', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('contact') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_CONTACT', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('careers') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_CAREERS', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('blog') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_BLOG', [], $currentLang) }}</a></li>
                     </ul>
                 </div>
 
@@ -51,10 +52,10 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 <div>
                     <h4 class="text-lg font-bold mb-6 text-white">{{ __('footer.NAV_HOW_IT_WORKS', [], $currentLang) }}</h4>
                     <ul class="space-y-3 text-sm">
-                        <li><a href="{{ route('how-it-works') }}" class="text-gray-400 hover:text-brand-secondary transition-all block">{{ __('footer.NAV_MENU_HOW_IT_WORKS', [], $currentLang) }}</a></li>
-                        <li><a href="{{ route('how-it-works.benefits') }}" class="text-gray-400 hover:text-brand-secondary transition-all block">{{ __('footer.NAV_MENU_BENEFITS', [], $currentLang) }}</a></li>
-                        <li><a href="{{ route('how-it-works.pricing') }}" class="text-gray-400 hover:text-brand-secondary transition-all block">{{ __('footer.NAV_MENU_PRICING', [], $currentLang) }}</a></li>
-                        <li><a href="{{ route('how-it-works.faq') }}" class="text-gray-400 hover:text-brand-secondary transition-all block">{{ __('footer.NAV_MENU_FAQ', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('how-it-works') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_HOW_IT_WORKS', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('how-it-works.benefits') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_BENEFITS', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('how-it-works.pricing') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_PRICING', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('how-it-works.faq') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_FAQ', [], $currentLang) }}</a></li>
                     </ul>
                 </div>
 
@@ -62,9 +63,9 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 <div>
                     <h4 class="text-lg font-bold mb-6 text-white">{{ __('footer.NAV_TECHNICAL_SERVICES', [], $currentLang) }}</h4>
                     <ul class="space-y-3 text-sm">
-                        <li><a href="{{ route('pages.services.rlhf') }}" class="text-gray-400 hover:text-brand-secondary transition-all block">{{ __('footer.NAV_MENU_RLHF', [], $currentLang) }}</a></li>
-                        <li><a href="{{ route('pages.services.hitl') }}" class="text-gray-400 hover:text-brand-secondary transition-all block">{{ __('footer.NAV_MENU_HITL', [], $currentLang) }}</a></li>
-                        <li><a href="{{ route('pages.services.data_infrastructure') }}" class="text-gray-400 hover:text-brand-secondary transition-all block">{{ __('footer.NAV_MENU_INFRASTRUCTURE', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('pages.services.rlhf') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_RLHF', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('pages.services.hitl') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_HITL', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('pages.services.data_infrastructure') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_INFRASTRUCTURE', [], $currentLang) }}</a></li>
                     </ul>
                 </div>
 
@@ -72,24 +73,24 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 <div>
                     <h4 class="text-lg font-bold mb-6 text-white">{{ __('footer.NAV_DEVELOPERS_SECURITY', [], $currentLang) }}</h4>
                     <ul class="space-y-3 text-sm">
-                        <li><a href="{{ route('pages.api_docs') }}" class="text-gray-400 hover:text-brand-teal transition-all block">{{ __('footer.NAV_MENU_API_DOCS', [], $currentLang) }}</a></li>
-                        <li><a href="{{ route('pages.security_compliance') }}" class="text-gray-400 hover:text-brand-teal transition-all block">{{ __('footer.NAV_MENU_SECURITY_COMPLIANCE', [], $currentLang) }}</a></li>
-                        <li><a href="{{ route('legal.terms') }}" class="text-gray-400 hover:text-brand-teal transition-all block">{{ __('footer.NAV_MENU_TERMS', [], $currentLang) }} (B2B)</a></li>
-                        <li><a href="{{ route('legal.privacy') }}" class="text-gray-400 hover:text-brand-teal transition-all block">{{ __('footer.NAV_MENU_PRIVACY', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('pages.api_docs') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_API_DOCS', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('pages.security_compliance') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_SECURITY_COMPLIANCE', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('legal.terms') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_TERMS', [], $currentLang) }} (B2B)</a></li>
+                        <li><a href="{{ route('legal.privacy') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_PRIVACY', [], $currentLang) }}</a></li>
                     </ul>
                 </div>
             </div>
         </div>
 
         {{-- Footer Bottom: Copyright and Status --}}
-        <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/10 gap-4">
-            <div class="text-gray-500 text-sm">
+        <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t gap-4" style="border-color: rgba(13,148,136,0.12);">
+            <div class="text-slate-600 text-sm font-medium">
                 &copy; {{ date('Y') }} {{ __('footer.PLATFORM_NAME', [], $currentLang) }}. {{ __('footer.FOOTER_RIGHTS', [], $currentLang) }}
             </div>
             
-            <a href="#" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-teal-800 bg-teal-900/30 text-teal-400 text-xs font-semibold hover:bg-teal-900/50 transition-colors">
+            <a href="#" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-brand-green/20 bg-brand-green/5 text-brand-green text-xs font-bold hover:bg-brand-green/10 transition-all duration-200">
                 <span>{{ __('footer.FOOTER_SYSTEM_STATUS', [], $currentLang) }}</span>
-                <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+                <span class="w-2 h-2 rounded-full bg-brand-green animate-pulse"></span>
             </a>
         </div>
     </div>

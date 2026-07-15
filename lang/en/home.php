@@ -3,8 +3,8 @@
 return [
     // Hero Section
     'HERO_TAGLINE' => 'The #1 Solution for Institutional Data (B2B)',
-    'HERO_TITLE_LINE1' => 'Reliable AI Data,',
-    'HERO_TITLE_HIGHLIGHT' => 'Supported by Institutional Experts.',
+    'HERO_TITLE_LINE1' => 'Reliable AI Data',
+    'HERO_TITLE_HIGHLIGHT' => 'Supported by Institutional Experts',
     'HERO_DESCRIPTION' => 'Go beyond random outsourcing. Connect your models with "on-the-job" professional competencies to ensure the accuracy of refinement (RLHF). Turn your team\'s unutilized time into revenue for your company.',
     'TRAIN_MODELS_NOW' => 'Train Your Models Now',
     'INVEST_TEAM_TIME' => 'Invest Your Team\'s Time',

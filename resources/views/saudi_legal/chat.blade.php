@@ -150,15 +150,16 @@
                 <button onclick="toggleSidebar()" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition shadow-sm cursor-pointer">
                     <i class="fa-solid fa-bars"></i>
                 </button>
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                        <i class="fa-solid fa-scale-balanced text-lg animate-pulse"></i>
-                    </div>
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <img src="{{ asset('images/icon.png') }}"
+                        onerror="this.src='https://placehold.co/40x40/0d9488/0b1120?text=R'"
+                        alt="Logo"
+                        class="h-8 w-8 sm:h-10 sm:w-10 rounded-full shadow-md object-cover ring-2 ring-blue-500/20">
                     <div>
-                        <h1 class="text-lg font-black text-gray-800 tracking-tight">رديف القانوني</h1>
-                        <p class="text-[10px] font-bold text-teal-600 tracking-wider flex items-center gap-1 uppercase">
+                        <h1 class="text-sm sm:text-lg font-black text-gray-800 tracking-tight">رديف القانوني</h1>
+                        <p class="text-[9px] sm:text-[10px] font-bold text-teal-600 tracking-wider flex items-center gap-1 uppercase">
                             <span class="w-1.5 h-1.5 rounded-full bg-teal-500 animate-ping"></span>
-                            ACTIVE VECTOR ENGINE | 53,765 POINTS
+                            <span class="hidden sm:inline">ACTIVE VECTOR ENGINE | </span>53,765 POINTS
                         </p>
                     </div>
                 </div>
@@ -193,7 +194,7 @@
                 </div>
 
                 <!-- Suggested queries -->
-                <div class="flex flex-col gap-3 w-full max-w-4xl mx-auto" id="suggested-queries">
+                <div class="hidden md:flex flex-col gap-3 w-full max-w-4xl mx-auto" id="suggested-queries">
                     <h3 class="text-sm font-bold text-gray-500 text-right px-2">أسئلة مقترحة للبدء:</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4" dir="rtl">
                         <button onclick="setQuery('ما هي شروط تملك الأجانب للعقار في السعودية؟')" class="glass-panel rounded-2xl p-4 flex items-center gap-4 hover:bg-white/80 transition group text-right cursor-pointer">

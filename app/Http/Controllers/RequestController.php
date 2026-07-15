@@ -55,10 +55,10 @@ class RequestController extends Controller
                 $query->whereIn('c.industry', $filterIndustries);
             }
 
-            $projects = $query->get();
+            $projects = $query->paginate(9);
 
             // Transform for view compatibility
-            $requests = $projects->map(function ($project) {
+            $projects->getCollection()->transform(function ($project) {
                 $project->requester_name = $project->requester->name ?? 'Unknown Company';
                 // Create skills array for view compatibility
                 $project->skills_array = $project->skills->map(function($skill) {
@@ -70,6 +70,7 @@ class RequestController extends Controller
                 
                 return $project;
             });
+            $requests = $projects;
 
             if ($requests->isEmpty() && empty($filterSearch) && empty($filterMaxRate)) {
                  // Only fall back to mock if absolutely no DB data exists AND no filters applied (init state)

@@ -14,12 +14,12 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
         width: 100%;
         margin: 0;
         padding: 0;
-        background-color: #0F172A !important;
+        background-color: #0b1120 !important;
     }
 
     body {
         min-height: 100vh;
-        background-color: #0F172A !important;
+        background-color: #0b1120 !important;
     }
 
     /* Remove main wrapper constraints */
@@ -44,10 +44,10 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
 
     /* ─── HERO SECTION ──────────────────────────────────── */
     .hero-bg {
-        background-color: #0d1224;
+        background-color: var(--bg);
         background-image:
-            radial-gradient(ellipse at 70% 50%, rgba(79, 70, 229, 0.07) 0%, transparent 60%),
-            radial-gradient(ellipse at 20% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+            radial-gradient(ellipse at 70% 50%, var(--radial-hero-1) 0%, transparent 60%),
+            radial-gradient(ellipse at 20% 80%, var(--radial-hero-2) 0%, transparent 55%);
         min-height: 100vh;
         display: flex;
         align-items: center;
@@ -56,16 +56,32 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
         width: 100%;
         box-sizing: border-box;
         overflow: hidden;
+        transition: background-color 0.3s ease;
     }
 
-    /* subtle dot grid overlay */
+    /* Dot-grid overlay */
     .hero-bg::before {
         content: '';
         position: absolute;
         inset: 0;
-        background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
-        background-size: 32px 32px;
+        background-image: radial-gradient(circle, var(--grid-dot-hero) 1px, transparent 1px);
+        background-size: 28px 28px;
         pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Top glow accent */
+    .hero-bg::after {
+        content: '';
+        position: absolute;
+        top: -120px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 900px;
+        height: 400px;
+        background: radial-gradient(ellipse, rgba(13,148,136,0.07) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
     }
 
     .hero-content {
@@ -73,8 +89,8 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
         flex-direction: column-reverse;
         align-items: center;
         gap: 3rem;
-        padding: 4rem clamp(1.5rem, 6vw, 7rem);
-        max-width: 1300px;
+        padding: 4rem clamp(1rem, 3vw, 3rem);
+        max-width: 1400px;
         margin: 0 auto;
         width: 100%;
         box-sizing: border-box;
@@ -88,10 +104,6 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
             align-items: center;
             gap: 4rem;
         }
-        /* In RTL flex-row: items flow right→left, so:
-           hero-text (1st child)  = RIGHT side  ✓
-           hero-visual (2nd child) = LEFT side   ✓
-           No order overrides needed. */
     }
 
     /* ── Text Side ── */
@@ -103,43 +115,46 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
     }
 
     [dir="rtl"] .hero-text { align-items: flex-start; text-align: right; }
-    [dir="ltr"] .hero-text { align-items: flex-start; text-align: left;  }
+    [dir="ltr"] .hero-text { align-items: flex-start; text-align: left; }
 
     @media (max-width: 1023px) {
         .hero-text { align-items: center; text-align: center; }
     }
 
-
-    /* tagline pill - matches target screenshot */
+    /* Tagline badge */
     .tagline-badge {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
         padding: 0.4rem 1rem;
-        background: rgba(255,255,255,0.07);
-        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(13, 148, 136, 0.08);
+        border: 1px solid rgba(13, 148, 136, 0.25);
         border-radius: 9999px;
-        color: rgba(255,255,255,0.80);
+        color: #2dd4bf;
         font-size: 0.8rem;
+        font-weight: 600;
         margin-bottom: 1.5rem;
         letter-spacing: 0.01em;
         backdrop-filter: blur(4px);
     }
 
-    .tagline-badge svg { color: #818cf8; flex-shrink: 0; }
+    .tagline-badge svg { color: #0d9488; flex-shrink: 0; }
 
     /* main title */
     .hero-title {
-        font-size: clamp(2.6rem, 5vw, 4.5rem);
-        line-height: 1.15;
+        font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+        line-height: 1.18;
         font-weight: 900;
-        color: #f8fafc;
+        color: #f1f5f9;
         margin-bottom: 1.25rem;
         letter-spacing: -0.02em;
     }
 
     .hero-title .highlight {
-        color: #06b6d4;   /* cyan */
+        background: linear-gradient(135deg, #0d9488, #2dd4bf);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         display: block;
     }
 
@@ -147,7 +162,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
     .hero-desc {
         font-size: clamp(0.9rem, 1.4vw, 1.05rem);
         line-height: 1.9;
-        color: #94a3b8;
+        color: var(--text-secondary);
         margin-bottom: 2.5rem;
         max-width: 480px;
     }
@@ -161,31 +176,32 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
     }
 
     .btn-primary {
-        background: #4F46E5 !important;
-        color: #fff !important;
+        background: linear-gradient(135deg, #0f766e, #0d9488) !important;
+        color: #0b1120 !important;
         padding: 0.875rem 1.75rem;
         border-radius: 0.625rem;
-        font-weight: 700;
+        font-weight: 800;
         font-size: 1rem;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        transition: all 0.25s;
+        transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
         white-space: nowrap;
         border: none;
         cursor: pointer;
         text-decoration: none;
+        box-shadow: 0 0 22px rgba(13,148,136,0.35);
     }
     .btn-primary:hover {
-        background: #4338ca !important;
         transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(79,70,229,0.45);
+        box-shadow: 0 10px 30px rgba(13,148,136,0.50);
+        filter: brightness(1.08);
     }
 
     .btn-outline {
-        background: rgba(255,255,255,0.07);
-        border: 1px solid rgba(255,255,255,0.20);
-        color: #e2e8f0;
+        background: var(--bg-card);
+        border: 1px solid var(--bg-border);
+        color: var(--text-primary);
         padding: 0.875rem 1.75rem;
         border-radius: 0.625rem;
         font-weight: 700;
@@ -199,7 +215,9 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
         cursor: pointer;
     }
     .btn-outline:hover {
-        background: rgba(255,255,255,0.14);
+        background: var(--bg-card-hover);
+        border-color: var(--green);
+        color: var(--green);
         transform: translateY(-2px);
     }
 
@@ -211,26 +229,31 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
     }
 
     .stats-panel {
-        background: #141c2e;
-        border: 1px solid rgba(255,255,255,0.07);
+        background: rgba(17, 24, 39, 0.9);
+        border: 1px solid rgba(13,148,136,0.15);
         border-radius: 1.25rem;
         padding: 2rem;
         width: 100%;
         position: relative;
         overflow: hidden;
+        box-shadow: 0 0 40px rgba(13,148,136,0.08), inset 0 1px 0 rgba(255,255,255,0.05);
     }
 
-    /* green glow blob inside card */
+    .stats-panel::before {
+        content: '';
+        position: absolute;
+        top: -60px; right: -60px;
+        width: 220px; height: 220px;
+        background: radial-gradient(circle, rgba(13,148,136,0.12) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
     .stats-panel::after {
         content: '';
         position: absolute;
-        bottom: -40px;
-        right: 30px;
-        width: 180px;
-        height: 180px;
-        background: radial-gradient(circle, #10b981 0%, transparent 70%);
-        opacity: 0.25;
-        filter: blur(40px);
+        bottom: -40px; left: 20px;
+        width: 160px; height: 160px;
+        background: radial-gradient(circle, rgba(79,70,229,0.12) 0%, transparent 70%);
         pointer-events: none;
     }
 
@@ -240,7 +263,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
         align-items: center;
         margin-bottom: 1.25rem;
         padding-bottom: 1rem;
-        border-bottom: 1px solid rgba(255,255,255,0.07);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
     }
 
     .stats-header-title {
@@ -252,84 +275,149 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
     .stars {
         display: flex;
         gap: 3px;
-        color: #10b981;
+        color: #0d9488;
     }
 
     .stats-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 0.75rem;
-        direction: ltr; /* keep stat boxes in visual left→right order in both RTL and LTR */
+        direction: ltr;
     }
 
-
     .stat-box {
-        background: rgba(255,255,255,0.04);
-        border-radius: 0.75rem;
-        padding: 1.1rem 1rem;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 0.875rem;
+        padding: 1.25rem 1rem;
         text-align: center;
+        transition: all 0.25s;
+    }
+
+    .stat-box:hover {
+        border-color: rgba(13,148,136,0.25);
+        background: rgba(13,148,136,0.04);
     }
 
     .stat-val {
-        font-size: 1.6rem;
+        font-size: 1.7rem;
         font-weight: 900;
         color: #fff;
-        margin-bottom: 0.2rem;
+        margin-bottom: 0.25rem;
         letter-spacing: -0.01em;
     }
 
-    .stat-val.green { color: #10b981; }
-
-    .stat-lbl {
-        font-size: 0.75rem;
-        color: #64748b;
-        line-height: 1.4;
+    .stat-val.green {
+        background: linear-gradient(135deg, #0d9488, #2dd4bf);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
-    /* Section headings */
+    .stat-lbl {
+        font-size: 0.72rem;
+        color: #64748b;
+        line-height: 1.5;
+    }
+
+    /* ─── Section Headings ─── */
     .section-title {
         font-size: clamp(1.75rem, 3vw, 2.5rem);
         font-weight: 900;
-        color: #0F172A;
+        color: #f1f5f9;
         margin-bottom: 1rem;
     }
 
     .section-subtitle {
-        font-size: 1.125rem;
+        font-size: 1.05rem;
         color: #64748b;
-        max-width: 800px;
+        max-width: 700px;
         margin: 0 auto 3rem;
-        line-height: 1.6;
+        line-height: 1.7;
     }
 
-    /* Why Section */
+    .section-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(13,148,136,0.08);
+        border: 1px solid rgba(13,148,136,0.2);
+        color: #2dd4bf;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.3rem 0.9rem;
+        border-radius: 9999px;
+        margin-bottom: 1rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    /* ─── Why Section ─── */
     .why-section {
-        background: white;
+        background: var(--bg-why);
+        border-top: 1px solid var(--bg-border);
         padding: 5rem clamp(1.5rem, 5vw, 6rem);
         text-align: center;
         width: 100%;
         box-sizing: border-box;
+        position: relative;
+        transition: background-color 0.3s ease;
+    }
+
+    /* Line-grid overlay for why section */
+    .why-section::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(to right, var(--grid-line-why) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--grid-line-why) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
     }
 
     .why-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
+        gap: 1.5rem;
         max-width: 1200px;
         margin: 0 auto;
+        position: relative;
+        z-index: 1;
     }
 
     .why-card {
-        background: #F8FAFC;
-        border: 1px solid #e2e8f0;
-        border-radius: 1rem;
+        background: var(--bg-card);
+        border: 1px solid var(--bg-border);
+        border-radius: 1.25rem;
         padding: 2.5rem 2rem;
         text-align: center;
+        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        position: relative;
+        overflow: hidden;
     }
 
+    .why-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(13,148,136,0.4), transparent);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .why-card:hover {
+        border-color: rgba(13,148,136,0.25);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 30px rgba(13,148,136,0.06);
+    }
+
+    .why-card:hover::before { opacity: 1; }
+
     .why-icon {
-        width: 60px;
-        height: 60px;
+        width: 64px;
+        height: 64px;
         margin: 0 auto 1.5rem;
         display: flex;
         align-items: center;
@@ -337,38 +425,50 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
         border-radius: 1rem;
     }
 
-    .icon-blue { background: #EEF2FF; color: #4F46E5; }
-    .icon-green { background: #DCFCE7; color: #10b981; }
-    
+    .icon-green { background: rgba(13,148,136,0.1); color: #0d9488; border: 1px solid rgba(13,148,136,0.2); }
+    .icon-blue  { background: rgba(79,70,229,0.1);  color: #818cf8; border: 1px solid rgba(79,70,229,0.2); }
+
     .why-card h3 {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
         font-weight: 800;
-        color: #0F172A;
+        color: #f1f5f9;
         margin-bottom: 1rem;
     }
 
     .why-card p {
         color: #64748b;
-        line-height: 1.6;
-        font-size: 0.95rem;
+        line-height: 1.7;
+        font-size: 0.9rem;
     }
 
-    /* Steps Section */
+    /* ─── Steps Section ─── */
     .steps-section {
-        background: white;
+        background: var(--bg);
         padding: 5rem clamp(1.5rem, 5vw, 6rem);
         text-align: center;
-        border-top: 1px solid #f1f5f9;
         width: 100%;
         box-sizing: border-box;
+        position: relative;
+        transition: background-color 0.3s ease;
+    }
+
+    .steps-section::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle, var(--grid-dot-hero) 1px, transparent 1px);
+        background-size: 28px 28px;
+        pointer-events: none;
     }
 
     .steps-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 3rem;
         max-width: 1200px;
         margin: 0 auto;
+        position: relative;
+        z-index: 1;
     }
 
     .step-item {
@@ -376,83 +476,128 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
     }
 
     .step-circle {
-        width: 80px;
-        height: 80px;
+        width: 84px;
+        height: 84px;
         border-radius: 50%;
-        background: white;
+        background: var(--bg-card);
+        border: 2px solid var(--bg-border);
         margin: 0 auto 1.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
+        font-size: 1.6rem;
         font-weight: 900;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        color: var(--green);
+        box-shadow: 0 0 20px var(--green-glow);
+        transition: all 0.3s;
     }
-    
-    .step-1 { border: 2px solid #e2e8f0; color: #4F46E5; }
-    .step-2 { border: 2px solid #e2e8f0; color: #4F46E5; }
-    .step-3 { border: 2px solid #DCFCE7; color: #10b981; }
+
+    .step-item:hover .step-circle {
+        border-color: #0d9488;
+        box-shadow: 0 0 30px rgba(13,148,136,0.35);
+        transform: scale(1.05);
+    }
 
     .step-item h3 {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
         font-weight: 800;
-        color: #0F172A;
+        color: #f1f5f9;
         margin-bottom: 1rem;
     }
 
     .step-item p {
         color: #64748b;
-        line-height: 1.6;
-        font-size: 0.95rem;
+        line-height: 1.7;
+        font-size: 0.9rem;
     }
 
-    /* CTA Section */
+    /* ─── CTA Section ─── */
     .cta-section {
-        background: #4F46E5;
+        background: linear-gradient(135deg, #0d1a0f 0%, #0b1120 50%, #0d0f1a 100%);
+        border-top: 1px solid rgba(13,148,136,0.1);
+        border-bottom: 1px solid rgba(13,148,136,0.1);
         padding: 5rem 2rem;
         text-align: center;
-        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 600px; height: 300px;
+        background: radial-gradient(ellipse, rgba(13,148,136,0.12) 0%, transparent 70%);
+        pointer-events: none;
     }
 
     .cta-content {
-        max-width: 800px;
+        max-width: 750px;
         margin: 0 auto;
+        position: relative;
+        z-index: 1;
     }
 
     .cta-title {
         font-size: clamp(2rem, 3vw, 2.75rem);
         font-weight: 900;
         margin-bottom: 1.5rem;
+        color: #f1f5f9;
+    }
+
+    .cta-title span {
+        background: linear-gradient(135deg, #0d9488, #2dd4bf);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     .cta-subtitle {
-        font-size: 1.125rem;
-        line-height: 1.8;
-        opacity: 0.9;
+        font-size: 1.05rem;
+        line-height: 1.9;
+        color: #64748b;
         margin-bottom: 2.5rem;
     }
 
-    .btn-white {
-        background: white;
-        color: #4F46E5;
+    .btn-green {
+        background: linear-gradient(135deg, #0f766e, #0d9488);
+        color: #0b1120;
         padding: 1rem 2.5rem;
         border-radius: 0.5rem;
-        font-weight: 800;
+        font-weight: 900;
         font-size: 1.125rem;
         display: inline-block;
-        transition: transform 0.3s;
+        transition: all 0.3s;
+        box-shadow: 0 0 25px rgba(13,148,136,0.35);
     }
 
-    .btn-white:hover {
-        transform: translateY(-2px);
+    .btn-green:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(13,148,136,0.5);
+        filter: brightness(1.08);
     }
 
-    /* Services Section */
+    /* ─── Services Section ─── */
     .services-section {
-        background: #F8FAFC;
+        background: var(--bg-why);
+        border-top: 1px solid var(--bg-border);
         padding: 5rem clamp(1.5rem, 5vw, 6rem);
         width: 100%;
         box-sizing: border-box;
+        position: relative;
+        transition: background-color 0.3s ease;
+    }
+
+    .services-section::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(to right, var(--grid-line-why) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--grid-line-why) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
     }
 
     .services-header {
@@ -461,26 +606,48 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
         align-items: flex-start;
         max-width: 1200px;
         margin: 0 auto 3rem;
+        position: relative;
+        z-index: 1;
     }
 
     .services-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
         gap: 1.5rem;
         max-width: 1200px;
         margin: 0 auto;
+        position: relative;
+        z-index: 1;
     }
 
     .expert-card {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 1rem;
-        padding: 1.5rem;
-        transition: box-shadow 0.3s;
+        background: linear-gradient(135deg, var(--bg-card) 0%, rgba(17,24,39,0.3) 100%);
+        border: 1px solid rgba(13, 148, 136, 0.12);
+        border-radius: 1.5rem;
+        padding: 2rem 1.75rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .expert-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(13, 148, 136, 0.4), transparent);
+        opacity: 0;
+        transition: opacity 0.3s;
     }
 
     .expert-card:hover {
-        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        border-color: rgba(13, 148, 136, 0.25);
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), 0 0 25px rgba(13, 148, 136, 0.08);
+    }
+
+    .expert-card:hover::before {
+        opacity: 1;
     }
 
     .ec-top {
@@ -492,7 +659,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
 
     .ec-avatar {
         display: flex;
-        gap: 1rem;
+        gap: 0.875rem;
         align-items: center;
     }
 
@@ -500,77 +667,118 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
         width: 48px;
         height: 48px;
         border-radius: 50%;
-        background: #EEF2FF;
-        color: #4F46E5;
+        background: linear-gradient(135deg, rgba(13, 148, 136, 0.18) 0%, rgba(13, 148, 136, 0.06) 100%);
+        color: var(--green);
+        border: 1px solid rgba(13, 148, 136, 0.28);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
+        font-weight: 900;
         font-size: 1.25rem;
+        box-shadow: 0 0 10px rgba(13, 148, 136, 0.08);
     }
 
     .eca-info h4 {
         font-weight: 800;
-        color: #0F172A;
+        color: var(--text-primary);
+        font-size: 0.95rem;
     }
+
     .eca-info p {
-        font-size: 0.75rem;
-        color: #94a3b8;
+        font-size: 0.72rem;
+        color: var(--text-secondary);
+        opacity: 0.85;
     }
 
     .ec-badge {
-        background: #DCFCE7;
-        color: #10b981;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.5rem;
-        font-size: 0.75rem;
-        font-weight: 700;
+        background: rgba(13, 148, 136, 0.08);
+        color: var(--green);
+        border: 1px solid rgba(13, 148, 136, 0.2);
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.625rem;
+        font-size: 0.68rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        backdrop-filter: blur(4px);
+    }
+
+    .ec-body {
+        margin-bottom: 1.5rem;
     }
 
     .ec-body h3 {
         font-weight: 800;
-        font-size: 1.125rem;
-        color: #0F172A;
-        margin-bottom: 0.5rem;
+        font-size: 1.15rem;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
     }
 
     .ec-body p {
-        font-size: 0.875rem;
-        color: #64748b;
-        line-height: 1.6;
-        margin-bottom: 1.5rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        line-height: 1.8;
+        margin-bottom: 1.25rem;
+        height: 3.6rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Modern Tags Container */
+    .ec-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .ec-tag {
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--bg-border);
+        color: var(--text-secondary);
     }
 
     .ec-footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-top: 1px solid #f1f5f9;
-        padding-top: 1rem;
+        border-top: 1px solid var(--bg-border);
+        padding-top: 1.25rem;
     }
 
-    .ecf-price {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .ecf-price strong {
-        font-size: 1.25rem;
-        color: #0F172A;
-    }
-
-    .ecf-price span {
-        font-size: 0.75rem;
-        color: #94a3b8;
-    }
+    .ecf-price { display: flex; flex-direction: column; }
+    .ecf-price strong { font-size: 1.3rem; color: var(--text-primary); font-weight: 900; }
+    .ecf-price span { font-size: 0.68rem; color: var(--text-secondary); }
 
     .ec-btn {
-        color: #4F46E5;
-        font-weight: bold;
-        font-size: 0.875rem;
+        background: linear-gradient(135deg, var(--green-dim) 0%, var(--green) 100%);
+        color: #ffffff !important;
+        font-weight: 800;
+        font-size: 0.82rem;
         display: inline-flex;
         align-items: center;
-        gap: 0.25rem;
+        justify-content: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+        transition: all 0.25s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .ec-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(13, 148, 136, 0.4);
+        background: linear-gradient(135deg, var(--green) 0%, #2dd4bf 100%);
     }
 </style>
 @endpush
@@ -620,45 +828,43 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
             </div>
         </div>
 
-        {{-- ── Stats Card (left in RTL) ── --}}
-        <div class="hero-visual">
-            <div class="stats-panel">
-                {{-- Card header: title + 5 stars --}}
-                <div class="stats-header">
-                    <span class="stats-header-title">{{ __('home.TRUST_PERFORMANCE_INDICATORS', [], $currentLang) }}</span>
-                    <div class="stars">
-                        @for($i = 0; $i < 5; $i++)
-                        <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                        @endfor
-                    </div>
-                </div>
-
-                {{-- 2×2 Stats Grid: same order as screenshot --}}
-                <div class="stats-grid">
-                    {{-- +500 / خبير مؤسسي موثق --}}
-                    <div class="stat-box">
-                        <div class="stat-val">{{ __('home.STAT_1_NUMBER', [], $currentLang) }}</div>
-                        <div class="stat-lbl">{{ __('home.STAT_1_TEXT', [], $currentLang) }}</div>
-                    </div>
-                    {{-- +120 / شركة مزودة للكفاءات --}}
-                    <div class="stat-box">
-                        <div class="stat-val">{{ __('home.STAT_2_NUMBER', [], $currentLang) }}</div>
-                        <div class="stat-lbl">{{ __('home.STAT_2_TEXT', [], $currentLang) }}</div>
-                    </div>
-                    {{-- NDA / عقود B2B صارمة --}}
-                    <div class="stat-box">
-                        <div class="stat-val">{{ __('home.STAT_4_NUMBER', [], $currentLang) }}</div>
-                        <div class="stat-lbl">{{ __('home.STAT_4_TEXT', [], $currentLang) }}</div>
-                    </div>
-                    {{-- 99.8% green / دقة تقييم النماذج --}}
-                    <div class="stat-box">
-                        <div class="stat-val green">{{ __('home.STAT_3_NUMBER', [], $currentLang) }}</div>
-                        <div class="stat-lbl">{{ __('home.STAT_3_TEXT', [], $currentLang) }}</div>
-                    </div>
-                </div>
-            </div>
+        {{-- ── Saudi Themed Graphic (left in RTL) ── --}}
+        <div class="hero-visual flex justify-center items-center">
+            <img src="{{ asset('images/saudi_hero.png') }}" alt="Saudi Technology" class="w-full max-w-[450px] object-contain opacity-85 hover:opacity-100 transition-all duration-500 filter drop-shadow-[0_0_35px_rgba(13,148,136,0.22)]">
         </div>
 
+    </div>
+</section>
+
+{{-- ── Horizontal Stats Row Section ── --}}
+<section class="py-10 border-b transition-colors duration-300" style="background-color: var(--bg-why); border-color: var(--bg-border);">
+    <div class="container mx-auto px-6 max-w-[1200px]">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {{-- Stat 1 --}}
+            <div class="bg-slate-100 dark:bg-gray-900/40 border border-slate-200 dark:border-white/5 rounded-2xl p-6 text-center hover:border-brand-green/25 hover:bg-slate-200 dark:hover:bg-gray-900/60 transition-all duration-300 group">
+                <i class="fa-solid fa-users text-2xl text-brand-green mb-3 block group-hover:scale-110 transition-transform"></i>
+                <div class="text-3xl font-black text-slate-900 dark:text-white mb-2">{{ __('home.STAT_1_NUMBER', [], $currentLang) }}</div>
+                <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ __('home.STAT_1_TEXT', [], $currentLang) }}</div>
+            </div>
+            {{-- Stat 2 --}}
+            <div class="bg-slate-100 dark:bg-gray-900/40 border border-slate-200 dark:border-white/5 rounded-2xl p-6 text-center hover:border-brand-green/25 hover:bg-slate-200 dark:hover:bg-gray-900/60 transition-all duration-300 group">
+                <i class="fa-solid fa-building text-2xl text-brand-green mb-3 block group-hover:scale-110 transition-transform"></i>
+                <div class="text-3xl font-black text-slate-900 dark:text-white mb-2">{{ __('home.STAT_2_NUMBER', [], $currentLang) }}</div>
+                <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ __('home.STAT_2_TEXT', [], $currentLang) }}</div>
+            </div>
+            {{-- Stat 3 --}}
+            <div class="bg-slate-100 dark:bg-gray-900/40 border border-slate-200 dark:border-white/5 rounded-2xl p-6 text-center hover:border-brand-green/25 hover:bg-slate-200 dark:hover:bg-gray-900/60 transition-all duration-300 group">
+                <i class="fa-solid fa-chart-line text-2xl text-brand-green mb-3 block group-hover:scale-110 transition-transform"></i>
+                <div class="text-3xl font-black text-slate-900 dark:text-white mb-2">{{ __('home.STAT_3_NUMBER', [], $currentLang) }}</div>
+                <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ __('home.STAT_3_TEXT', [], $currentLang) }}</div>
+            </div>
+            {{-- Stat 4 --}}
+            <div class="bg-slate-100 dark:bg-gray-900/40 border border-slate-200 dark:border-white/5 rounded-2xl p-6 text-center hover:border-brand-green/25 hover:bg-slate-200 dark:hover:bg-gray-900/60 transition-all duration-300 group">
+                <i class="fa-solid fa-file-signature text-2xl text-brand-green mb-3 block group-hover:scale-110 transition-transform"></i>
+                <div class="text-3xl font-black text-slate-900 dark:text-white mb-2">{{ __('home.STAT_4_NUMBER', [], $currentLang) }}</div>
+                <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ __('home.STAT_4_TEXT', [], $currentLang) }}</div>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -730,20 +936,52 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                     </div>
                     <div class="eca-info">
                         <h4>{{ $service->expert_name }}</h4>
-                        <p>{{ $service->company_name ?? 'شركة التقنية الحديثة' }}</p>
+                        <div class="flex items-center gap-1 text-[10px] text-amber-500 mt-1">
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <span class="text-slate-500 dark:text-slate-400 mr-1 font-bold">5.0</span>
+                        </div>
                     </div>
                 </div>
-                <div class="ec-badge">موثق مؤسسياً</div>
+                <div class="ec-badge">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>{{ $currentLang === 'en' ? 'Verified B2B' : 'موثق مؤسسياً' }}</span>
+                </div>
             </div>
             
             <div class="ec-body">
                 <h3>{{ $service->title }}</h3>
                 <p>{{ Str::limit($service->description ?? 'مراجعة وتقييم المخرجات البرمجية للنماذج اللغوية الكبيرة', 100) }}</p>
+                
+                {{-- Dynamic Tech/Validation Tags --}}
+                <div class="ec-tags">
+                    @if(Str::contains($service->title, ['قانون', 'عقد', 'امتثال', 'Legal', 'Compliance']))
+                        <span class="ec-tag">B2B Compliance</span>
+                        <span class="ec-tag">Legal AI</span>
+                        <span class="ec-tag">RLHF</span>
+                    @elseif(Str::contains($service->title, ['تسويق', 'محتوى', 'Marketing', 'SEO']))
+                        <span class="ec-tag">Growth</span>
+                        <span class="ec-tag">Content QA</span>
+                        <span class="ec-tag">HITL</span>
+                    @else
+                        <span class="ec-tag">AI Training</span>
+                        <span class="ec-tag">Data Annotation</span>
+                        <span class="ec-tag">RLHF</span>
+                    @endif
+                </div>
             </div>
             
             <div class="ec-footer">
                 <a href="{{ route('services.show', ['id' => $service->service_id]) }}" class="ec-btn">
-                    {{ __('home.REQUEST_COMPETENCE', [], $currentLang) }}
+                    <span>{{ __('home.REQUEST_COMPETENCE', [], $currentLang) }}</span>
+                    @if($direction === 'rtl')
+                        <i class="fa-solid fa-arrow-left-long text-xs"></i>
+                    @else
+                        <i class="fa-solid fa-arrow-right-long text-xs"></i>
+                    @endif
                 </a>
                 <div class="ecf-price">
                     <strong>{{ number_format($service->hourly_rate, 2) }}</strong>
@@ -764,17 +1002,17 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
 
         <div class="steps-grid">
             <div class="step-item">
-                <div class="step-circle step-1">1</div>
+                <div class="step-circle">1</div>
                 <h3>{{ __('home.STEP_1_TITLE', [], $currentLang) }}</h3>
                 <p>{{ __('home.STEP_1_DESC', [], $currentLang) }}</p>
             </div>
             <div class="step-item">
-                <div class="step-circle step-2">2</div>
+                <div class="step-circle">2</div>
                 <h3>{{ __('home.STEP_2_TITLE', [], $currentLang) }}</h3>
                 <p>{{ __('home.STEP_2_DESC', [], $currentLang) }}</p>
             </div>
             <div class="step-item">
-                <div class="step-circle step-3">3</div>
+                <div class="step-circle">3</div>
                 <h3>{{ __('home.STEP_3_TITLE', [], $currentLang) }}</h3>
                 <p>{{ __('home.STEP_3_DESC', [], $currentLang) }}</p>
             </div>
@@ -788,7 +1026,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
         <div class="cta-content">
             <h2 class="cta-title">{{ __('home.CTA_BANNER_TITLE', [], $currentLang) }}</h2>
             <p class="cta-subtitle">{{ __('home.CTA_BANNER_SUBTITLE', [], $currentLang) }}</p>
-            <a href="{{ route('register.company', ['type' => 'supplier']) }}" class="btn-white">
+            <a href="{{ route('register.company', ['type' => 'supplier']) }}" class="btn-green">
                 {{ __('home.CTA_BANNER_BTN', [], $currentLang) }}
             </a>
         </div>
