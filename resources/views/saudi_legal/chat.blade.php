@@ -168,7 +168,7 @@
         }
     </style>
 </head>
-<body class="bg-[#f8fafc] dark:bg-dark-navy h-screen overflow-hidden flex font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors duration-300">
+<body class="bg-[#f8fafc] dark:bg-dark-navy h-screen h-[100dvh] overflow-hidden flex font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors duration-300">
 
     <!-- Sidebar (سجل المحادثات الجانبي) -->
     <aside id="chat-sidebar" class="w-80 h-full glass-sidebar flex flex-col z-30 transition-all duration-300 fixed right-0 top-0 transform translate-x-0">
@@ -291,7 +291,7 @@
             </main>
 
             <!-- Chat input area -->
-            <div class="w-full relative z-20 pb-10 md:pb-6 pt-2">
+            <div class="w-full relative z-20 pb-[calc(env(safe-area-inset-bottom)+2rem)] md:pb-6 pt-2">
                 <div class="max-w-4xl mx-auto px-4">
                     <div class="relative w-full input-glow transition-all duration-300 rounded-full bg-white dark:bg-dark-card border border-slate-200/50 dark:border-white/10 shadow-xl shadow-black/5">
                         <input type="text" id="question-input" 
