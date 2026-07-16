@@ -312,6 +312,7 @@
     <script>
         let currentConversationUuid = null;
         const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
+        let remainingMessagesCount = 10;
 
         // دالة لعرض المصادر مقسمة: أحكام + مواد نظامية، كل مجموعة بزرار عرض المزيد / عرض أقل
         function renderCitations(citations, msgId) {
@@ -443,6 +444,7 @@
             
             widget.classList.remove('hidden');
             const remaining = Math.max(0, usage.limit - usage.count);
+            remainingMessagesCount = remaining;
             labelSpan.textContent = 'الرسائل المتبقية:';
             ratioSpan.textContent = `${remaining} رسالة`;
             
@@ -811,10 +813,17 @@
         // إرسال السؤال الجديد
         async function submitQuestion() {
             const input = document.getElementById('question-input');
-            const chatMessages = document.getElementById('chat-messages');
-            const mainContainer = document.getElementById('chat-container');
             const question = input.value.trim();
             if(!question) return;
+
+            // منع الإرسال محلياً إذا تم تخطي الحد
+            if (remainingMessagesCount <= 0) {
+                showLimitModal(isLoggedIn);
+                return;
+            }
+
+            const chatMessages = document.getElementById('chat-messages');
+            const mainContainer = document.getElementById('chat-container');
 
             // إخفاء المحتويات الترحيبية
             const visuals = document.getElementById('welcome-visuals');
@@ -848,13 +857,6 @@
             document.getElementById('btn-send').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
             mainContainer.scrollTop = mainContainer.scrollHeight;
 
-            // منع الإرسال محلياً إذا تم تخطي الحد
-            const remainingSpan = document.getElementById('usage-limit-ratio');
-            if (remainingSpan && remainingSpan.textContent === '0 رسالة') {
-                showLimitModal(isLoggedIn);
-                return;
-            }
-
             try {
                 const response = await fetch('/legal-assistant/ask', {
                     method: 'POST',
@@ -875,6 +877,15 @@
                             const errData = await response.json();
                             if (errData.error === 'limit_reached') {
                                 document.getElementById(loadingId)?.remove();
+                                // إزالة رسالة المستخدم الأخيرة من الشاشة لعدم اكتمال الإرسال
+                                const lastUserMsg = chatMessages.lastElementChild;
+                                if (lastUserMsg) lastUserMsg.remove();
+                                
+                                // إرجاع السؤال المكتوب وإعادة تفعيل زر الإرسال
+                                input.value = question;
+                                document.getElementById('btn-send').disabled = false;
+                                document.getElementById('btn-send').innerHTML = '<i class="fa-solid fa-paper-plane text-lg rtl:-scale-x-100"></i>';
+                                
                                 showLimitModal(isLoggedIn);
                                 return;
                             }
