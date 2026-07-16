@@ -451,6 +451,19 @@ class LegalAiController extends Controller
             }
         }
 
+        // جلب الإحصائيات إذا سأل المستخدم أسئلة إحصائية حول قاعدة البيانات
+        $statsSummary = $this->referenceService->getSystemStatsSummary($searchQuery);
+        if ($statsSummary) {
+            $contextText .= "--- إحصائيات النظام وقاعدة البيانات ---\n{$statsSummary}\n\n";
+            $citations[] = [
+                'type'    => 'system_stats',
+                'title'   => 'إحصائيات قاعدة البيانات',
+                'article' => 'إحصائيات',
+                'text'    => $statsSummary,
+                'system'  => 'النظام الإحصائي',
+            ];
+        }
+
         // 5. بناء الـ Prompt وهيكلة تاريخ الرسائل بالكامل
         $prompt = "أنت المستشار القانوني الذكي لمنصة 'رديف'. وظيفتك هي صياغة استشارات قانونية دقيقة بناءً على نصوص القضايا والمواد النظامية السعودية المرفقة فقط.
 

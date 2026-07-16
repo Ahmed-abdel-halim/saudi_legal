@@ -491,4 +491,45 @@ class LegalReferenceService
 
         return (string)$n;
     }
+
+    /**
+     * الحصول على إحصائيات سريعة للأنظمة والمواد للإجابة على الأسئلة الإحصائية
+     */
+    public function getSystemStatsSummary(string $text): ?string
+    {
+        $normalizedText = $this->normalizeArabic($text);
+        
+        // 1. السؤال عن إجمالي عدد الأنظمة
+        if (preg_match('/(كم\s+نظام|عدد\s+الانظمه|كم\s+عدد\s+الانظمه|كم\s+تشريع|عدد\s+التشريعات|كم\s+نظام\s+قانوني)/u', $normalizedText)) {
+            $count = LegalArticle::distinct('legislation_title')->count('legislation_title');
+            return "إجمالي عدد الأنظمة والتشريعات المتاحة في قاعدة البيانات حالياً هو: {$count} نظاماً وتشريعاً سعودياً.";
+        }
+        
+        // 2. السؤال عن عدد القضايا والأحكام
+        if (preg_match('/(كم\s+قضيه|كم\s+حكم|عدد\s+الاحكام|عدد\s+القضايا|كم\s+عدد\s+الاحكام|كم\s+سابقه|كم\s+سابقا|عدد\s+السوابق)/u', $normalizedText)) {
+            $count = \App\Models\LegalTask::whereNotNull('question')->where('question', '!=', '')->count();
+            return "إجمالي عدد القضايا والأحكام القضائية المتاحة في قاعدة البيانات حالياً هو: {$count} حكماً وقضية.";
+        }
+        
+        // 3. السؤال عن عدد المواد في نظام معين
+        if (preg_match('/(كم\s+ماده|عدد\s+مواد|كم\s+عدد\s+مواد)\s+(في|ل)\s*(نظام|لائحه|قانون)?\s*([أ-ي\s]+)/u', $normalizedText, $matches)) {
+            $systemQuery = trim(($matches[3] ?? '') . ' ' . ($matches[4] ?? ''));
+            $detectedSystem = $this->detectSystem($systemQuery);
+            if ($detectedSystem) {
+                $count = LegalArticle::where('legislation_title', $detectedSystem)->count();
+                return "عدد المواد المتاحة في '{$detectedSystem}' هو: {$count} مادة.";
+            }
+        }
+        
+        // 4. التحقق من أي نظام مذكور مع كلمة (كم مادة) بشكل مرن
+        if (str_contains($normalizedText, 'ماده') || str_contains($normalizedText, 'مواد')) {
+            $detectedSystem = $this->detectSystem($text);
+            if ($detectedSystem) {
+                $count = LegalArticle::where('legislation_title', $detectedSystem)->count();
+                return "عدد المواد المتاحة في '{$detectedSystem}' هو: {$count} مادة.";
+            }
+        }
+        
+        return null;
+    }
 }
