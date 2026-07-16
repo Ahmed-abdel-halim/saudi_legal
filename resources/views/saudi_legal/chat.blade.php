@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>المساعد القانوني الذكي | رديف</title>
     
     {{-- Favicons --}}
@@ -169,6 +169,21 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(13, 148, 136, 0.6);
         }
+        /* Mobile input safe area support */
+        .chat-input-bar {
+            padding-bottom: 5rem;
+            padding-top: 0.5rem;
+        }
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .chat-input-bar {
+                padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
+            }
+        }
+        @media (min-width: 768px) {
+            .chat-input-bar {
+                padding-bottom: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body class="bg-[#f8fafc] dark:bg-dark-navy h-screen h-[100dvh] overflow-hidden flex font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors duration-300">
@@ -294,7 +309,7 @@
             </main>
 
             <!-- Chat input area -->
-            <div class="w-full relative z-20 pb-[calc(env(safe-area-inset-bottom)+2rem)] md:pb-6 pt-2">
+            <div class="w-full relative z-20 chat-input-bar">
                 <div class="max-w-4xl mx-auto px-4">
                     <div class="relative w-full input-glow transition-all duration-300 rounded-full bg-white dark:bg-dark-card border border-slate-200/50 dark:border-white/10 shadow-xl shadow-black/5">
                         <input type="text" id="question-input" 
