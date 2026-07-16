@@ -412,11 +412,13 @@ class LegalAiController extends Controller
             $contextText .= "\n";
 
             $citations[] = [
-                'type'    => $task->source_type ?? 'judgment',
-                'title'   => $ref,
-                'article' => $badgeLabel,
-                'text'    => $textToShow,
-                'system'  => (isset($task->source_type) && $task->source_type == 'article') ? ($task->law_system_name ?? '') : '',
+                'type'           => $task->source_type ?? 'judgment',
+                'title'          => $ref,
+                'article'        => $badgeLabel,
+                'text'           => $textToShow,
+                'system'         => $task->law_system_name ?? '',
+                'article_number' => $task->law_article_number ?? '',
+                'case_reference' => $task->case_reference ?? '',
             ];
         }
 

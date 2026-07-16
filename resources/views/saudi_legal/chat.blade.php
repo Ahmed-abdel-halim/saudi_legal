@@ -336,7 +336,17 @@
                     const confidenceBadge = confidence ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 border border-slate-200/50 dark:border-white/5 shrink-0 select-none">${confidence}% تطابق</span>` : '';
                     
                     let titleHtml = '';
-                    if (!isJudgment && (title.includes(' - ') || title.includes('-'))) {
+                    if (isJudgment) {
+                        const systemInfo = item.system ? `<span class="text-[10px] font-black text-brand-green dark:text-brand-teal tracking-wide leading-tight">${item.system}</span>` : '';
+                        const articleInfo = item.article_number ? `<span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">${item.article_number}</span>` : '';
+                        titleHtml = `
+                            <div class="flex flex-col text-right">
+                                <span class="text-xs font-black text-slate-800 dark:text-slate-100">قضية رقم: ${title}</span>
+                                ${systemInfo}
+                                ${articleInfo}
+                            </div>
+                        `;
+                    } else if (!isJudgment && (title.includes(' - ') || title.includes('-'))) {
                         const separator = title.includes(' - ') ? ' - ' : '-';
                         const parts = title.split(separator);
                         const articleNum = parts[0].trim();
