@@ -333,7 +333,7 @@
                     const title = item.title || 'مرجع قانوني';
                     const text = item.text || '';
                     const confidence = item.score ? Math.round(item.score * 100) : null;
-                    const confidenceBadge = confidence ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-650 dark:text-slate-400 border border-slate-200/50 dark:border-white/5 shrink-0 select-none">${confidence}% تطابق</span>` : '';
+                    const confidenceBadge = confidence ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 border border-slate-200/50 dark:border-white/5 shrink-0 select-none">${confidence}% تطابق</span>` : '';
                     
                     let titleHtml = '';
                     if (!isJudgment && (title.includes(' - ') || title.includes('-'))) {
@@ -360,7 +360,7 @@
                         : 'border-r-4 border-r-brand-green';
 
                     const cardHtml = `
-                        <div class="p-4 rounded-2xl bg-white dark:bg-dark-card border border-slate-200/50 dark:border-white/10 hover:shadow-md hover:border-slate-350 dark:hover:border-slate-650 transition flex flex-col gap-2.5 relative ${borderClass}">
+                        <div class="p-4 rounded-2xl bg-white dark:bg-dark-card border border-slate-200/50 dark:border-white/10 hover:shadow-md hover:border-slate-350 dark:hover:border-slate-600 transition flex flex-col gap-2.5 relative ${borderClass}">
                             <div class="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-white/5 pb-2.5">
                                 ${titleHtml}
                                 <div class="flex flex-col items-end gap-1.5 shrink-0">
@@ -368,7 +368,7 @@
                                     ${confidenceBadge}
                                 </div>
                             </div>
-                            <p class="text-xs text-slate-600 dark:text-slate-350 leading-relaxed text-right font-medium max-h-24 overflow-y-auto custom-scrollbar pr-1.5">${text}</p>
+                            <p class="text-xs text-slate-800 dark:text-slate-100 leading-relaxed text-right font-medium max-h-24 overflow-y-auto custom-scrollbar pr-1.5">${text}</p>
                         </div>
                     `;
                     
@@ -393,11 +393,19 @@
                     `;
                 }
 
+                const labelColorClass = isJudgment 
+                    ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' 
+                    : 'text-brand-green dark:text-brand-teal font-extrabold';
+                
+                const iconColorClass = isJudgment
+                    ? 'text-indigo-500/70 dark:text-indigo-500/50'
+                    : 'text-brand-green/70 dark:text-brand-teal/50';
+
                 return `
                     <div class="mt-6 relative z-10">
-                        <div class="flex items-center gap-2 mb-3 justify-end">
-                            <span class="text-xs font-black text-slate-400 tracking-wider">${label}</span>
-                            <i class="fa-solid ${icon} text-slate-300 dark:text-slate-600 text-sm"></i>
+                        <div class="flex items-center gap-2 mb-3 justify-end pb-1 border-b border-slate-100 dark:border-white/5">
+                            <span class="text-xs tracking-wider ${labelColorClass}">${label}</span>
+                            <i class="fa-solid ${icon} ${iconColorClass} text-sm"></i>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             ${visibleHtml}
