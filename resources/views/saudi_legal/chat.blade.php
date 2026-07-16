@@ -275,7 +275,7 @@
                     <img src="{{ asset('images/icon.png') }}"
                         onerror="this.src='https://placehold.co/80x80/0d9488/0b1120?text=R'"
                         alt="Radiif Logo"
-                        class="w-20 h-20 rounded-2xl shadow-xl object-cover ring-4 ring-brand-green/30 mb-6">
+                        class="w-20 h-20 rounded-full shadow-xl object-cover ring-4 ring-brand-green/30 mb-6">
                     <div class="glass-bubble p-8 max-w-2xl text-center relative border border-slate-200/50 dark:border-white/10">
                         <h2 class="text-xl font-black text-slate-800 dark:text-slate-100 mb-3">مرحباً بك في مستشارك القانوني الذكي!</h2>
                         <p class="text-sm text-slate-650 dark:text-slate-300 leading-relaxed font-medium">
@@ -291,7 +291,7 @@
             </main>
 
             <!-- Chat input area -->
-            <div class="w-full relative z-20 pb-6 pt-2">
+            <div class="w-full relative z-20 pb-10 md:pb-6 pt-2">
                 <div class="max-w-4xl mx-auto px-4">
                     <div class="relative w-full input-glow transition-all duration-300 rounded-full bg-white dark:bg-dark-card border border-slate-200/50 dark:border-white/10 shadow-xl shadow-black/5">
                         <input type="text" id="question-input" 
