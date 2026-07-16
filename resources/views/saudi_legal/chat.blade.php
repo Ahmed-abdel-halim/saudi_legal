@@ -815,7 +815,9 @@
                         }
 
                         const formattedAnswer = m.message ? m.message.replace(/\n/g, '<br>') : '';
-                        const confidenceHtml = renderConfidenceBadge(confidenceScore);
+                        const confidenceHtml = (Array.isArray(citations) && citations.length > 0)
+                            ? renderConfidenceBadge(confidenceScore)
+                            : '';
                         
                         const aiHtml = `
                             <div class="flex justify-end mb-8">
@@ -978,7 +980,9 @@
                 }
 
                 const formattedAnswer = data.answer ? data.answer.replace(/\n/g, '<br>') : '';
-                const confidenceHtml = renderConfidenceBadge(confidenceScore);
+                const confidenceHtml = (Array.isArray(citations) && citations.length > 0)
+                    ? renderConfidenceBadge(confidenceScore)
+                    : '';
                 
                 const aiMsgHtml = `
                     <div class="flex justify-end mb-8">
