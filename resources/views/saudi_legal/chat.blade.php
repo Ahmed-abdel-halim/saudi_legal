@@ -320,7 +320,7 @@
             const judgments = citations.filter(c => c.type === 'judgment');
             const articles = citations.filter(c => c.type === 'article');
 
-            function renderGroup(items, groupId, label, icon, colorFrom, colorTo) {
+            function renderGroup(items, groupId, label, icon, isJudgment) {
                 if (items.length === 0) return '';
                 
                 const initialVisibleCount = 2;
@@ -333,15 +333,42 @@
                     const title = item.title || 'مرجع قانوني';
                     const text = item.text || '';
                     const confidence = item.score ? Math.round(item.score * 100) : null;
-                    const confidenceBadge = confidence ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 border border-slate-200/50 dark:border-white/5 shrink-0 select-none">${confidence}% تطابق</span>` : '';
+                    const confidenceBadge = confidence ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-650 dark:text-slate-400 border border-slate-200/50 dark:border-white/5 shrink-0 select-none">${confidence}% تطابق</span>` : '';
                     
-                    const cardHtml = `
-                        <div class="p-4 rounded-2xl bg-white dark:bg-dark-card border border-slate-200/50 dark:border-white/10 hover:shadow-md hover:border-slate-350 dark:hover:border-slate-600 transition flex flex-col gap-2 relative">
-                            <div class="flex items-center justify-between gap-3">
-                                <span class="text-xs font-black text-slate-700 dark:text-slate-200 line-clamp-1">${title}</span>
-                                ${confidenceBadge}
+                    let titleHtml = '';
+                    if (!isJudgment && (title.includes(' - ') || title.includes('-'))) {
+                        const separator = title.includes(' - ') ? ' - ' : '-';
+                        const parts = title.split(separator);
+                        const articleNum = parts[0].trim();
+                        const systemName = parts[1].trim();
+                        titleHtml = `
+                            <div class="flex flex-col text-right">
+                                <span class="text-[10px] font-black text-brand-green dark:text-brand-teal tracking-wide leading-tight">${systemName}</span>
+                                <span class="text-xs font-black text-slate-800 dark:text-slate-100 mt-0.5">${articleNum}</span>
                             </div>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed text-right line-clamp-3 overflow-hidden font-medium">${text}</p>
+                        `;
+                    } else {
+                        titleHtml = `<span class="text-xs font-black text-slate-700 dark:text-slate-200 leading-snug">${title}</span>`;
+                    }
+
+                    const typeBadge = isJudgment 
+                        ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-455 border border-indigo-100 dark:border-indigo-900/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-gavel text-[8px]"></i> حكم قضائي</span>`
+                        : `<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-650 dark:text-emerald-450 border border-emerald-100 dark:border-emerald-900/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-scroll text-[8px]"></i> مادة نظامية</span>`;
+
+                    const borderClass = isJudgment
+                        ? 'border-r-4 border-r-indigo-500'
+                        : 'border-r-4 border-r-brand-green';
+
+                    const cardHtml = `
+                        <div class="p-4 rounded-2xl bg-white dark:bg-dark-card border border-slate-200/50 dark:border-white/10 hover:shadow-md hover:border-slate-350 dark:hover:border-slate-650 transition flex flex-col gap-2.5 relative ${borderClass}">
+                            <div class="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-white/5 pb-2.5">
+                                ${titleHtml}
+                                <div class="flex flex-col items-end gap-1.5 shrink-0">
+                                    ${typeBadge}
+                                    ${confidenceBadge}
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-600 dark:text-slate-350 leading-relaxed text-right font-medium max-h-24 overflow-y-auto custom-scrollbar pr-1.5">${text}</p>
                         </div>
                     `;
                     
@@ -385,8 +412,8 @@
                 `;
             }
 
-            const judgmentsHtml = renderGroup(judgments, `j-${msgId}`, 'السوابق والأحكام القضائية', 'fa-gavel', 'from-slate-50 dark:from-slate-800/40', 'to-indigo-50 dark:to-indigo-950/20');
-            const articlesHtml = renderGroup(articles, `a-${msgId}`, 'النصوص النظامية والمواد القانونية', 'fa-book-open', 'from-slate-50 dark:from-slate-800/40', 'to-emerald-50 dark:to-emerald-950/20');
+            const judgmentsHtml = renderGroup(judgments, `j-${msgId}`, 'السوابق والأحكام القضائية', 'fa-gavel', true);
+            const articlesHtml = renderGroup(articles, `a-${msgId}`, 'النصوص النظامية والمواد القانونية', 'fa-book-open', false);
 
             return `
                 <div class="mt-8 pt-5 border-t border-slate-200/50 dark:border-white/10 relative z-10">
