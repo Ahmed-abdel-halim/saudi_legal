@@ -55,7 +55,6 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
         padding-top: 72px;
         width: 100%;
         box-sizing: border-box;
-        overflow: hidden;
         transition: background-color 0.3s ease;
     }
 
@@ -86,9 +85,9 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
 
     .hero-content {
         display: flex;
-        flex-direction: column-reverse;
+        flex-direction: column;
         align-items: center;
-        gap: 3rem;
+        gap: 2rem;
         padding: 4rem clamp(1rem, 3vw, 3rem);
         max-width: 1400px;
         margin: 0 auto;
@@ -226,6 +225,20 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
         flex: 0 0 auto;
         width: 100%;
         max-width: 500px;
+    }
+
+    @media (max-width: 1023px) {
+        .hero-visual {
+            max-width: 280px;
+            max-height: 220px;
+            overflow: visible;
+        }
+        .hero-visual img {
+            max-height: 220px;
+            width: auto;
+            margin: 0 auto;
+            display: block;
+        }
     }
 
     .stats-panel {
