@@ -776,9 +776,10 @@
                                     
                                     <div class="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-white/5 pb-4 relative z-10">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-green/10 to-brand-green/20 flex items-center justify-center text-brand-green shadow-sm border border-brand-green/10">
-                                                <i class="fa-solid fa-scale-balanced text-lg"></i>
-                                            </div>
+                                            <img src="{{ asset('images/icon.png') }}"
+                                                onerror="this.src='https://placehold.co/40x40/0d9488/0b1120?text=R'"
+                                                alt="Radiif Logo"
+                                                class="w-10 h-10 rounded-xl shadow-sm object-cover ring-2 ring-brand-green/20">
                                             <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-green to-brand-primary dark:to-brand-secondary">المستشار القانوني الذكي</span>
                                         </div>
                                         ${confidenceHtml}
@@ -938,9 +939,10 @@
                             
                             <div class="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-white/5 pb-4 relative z-10">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-green/10 to-brand-green/20 flex items-center justify-center text-brand-green shadow-sm border border-brand-green/10">
-                                        <i class="fa-solid fa-scale-balanced text-lg"></i>
-                                    </div>
+                                    <img src="{{ asset('images/icon.png') }}"
+                                        onerror="this.src='https://placehold.co/40x40/0d9488/0b1120?text=R'"
+                                        alt="Radiif Logo"
+                                        class="w-10 h-10 rounded-xl shadow-sm object-cover ring-2 ring-brand-green/20">
                                     <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-green to-brand-primary dark:to-brand-secondary">المستشار القانوني الذكي</span>
                                 </div>
                                 ${confidenceHtml}
