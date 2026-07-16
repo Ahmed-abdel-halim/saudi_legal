@@ -235,15 +235,49 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
 
     @media (max-width: 1023px) {
         .hero-visual {
-            max-width: 280px;
-            max-height: 220px;
+            max-width: 240px;
             overflow: visible;
         }
         .hero-visual img {
-            max-height: 220px;
-            width: auto;
+            width: 100%;
+            max-width: 240px;
+            height: auto;
             margin: 0 auto;
             display: block;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .hero-title {
+            font-size: clamp(1.8rem, 7vw, 2.4rem);
+        }
+        .hero-desc {
+            font-size: 0.9rem;
+            max-width: 100%;
+        }
+        .btn-group {
+            flex-direction: column;
+            width: 100%;
+            align-items: center;
+        }
+        .btn-primary, .btn-outline {
+            width: 100%;
+            justify-content: center;
+            font-size: 0.95rem;
+            padding: 0.8rem 1.25rem;
+        }
+        .tagline-badge {
+            font-size: 0.75rem;
+        }
+        .hero-visual {
+            max-width: 200px;
+        }
+        .hero-visual img {
+            max-width: 200px;
+        }
+        .hero-content {
+            gap: 1.5rem;
+            padding: 2rem 1rem;
         }
     }
 
