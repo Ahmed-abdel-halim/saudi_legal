@@ -53,6 +53,9 @@ class AzureSearchService
         }
 
         try {
+            // تطبيع الأرقام من العربية إلى اللاتينية لضمان تطابق BM25 مع المراجع
+            $query = $this->normalizeQueryDigits($query);
+
             // 1. توليد embedding للسؤال (مع cache لتوفير API calls)
             $embedding = $this->getEmbedding($query);
 
@@ -94,6 +97,7 @@ class AzureSearchService
         }
 
         try {
+            $query = $this->normalizeQueryDigits($query);
             $embedding = $this->getEmbedding($query);
             $filterStr = $this->buildFilter($filters);
 
@@ -657,5 +661,15 @@ class AzureSearchService
                 ]
             ],
         ];
+    }
+
+    /**
+     * تطبيع الأرقام من الهندية/العربية إلى اللاتينية/الإنجليزية
+     */
+    private function normalizeQueryDigits(string $query): string
+    {
+        $arabic = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+        $latin  = ['0','1','2','3','4','5','6','7','8','9'];
+        return str_replace($arabic, $latin, $query);
     }
 }

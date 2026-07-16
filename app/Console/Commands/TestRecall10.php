@@ -37,13 +37,15 @@ class TestRecall10 extends Command
 
         $limit = (int) $this->option('limit');
 
-        // جلب عينات بربط نظامي وعينات عامة
+        // جلب عينات بربط نظامي وعينات عامة (مع استثناء مبادئ القضايا والأنظمة غير المحددة لضمان دقة مطابقة المواد)
         $annotatedTasks = LegalTask::whereNotNull('question')
             ->where('question', '!=', '')
             ->whereNotNull('law_system_name')
             ->where('law_system_name', '!=', '')
+            ->whereNotIn('law_system_name', ['مبدأ قضائي', 'نظام غير محدد', 'قانون', 'من', 'المادَّة'])
             ->whereNotNull('law_article_number')
             ->where('law_article_number', '!=', '')
+            ->where('law_article_number', '!=', 'غير محدد')
             ->whereNotNull('case_text')
             ->where('case_text', '!=', '')
             ->inRandomOrder()
@@ -65,6 +67,23 @@ class TestRecall10 extends Command
 
         $this->info("تم جلب " . $annotatedTasks->count() . " حالة بربط نظامي و " . $randomTasks->count() . " حالة عامة.");
 
+        // بناء فهرس سريع للمواد في الذاكرة لتجنب استعلامات قاعدة البيانات المكررة وربط أرقام المواد بـ reference_id
+        $this->info("📥 تحميل وتشييد فهرس المواد القانونية...");
+        $articles = LegalArticle::all();
+        $articlesIndex = [];
+        foreach ($articles as $article) {
+            $title = trim($article->legislation_title);
+            $refNum = null;
+            if ($article->reference_id) {
+                if (preg_match('/art_?(\d+(?:\/\d+)?)/i', $article->reference_id, $m)) {
+                    $refNum = $m[1];
+                }
+            }
+            if ($refNum && $title) {
+                $articlesIndex[$title][$refNum] = $article->id;
+            }
+        }
+
         $results = [];
         $caseHits = 0;
         $articleHits = 0;
@@ -73,29 +92,69 @@ class TestRecall10 extends Command
         $bar = $this->output->createProgressBar($tasks->count());
         $bar->start();
 
+        // دالة مساعدة لتطبيع النصوص العربية للمطابقة
+        $normalizeText = function ($text) {
+            $text = preg_replace('/[أإآ]/u', 'ا', $text);
+            $text = str_replace(['ة','ى'], ['ه','ي'], $text);
+            return trim($text);
+        };
+
+        // دالة للبحث المرن عن المادة باستخدام الفهرس
+        $findTargetArticle = function ($systemName, $articleNum) use ($articlesIndex, $normalizeText) {
+            if (empty($systemName) || empty($articleNum)) return null;
+            
+            $normSystem = $normalizeText($systemName);
+            
+            // 1. مطابقة مباشرة
+            if (isset($articlesIndex[$systemName][$articleNum])) {
+                return $articlesIndex[$systemName][$articleNum];
+            }
+            
+            // 2. مطابقة مرنة عبر البدائل الشائعة
+            $alternatives = [$systemName, $normSystem];
+            if (str_starts_with($systemName, 'نظام ')) {
+                $sub = mb_substr($systemName, 5);
+                $alternatives[] = $sub;
+                $alternatives[] = $normalizeText($sub);
+            } else {
+                $alternatives[] = 'نظام ' . $systemName;
+                $alternatives[] = $normalizeText('نظام ' . $systemName);
+            }
+            
+            foreach ($alternatives as $alt) {
+                foreach ($articlesIndex as $title => $nums) {
+                    if ($normalizeText($title) === $normalizeText($alt) && isset($nums[$articleNum])) {
+                        return $nums[$articleNum];
+                    }
+                }
+            }
+            
+            // 3. مطابقة جزئية (أحدهما يحتوي الآخر)
+            foreach ($articlesIndex as $title => $nums) {
+                if (isset($nums[$articleNum])) {
+                    $normTitle = $normalizeText($title);
+                    if (str_contains($normTitle, $normSystem) || str_contains($normSystem, $normTitle)) {
+                        return $nums[$articleNum];
+                    }
+                }
+            }
+            
+            return null;
+        };
+
         foreach ($tasks as $task) {
             $query = $task->question;
             $targetCaseId = 'task_' . $task->id;
             $targetQaId = 'qa_' . $task->id;
             
-            // البحث عن المادة النظامية
+            // البحث عن المادة النظامية المطابقة
             $targetArticleId = null;
             $articleTitle = null;
+            
             if (!empty($task->law_system_name) && !empty($task->law_article_number)) {
-                $cleanSystem = preg_replace('/[أإآ]/u', 'ا', $task->law_system_name);
-                $cleanSystem = str_replace(['ة','ى'], ['ه','ي'], $cleanSystem);
-                
-                $article = LegalArticle::where('legislation_title', 'LIKE', '%' . $cleanSystem . '%')
-                    ->where('article_title', 'LIKE', '%' . $task->law_article_number . '%')
-                    ->first();
-                    
-                if ($article) {
-                    $targetArticleId = 'article_' . $article->id;
-                    $articleTitle = "المادة {$article->article_title} - {$article->legislation_title}";
-                    $totalArticlesTested++;
-                } else {
-                    $article = LegalArticle::where('article_title', 'LIKE', '%' . $task->law_article_number . '%')
-                        ->first();
+                $resolvedArticleId = $findTargetArticle($task->law_system_name, $task->law_article_number);
+                if ($resolvedArticleId) {
+                    $article = LegalArticle::find($resolvedArticleId);
                     if ($article) {
                         $targetArticleId = 'article_' . $article->id;
                         $articleTitle = "المادة {$article->article_title} - {$article->legislation_title}";

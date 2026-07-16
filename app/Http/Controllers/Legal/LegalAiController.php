@@ -213,11 +213,25 @@ class LegalAiController extends Controller
         $searchMethod = 'keyword';
         $contextTasks = collect();
         $allArticles  = collect();
+        $exactArticles = collect();
 
         // أ. استخراج أي مواد مذكورة في السؤال نفسه مباشرة
         $queryArticles = $this->referenceService->getMentionedArticles($searchQuery);
         foreach ($queryArticles as $art) {
             $allArticles->push($art);
+            
+            // تحويل المادة القانونية المطابقة تماماً لكائن يحاكي نتيجة البحث ليتم عرضه كمستند أول ذو أهمية قصوى
+            $exactArticles->push((object) [
+                'id'              => 'article_' . $art->id,
+                'question'        => $art->article_title ?? '',
+                'correct_answer'  => $art->content ?? '',
+                'case_text'       => $art->content ?? '',
+                'source_type'     => 'article',
+                'case_reference'  => 'مادة رقم ' . ($art->article_number ?? ''),
+                'law_system_name' => $art->legislation_title ?? '',
+                'relevance_score' => 10.0,
+                'reranker_score'  => 10.0,
+            ]);
         }
 
         // ب. استخراج أرقام القضايا أو المراجع المحددة في السؤال مباشرة وتضمينها
@@ -243,12 +257,24 @@ class LegalAiController extends Controller
             }
         }
 
+        // تحديد ما إذا كان السؤال طلباً مباشراً لنص مادة قانونية محددة لتجنب جلب قضايا وأحكام غير ذات صلة
+        $isDirectArticleRequest = false;
+        if ($exactArticles->isNotEmpty()) {
+            $isDirectArticleRequest = preg_match(
+                '/(نص|ما\s*هي|ما\s*هو|ماذا\s*تقول|عرض)\s+المادة/u',
+                $searchQuery
+            ) || preg_match(
+                '/^المادة\s+([أ-ي0-9]+)\s+(في|من)\s+(نظام|لائحة)/u',
+                trim($searchQuery)
+            );
+        }
+
         // Tier 1: Azure AI Search (Split hybrid search)
         if ($this->azureService->isEnabled()) {
             Log::info('[LegalAi] Using Azure Split Search for: ' . $searchQuery);
 
-            // أ. بحث عن أحكام قضائية وسوابق (تستثنى منها المواد)
-            $cases = $this->azureService->hybridSearch($searchQuery, 5, ['!source_type' => 'article']);
+            // أ. بحث عن أحكام قضائية وسوابق (تستثنى منها المواد) - يتم تخطيها إذا كان الطلب لنص مادة مباشرة
+            $cases = $isDirectArticleRequest ? collect() : $this->azureService->hybridSearch($searchQuery, 5, ['!source_type' => 'article']);
 
             // ب. بحث عن نصوص أنظمة وقوانين مخصصة
             $lawArticles = $this->azureService->hybridSearch($searchQuery, 3, ['source_type' => 'article']);
@@ -264,7 +290,7 @@ class LegalAiController extends Controller
         if ($contextTasks->isEmpty() && $this->qdrantService->isEnabled()) {
             Log::info('[LegalAi] Falling back to Qdrant Split Search for: ' . $searchQuery);
 
-            $cases = $this->qdrantService->search($searchQuery, 5, ['!source_type' => 'article']);
+            $cases = $isDirectArticleRequest ? collect() : $this->qdrantService->search($searchQuery, 5, ['!source_type' => 'article']);
             $lawArticles = $this->qdrantService->search($searchQuery, 3, ['source_type' => 'article']);
 
             $contextTasks = $cases->merge($lawArticles);
@@ -280,15 +306,24 @@ class LegalAiController extends Controller
             $searchMethod = 'keyword';
         }
 
+        // دمج المواد المطابقة تماماً المستخرجة من الاستعلام في بداية السياق
+        if ($exactArticles->isNotEmpty()) {
+            $contextTasks = $exactArticles->merge($contextTasks);
+            $searchMethod = ($searchMethod === 'keyword') ? 'hybrid_exact' : $searchMethod . '_hybrid';
+        }
+
         // دمج النتائج المطابقة تماماً برقم القضية في بداية السياق لضمان قراءتها
         if ($exactMatches->isNotEmpty()) {
-            $contextTasks = $exactMatches->toBase()->merge($contextTasks)->unique('id');
+            $contextTasks = $exactMatches->toBase()->merge($contextTasks);
             // تحديد طريقة البحث كبحث هجين مخصص بالرقم
             $searchMethod = ($searchMethod === 'keyword') ? 'hybrid_exact' : $searchMethod . '_hybrid';
         }
 
-        // إزالة التكرار في الأحكام المتطابقة النص لمنع التكرار البصري في المراجع والـ Context
+        // إزالة التكرار في النتائج (سواء أحكام أو مواد متطابقة بالمعرف أو النص)
         $contextTasks = $contextTasks->unique(function ($task) {
+            if (isset($task->source_type) && $task->source_type === 'article') {
+                return 'article_' . ($task->id ?? uniqid());
+            }
             $text = trim($task->case_text ?: $task->correct_answer ?: '');
             if ($text === '') {
                 return 'empty_' . ($task->id ?? uniqid());
@@ -296,9 +331,12 @@ class LegalAiController extends Controller
             return md5($text);
         });
 
-        // تفكيك المجموعة لـ أحكام وأنظمة لتطبيق الفرز على الأحكام فقط
+        // تفكيك المجموعة لـ: مواد مطابقة بدقة، أحكام قضائية، ومواد عامة أخرى
+        $exactArticlesIds = $exactArticles->map(fn($a) => $a->id)->toArray();
+
+        $exactArticlesPart = $contextTasks->filter(fn($t) => (isset($t->source_type) && $t->source_type === 'article' && in_array($t->id, $exactArticlesIds)));
         $casesPart = $contextTasks->filter(fn($t) => (!isset($t->source_type) || $t->source_type !== 'article'));
-        $articlesPart = $contextTasks->filter(fn($t) => (isset($t->source_type) && $t->source_type === 'article'));
+        $articlesPart = $contextTasks->filter(fn($t) => (isset($t->source_type) && $t->source_type === 'article' && !in_array($t->id, $exactArticlesIds)));
 
         // فرز الأحكام: الاستئناف أولاً، ثم الأحدث (عن طريق المعرف ID تنازلياً)
         $casesPart = $casesPart->sort(function ($a, $b) {
@@ -317,8 +355,8 @@ class LegalAiController extends Controller
             return $bId <=> $aId;
         });
 
-        // إعادة الدمج (الأحكام المفرزة أولاً، ثم الأنظمة)
-        $contextTasks = $casesPart->merge($articlesPart);
+        // إعادة الدمج بالترتيب المنطقي: المواد المطابقة بدقة أولاً، ثم الأحكام القضائية، ثم المواد العامة الأخرى
+        $contextTasks = $exactArticlesPart->merge($casesPart)->merge($articlesPart);
 
         // استخراج المواد المشارة إليها من الأحكام لتوسيع السياق
         if ($contextTasks->isNotEmpty()) {
@@ -336,7 +374,7 @@ class LegalAiController extends Controller
         $contextText = "";
         $citations = [];
 
-        // بناء المراجع للأحكام والمهام
+        // بناء المراجع للأحكام والمهام والأنظمة المدمجة
         foreach ($contextTasks as $task) {
             $typeLabel  = "مرجع قانوني";
             $badgeLabel = "أحكام قضائية";
@@ -382,10 +420,25 @@ class LegalAiController extends Controller
             ];
         }
 
-        // إضافة الأنظمة والمواد المترابطة إلى السياق
+        // إضافة الأنظمة والمواد المترابطة المستخرجة من أسباب الأحكام (فقط التي لم تُضف مسبقاً في السياق لتجنب التكرار)
+        $addedArticleIds = $contextTasks->filter(fn($t) => (isset($t->source_type) && $t->source_type === 'article'))
+            ->map(function($t) {
+                if (is_string($t->id) && str_starts_with($t->id, 'article_')) {
+                    return (int) substr($t->id, 8);
+                }
+                return (int) $t->id;
+            })->toArray();
+
         if ($allArticles->isNotEmpty()) {
-            $contextText .= "--- نصوص الأنظمة السعودية ذات الصلة ---\n";
+            $hasHeader = false;
             foreach ($allArticles->unique('id') as $article) {
+                if (in_array($article->id, $addedArticleIds)) {
+                    continue; // مضافة مسبقاً في مصفوفة النتائج الرئيسية
+                }
+                if (!$hasHeader) {
+                    $contextText .= "--- نصوص الأنظمة السعودية ذات الصلة ---\n";
+                    $hasHeader = true;
+                }
                 $contextText .= "[{$article->legislation_title} - {$article->article_title}]:\n{$article->content}\n\n";
 
                 $citations[] = [

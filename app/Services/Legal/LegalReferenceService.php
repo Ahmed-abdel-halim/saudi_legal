@@ -6,6 +6,7 @@ use App\Models\LegalArticle;
 use App\Models\LegalCitation;
 use App\Models\LegalQaPair;
 use App\Models\LegalRecord;
+use Illuminate\Support\Facades\Cache;
 
 class LegalReferenceService
 {
@@ -172,8 +173,8 @@ class LegalReferenceService
         $matches = [];
         $lastDetectedSystem = null;
 
-        // Pattern for "Material X" or "Materials X, Y, Z"
-        $articlePattern = '/(?:المادة|المواد|للمادة|للمواد|بالمادة|بالمواد|مادته|مادتها|موادها)[\s:]+([\d\(\)\s،و\-]+)/u';
+        // Pattern for "Material X" or "Materials X, Y, Z" with abbreviations support (مادة, م, مادة رقم)
+        $articlePattern = '/(?:^|[\s\(\)])(?:المادة|المواد|للمادة|للمواد|بالمادة|بالمواد|مادته|مادتها|موادها|مادة|م)[\s:]*(?:رقم\s*)?([\d\(\)\s،و\-]+)/u';
 
         if (preg_match_all($articlePattern, $normalizedText, $found, PREG_SET_ORDER)) {
             foreach ($found as $match) {
@@ -209,6 +210,9 @@ class LegalReferenceService
 
     private function detectSystem($text)
     {
+        // إصلاح الأخطاء الشائعة لالتصاق حروف الجر بكلمة (نظام/لائحة/قانون)
+        $text = preg_replace('/(من|في|عن|ب)(نظام|تنظيم|لائح[ةه]|قانون)/u', '$1 $2', $text);
+        
         $norm = $this->normalizeArabic($text);
 
         // 1. محاولة استخراج اسم النظام ديناميكياً من قاعدة البيانات (مع آلية الـ Back-off للمطابقة المخصصة)
@@ -231,7 +235,34 @@ class LegalReferenceService
             }
         }
 
-        // 2. Fallback للـ Core Saudi Laws Mapping المبرمجة سابقاً لضمان عدم تأثر أي كود قديم
+        // 2. مطابقة ديناميكية متقدمة عبر مسح كافة الأنظمة المخزنة في قاعدة البيانات
+        $allSystems = Cache::remember('db_legislation_titles', now()->addHours(24), function() {
+            return LegalArticle::select('legislation_title')
+                ->groupBy('legislation_title')
+                ->pluck('legislation_title')
+                ->toArray();
+        });
+
+        $closestSystem = null;
+        $maxLength = 0;
+
+        foreach ($allSystems as $sysName) {
+            $normSys = $this->normalizeArabic($sysName);
+            $cleanSys = preg_replace('/^(نظام|تنظيم|لائح[ةه]|قانون)\s+/u', '', $normSys);
+            
+            if (mb_strlen($cleanSys) > 3 && mb_strpos($norm, $cleanSys) !== false) {
+                if (mb_strlen($sysName) > $maxLength) {
+                    $maxLength = mb_strlen($sysName);
+                    $closestSystem = $sysName;
+                }
+            }
+        }
+
+        if ($closestSystem) {
+            return $closestSystem;
+        }
+
+        // 3. Fallback للـ Core Saudi Laws Mapping المبرمجة سابقاً لضمان عدم تأثر أي كود قديم
         $map = [
             'اثبات'    => 'نظام الإثبات',
             'مرافعات'  => 'نظام المرافعات الشرعية',
