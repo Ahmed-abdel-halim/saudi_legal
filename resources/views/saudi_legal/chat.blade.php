@@ -844,8 +844,8 @@
                                             <img src="{{ asset('images/icon.png') }}"
                                                 onerror="this.src='https://placehold.co/40x40/0d9488/0b1120?text=R'"
                                                 alt="Radiif Logo"
-                                                class="w-10 h-10 rounded-xl shadow-sm object-cover ring-2 ring-brand-green/20">
-                                            <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-green to-brand-primary dark:to-brand-secondary">المستشار القانوني الذكي</span>
+                                                class="w-10 h-10 rounded-full shadow-sm object-cover">
+                                            <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-green to-brand-primary dark:to-brand-secondary">المستشار الذكي</span>
                                         </div>
                                         ${confidenceHtml}
                                     </div>
@@ -1009,8 +1009,8 @@
                                     <img src="{{ asset('images/icon.png') }}"
                                         onerror="this.src='https://placehold.co/40x40/0d9488/0b1120?text=R'"
                                         alt="Radiif Logo"
-                                        class="w-10 h-10 rounded-xl shadow-sm object-cover ring-2 ring-brand-green/20">
-                                    <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-green to-brand-primary dark:to-brand-secondary">المستشار القانوني الذكي</span>
+                                        class="w-10 h-10 rounded-full shadow-sm object-cover">
+                                    <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-green to-brand-primary dark:to-brand-secondary">المستشار الذكي</span>
                                 </div>
                                 ${confidenceHtml}
                             </div>
