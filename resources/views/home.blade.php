@@ -117,7 +117,13 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
     [dir="ltr"] .hero-text { align-items: flex-start; text-align: left; }
 
     @media (max-width: 1023px) {
+        .hero-bg {
+            min-height: auto;
+            padding-top: 80px;
+            padding-bottom: 3rem;
+        }
         .hero-text { align-items: center; text-align: center; }
+        .hero-visual { order: -1; }
     }
 
     /* Tagline badge */
