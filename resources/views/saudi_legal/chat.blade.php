@@ -272,9 +272,10 @@
                 
                 <!-- Welcome visuals / screen -->
                 <div class="flex-1 flex flex-col items-center justify-center relative mb-12" id="welcome-visuals">
-                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-green to-brand-teal flex items-center justify-center text-white text-3xl shadow-xl shadow-brand-green/20 mb-6">
-                        <i class="fa-solid fa-robot"></i>
-                    </div>
+                    <img src="{{ asset('images/icon.png') }}"
+                        onerror="this.src='https://placehold.co/80x80/0d9488/0b1120?text=R'"
+                        alt="Radiif Logo"
+                        class="w-20 h-20 rounded-2xl shadow-xl object-cover ring-4 ring-brand-green/30 mb-6">
                     <div class="glass-bubble p-8 max-w-2xl text-center relative border border-slate-200/50 dark:border-white/10">
                         <h2 class="text-xl font-black text-slate-800 dark:text-slate-100 mb-3">مرحباً بك في مستشارك القانوني الذكي!</h2>
                         <p class="text-sm text-slate-650 dark:text-slate-300 leading-relaxed font-medium">
