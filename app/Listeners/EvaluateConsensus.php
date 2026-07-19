@@ -28,6 +28,21 @@ class EvaluateConsensus implements ShouldQueue
         $responseCount = $task->responses()->count();
         $task->update(['current_responses' => $responseCount]);
 
+        // If we have 2 responses and required is 2, check for agreement
+        if ($responseCount === 2 && $task->required_responses === 2) {
+            $responses = $task->responses;
+            $answers = $responses->pluck('corrected_data')->map(fn($val) => trim($val))->toArray();
+            
+            if ($answers[0] !== $answers[1]) {
+                // If they differ, increase required_responses to 3 and reopen for a third expert (senior)
+                $task->update([
+                    'required_responses' => 3,
+                    'consensus_status' => 'pending'
+                ]);
+                return; // Return so we wait for the 3rd response
+            }
+        }
+
         if ($responseCount < $task->required_responses) {
             return;
         }
@@ -39,7 +54,7 @@ class EvaluateConsensus implements ShouldQueue
 
         // Start Consensus Logic
         $responses = $task->responses;
-        $answers = $responses->pluck('corrected_data')->toArray();
+        $answers = $responses->pluck('corrected_data')->map(fn($val) => trim($val))->toArray();
         
         // Count frequency of each answer
         // Note: This logic depends on exact string matching. For JSON/Complex objects, serialization is key.
@@ -54,33 +69,40 @@ class EvaluateConsensus implements ShouldQueue
         $confidence = 0;
         $status = 'Conflict';
 
-        if ($count === 3) {
+        if ($task->required_responses === 2) {
+            // Since they didn't trigger the difference check above, they must be identical
             $consensusType = 'perfect_match';
             $finalAnswer = $mostCommonAnswer;
             $confidence = 100;
             $status = 'Consensus_Reached';
-        } elseif ($count === 2) {
-            $consensusType = 'majority_vote';
-            $finalAnswer = $mostCommonAnswer;
-            $confidence = 66; // Fixed per requirement
-            $status = 'Consensus_Reached'; // Or 'Review_Required' if majority is considered shaky
         } else {
-            $consensusType = 'conflict';
-            $finalAnswer = null; // No consensus
-            $confidence = 0;
-            $status = 'Conflict';
-            
-            // Log conflict
-            GovernanceLog::create([
-                'task_id' => $task->id,
-                'expert_id' => $responses->first()->expert_id, // Logging against one expert or generic log?
-                // Better to just log the conflict event related to task
-                'expert_id' => $responses->first()->expert_id, // Placeholder, requires non-null expert_id in schema usually
-                'event_type' => 'consensus_conflict',
-                'event_data' => json_encode(['answers' => $answers]),
-                'trust_score_before' => null,
-                'trust_score_after' => null,
-            ]);
+            // required_responses is 3 (or more)
+            if ($count === 3) {
+                $consensusType = 'perfect_match';
+                $finalAnswer = $mostCommonAnswer;
+                $confidence = 100;
+                $status = 'Consensus_Reached';
+            } elseif ($count === 2) {
+                $consensusType = 'majority_vote';
+                $finalAnswer = $mostCommonAnswer;
+                $confidence = 66; // Fixed per requirement
+                $status = 'Consensus_Reached'; // Or 'Review_Required' if majority is considered shaky
+            } else {
+                $consensusType = 'conflict';
+                $finalAnswer = null; // No consensus
+                $confidence = 0;
+                $status = 'Conflict';
+                
+                // Log conflict
+                GovernanceLog::create([
+                    'task_id' => $task->id,
+                    'expert_id' => $responses->first()->expert_id, // Logging against one expert or generic log?
+                    'event_type' => 'consensus_conflict',
+                    'event_data' => json_encode(['answers' => $answers]),
+                    'trust_score_before' => null,
+                    'trust_score_after' => null,
+                ]);
+            }
         }
 
         DB::transaction(function () use ($task, $responses, $finalAnswer, $confidence, $consensusType, $status) {

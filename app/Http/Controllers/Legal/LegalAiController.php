@@ -824,8 +824,8 @@ class LegalAiController extends Controller
             // التحقق مما إذا كان قد قام بدعوة صديق واحد على الأقل
             $hasReferrals = \App\Models\User::where('referred_by', $user->id)->exists();
             
-            // 20 رسالة أساسية للأعضاء، وإذا دعا صديقاً تصبح 40 رسالة (20 إضافية)
-            $limit = $hasReferrals ? 40 : 20;
+            // 20 رسالة أساسية للأعضاء، وإذا دعا صديقاً تصبح 40 رسالة (20 إضافية) + رصيد التوكنز المستبدل
+            $limit = ($hasReferrals ? 40 : 20) + ($user->extra_messages_limit ?? 0);
         } else {
             // حساب الرسائل المرسلة كزائر بناءً على الجلسة
             $sessionUuids = session()->get('ai_conversations', []);

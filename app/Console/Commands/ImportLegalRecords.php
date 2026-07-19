@@ -365,7 +365,7 @@ class ImportLegalRecords extends Command
                 'client_id'         => $clientId,
                 'status'            => 'pending',
                 'consensus_status'  => 'pending',
-                'required_responses'=> 3,
+                'required_responses'=> 2,
                 'task_domain'       => 'law',
                 'allow_all_roles'   => true
             ]);

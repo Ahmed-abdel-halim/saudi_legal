@@ -202,7 +202,7 @@ class ProcessTaskUploadJob implements ShouldQueue
                     $aiTask = AiTask::create([
                         'task_type' => $assoc['task_type'] ?? 'text_analysis', 'original_data' => $content, 'ai_suggestion' => $suggestion,
                         'client_id' => $this->userId ?: (User::where('role', 'client')->first()?->id ?? User::first()?->id), 
-                        'status' => 'pending', 'consensus_status' => 'pending', 'required_responses' => 3,
+                        'status' => 'pending', 'consensus_status' => 'pending', 'required_responses' => 2,
                         'task_domain' => $detectedDomain, 'sentiment' => $sentiment, 'allow_all_roles' => true
                     ]);
 
@@ -321,7 +321,7 @@ class ProcessTaskUploadJob implements ShouldQueue
                     'client_id'         => $this->userId ?: $fallbackUserId,
                     'status'            => 'pending',
                     'consensus_status'  => 'pending',
-                    'required_responses'=> 3,
+                    'required_responses'=> 2,
                     'task_domain'       => 'law',
                     'allow_all_roles'   => true
                 ]);

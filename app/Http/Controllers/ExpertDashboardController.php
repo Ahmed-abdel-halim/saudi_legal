@@ -460,6 +460,37 @@ class ExpertDashboardController extends Controller
         return response()->json(['success' => false, 'message' => 'إجراء غير معروف']);
     }
 
+    public function redeemTokens(Request $request)
+    {
+        $request->validate([
+            'tokens' => 'required|integer|min:1',
+        ]);
+
+        $user = Auth::user();
+        $tokensToRedeem = (int) $request->input('tokens');
+
+        if (($user->audit_tokens ?? 0) < $tokensToRedeem) {
+            return back()->with('error', app()->getLocale() === 'ar' 
+                ? '❌ عذراً، لا تمتلك رصيد نقاط كافٍ لإتمام عملية الاستبدال.' 
+                : '❌ Sorry, you do not have enough points balance.');
+        }
+
+        // 1 token = 10 extra legal assistant messages
+        $extraLimit = $tokensToRedeem * 10;
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $tokensToRedeem, $extraLimit) {
+            \Illuminate\Support\Facades\DB::table('users')->where('id', $user->id)->update([
+                'audit_tokens' => \Illuminate\Support\Facades\DB::raw("audit_tokens - {$tokensToRedeem}"),
+                'extra_messages_limit' => \Illuminate\Support\Facades\DB::raw("extra_messages_limit + {$extraLimit}"),
+                'updated_at' => now(),
+            ]);
+        });
+
+        return back()->with('success', app()->getLocale() === 'ar'
+            ? "✅ تم استبدال {$tokensToRedeem} نقطة بنجاح! تم إضافة {$extraLimit} رسالة إضافية لرصيد استخدام المساعد القانوني."
+            : "✅ Successfully redeemed {$tokensToRedeem} points! Added {$extraLimit} extra messages to your legal assistant balance.");
+    }
+
     public function settings()
     {
         $user = Auth::user();

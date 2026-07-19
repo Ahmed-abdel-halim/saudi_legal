@@ -49,6 +49,8 @@ class User extends Authenticatable
         'avatar_path',
         'job_title',
         'bio',
+        'audit_tokens',
+        'extra_messages_limit',
         // Reputation metrics
         'rating_average',
         'rating_count',

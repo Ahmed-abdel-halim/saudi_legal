@@ -132,8 +132,9 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/legal-workbench/delete-citation', [\App\Http\Controllers\Dashboard\Expert\Legal\LegalTaskController::class, 'deleteCitation'])->name('.legal_workbench.delete_citation');
 
             Route::get('/settings', [ExpertDashboardController::class, 'settings'])->name('.settings');
-            Route::post('/purchase/{id}/accept', [ExpertDashboardController::class, 'acceptPurchase'])->name('.purchase.accept');
             Route::post('/settings', [ExpertDashboardController::class, 'settings']);
+            Route::post('/redeem-tokens', [ExpertDashboardController::class, 'redeemTokens'])->name('.redeem_tokens');
+            Route::post('/purchase/{id}/accept', [ExpertDashboardController::class, 'acceptPurchase'])->name('.purchase.accept');
 
             // EXPERT CHAT routes (Prefix: dashboard.expert)
             Route::get('/messages', [ChatController::class, 'index'])->name('.chat.index');

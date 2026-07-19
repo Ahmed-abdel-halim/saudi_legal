@@ -193,6 +193,19 @@
     </nav>
 
     <div class="container mx-auto px-4 py-8 max-w-6xl">
+        @if(session('success'))
+            <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3.5 rounded-2xl mb-6 text-sm font-bold shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-circle-check text-green-500"></i>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3.5 rounded-2xl mb-6 text-sm font-bold shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-circle-xmark text-red-500"></i>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
@@ -315,8 +328,7 @@
                     }
                 @endphp
                 @if($isLawDomain)
-                {{-- SAUDI LEGAL SPECIAL CARDS --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {{-- Workbench Card --}}
                     <div class="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden group border-4 border-white/10">
                         <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 -mr-16 -mt-16 rounded-full blur-3xl transition group-hover:scale-150 duration-700"></div>
@@ -357,6 +369,52 @@
                                 اسأل المساعد <i class="fa-solid fa-comment-dots"></i>
                             </a>
                         </div>
+                    </div>
+                </div>
+
+                {{-- Points & Tokens Redemption Card --}}
+                <div class="bg-gradient-to-r from-purple-700 to-indigo-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden group border-4 border-white/10 mt-4">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 -mr-16 -mt-16 rounded-full blur-3xl transition group-hover:scale-150 duration-700"></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-xl shadow-inner">
+                                    <i class="fa-solid fa-coins text-yellow-400 animate-bounce"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-xl font-black">رصيد نقاط التدقيق (Tokens)</h2>
+                                    <p class="text-purple-100/75 text-xs">احصل على نقاط من التدقيق واستبدلها برصيد للمستشار الذكي</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 bg-black/20 rounded-2xl p-4 mb-6">
+                            <div class="text-center border-l border-white/10">
+                                <p class="text-xs text-purple-200">النقاط الحالية</p>
+                                <p class="text-2xl font-black mt-1 text-yellow-300">{{ $user->audit_tokens ?? 0 }} <span class="text-xs font-normal">نقطة</span></p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs text-purple-200">الرسائل الإضافية النشطة</p>
+                                <p class="text-2xl font-black mt-1 text-emerald-300">+{{ $user->extra_messages_limit ?? 0 }} <span class="text-xs font-normal">رسالة</span></p>
+                            </div>
+                        </div>
+
+                        <form action="{{ route('dashboard.expert.redeem_tokens') }}" method="POST" class="flex flex-col sm:flex-row gap-3">
+                            @csrf
+                            <div class="flex-1 relative">
+                                <input type="number" name="tokens" min="1" max="{{ $user->audit_tokens ?? 0 }}" value="{{ $user->audit_tokens ?? '' }}" 
+                                       placeholder="عدد النقاط للاستبدال" 
+                                       class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 text-center font-bold"
+                                       required>
+                                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-purple-200 font-bold hidden sm:block">1 نقطة = 10 رسائل</div>
+                            </div>
+                            <button type="submit" 
+                                    class="bg-white text-purple-850 hover:bg-purple-50 px-6 py-3 rounded-xl font-black text-sm shadow-xl transition transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                    {{ ($user->audit_tokens ?? 0) <= 0 ? 'disabled' : '' }}>
+                                استبدال برصيد المساعد
+                            </button>
+                        </form>
+                        <p class="text-[10px] text-purple-200 mt-2 text-center">كل نقطة تدقيق تقوم باستبدالها تمنحك 10 رسائل إضافية لرصيد استخدام المساعد القانوني الخاص بك.</p>
                     </div>
                 </div>
                 @endif

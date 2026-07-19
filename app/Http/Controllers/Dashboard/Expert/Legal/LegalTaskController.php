@@ -54,8 +54,14 @@ class LegalTaskController extends Controller
         if (!$currentQA) {
             $skippedIds = session()->get('legal_task_history_' . $expert->id, []);
 
+            // التحقق مما إذا كان المحامي خبيراً ذا خبرة أكبر (Senior Expert)
+            $completedCount = \App\Models\AiResponse::where('expert_id', $expert->id)
+                ->whereHas('task.legalTask')
+                ->count();
+            $isSeniorExpert = $expert->trust_score >= 90 && $completedCount >= 10;
+
             $nextLegalTask = LegalTask::where('source_type', 'legal_qa_pair')
-                ->whereHas('task', function ($query) use ($expert) {
+                ->whereHas('task', function ($query) use ($expert, $isSeniorExpert) {
                     $query->whereIn('status', ['pending', 'in_progress'])
                         ->whereColumn('current_responses', '<', 'required_responses')
                         ->whereDoesntHave('responses', function ($q) use ($expert) {
@@ -64,6 +70,14 @@ class LegalTaskController extends Controller
                         ->whereDoesntHave('assignments', function ($q) use ($expert) {
                             $q->where('expert_id', $expert->id);
                         });
+
+                    // إذا لم يكن المحامي خبيراً كبيراً، يتم استبعاد المهام التي تحتاج لفك الارتباط/الترجيح (Tie-breaker)
+                    if (!$isSeniorExpert) {
+                        $query->where(function ($q) {
+                            $q->where('required_responses', '!=', 3)
+                              ->orWhere('current_responses', '!=', 2);
+                        });
+                    }
                 })
                 ->whereNotIn('source_id', $skippedIds)
                 ->orderBy('id', 'asc')
@@ -630,10 +644,14 @@ class LegalTaskController extends Controller
                         'correction_notes' => $request->expert_comment,
                         'confidence_level' => 10,
                         'action'           => $request->is_correct ? 'accepted' : 'edited',
-                        'reward_amount'    => 2.00,
+                        'reward_amount'    => 0.00, // تم استبدال العائد المالي بنظام النقاط
                         'time_spent'       => $request->input('time_spent'),
                     ]
                 );
+
+                // منح الخبير نقطة واحدة/توكنز للمحفظة بعد التدقيق
+                $expertUser = Auth::user();
+                DB::table('users')->where('id', $expertUser->id)->increment('audit_tokens', 1);
 
 
 
@@ -1069,9 +1087,14 @@ class LegalTaskController extends Controller
             ->whereDate('created_at', Carbon::today())
             ->count();
 
+        $completedCount = \App\Models\AiResponse::where('expert_id', $expert->id)
+            ->whereHas('task.legalTask')
+            ->count();
+        $isSeniorExpert = $expert->trust_score >= 90 && $completedCount >= 10;
+
         // حساب عدد المهام التوافقية المتاحة للخبير الحالي
         $pendingTasks = LegalTask::where('source_type', 'legal_qa_pair')
-            ->whereHas('task', function ($query) use ($expert) {
+            ->whereHas('task', function ($query) use ($expert, $isSeniorExpert) {
                 $query->whereIn('status', ['pending', 'in_progress'])
                     ->whereColumn('current_responses', '<', 'required_responses')
                     ->whereDoesntHave('responses', function ($q) use ($expert) {
@@ -1080,6 +1103,14 @@ class LegalTaskController extends Controller
                     ->whereDoesntHave('assignments', function ($q) use ($expert) {
                         $q->where('expert_id', $expert->id);
                     });
+
+                // تصفية المهام التي تحتاج لترجيح/حسم إذا لم يكن المحامي خبيراً كبيراً
+                if (!$isSeniorExpert) {
+                    $query->where(function ($q) {
+                        $q->where('required_responses', '!=', 3)
+                          ->orWhere('current_responses', '!=', 2);
+                    });
+                }
             })
             ->count();
 

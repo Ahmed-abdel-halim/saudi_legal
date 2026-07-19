@@ -476,21 +476,99 @@
 
         // دالة لعرض شارة مؤشر الثقة بتنسيق جميل
         function renderConfidenceBadge(score) {
-            let colorClass = 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-450';
-            let dotClass = 'bg-emerald-500';
+            const gradientId = 'gauge-grad-' + Math.random().toString(36).substr(2, 9);
             
-            if (score < 75) {
-                colorClass = 'bg-rose-50 dark:bg-rose-950/30 border-rose-100 dark:border-rose-500/20 text-rose-700 dark:text-rose-450';
-                dotClass = 'bg-rose-500';
-            } else if (score < 90) {
-                colorClass = 'bg-amber-50 dark:bg-amber-950/30 border-amber-100 dark:border-amber-500/20 text-amber-700 dark:text-amber-450';
-                dotClass = 'bg-amber-500';
+            // تحديد محطات التدرج ديناميكياً لتناسب النسبة المئوية
+            let stopsHtml = '';
+            
+            if (score >= 90) {
+                // للنسب العالية جداً: يبدأ الأحمر وينتهي سريعاً ليكون الأخضر هو الغالب على معظم القوس
+                stopsHtml = `
+                    <stop offset="0%" stop-color="#E11D48" />   <!-- أحمر في البداية -->
+                    <stop offset="20%" stop-color="#F59E0B" />  <!-- أصفر سريع -->
+                    <stop offset="45%" stop-color="#10B981" />  <!-- أخضر يبدأ مبكراً -->
+                    <stop offset="100%" stop-color="#059669" /> <!-- أخضر داكن في النهاية -->
+                `;
+            } else if (score >= 75) {
+                // للنسب المتوسطة المرتفعة: تدرج طبيعي متوازن يظهر فيه الأخضر في النهاية فقط
+                stopsHtml = `
+                    <stop offset="0%" stop-color="#E11D48" />
+                    <stop offset="45%" stop-color="#F59E0B" />
+                    <stop offset="85%" stop-color="#10B981" />
+                    <stop offset="100%" stop-color="#10B981" />
+                `;
+            } else {
+                // للنسب المنخفضة: تدرج من الأحمر إلى الأصفر فقط بدون أي لون أخضر
+                stopsHtml = `
+                    <stop offset="0%" stop-color="#E11D48" />
+                    <stop offset="60%" stop-color="#E11D48" />
+                    <stop offset="100%" stop-color="#FBBF24" />
+                `;
             }
             
             return `
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-black tracking-tight shrink-0 select-none shadow-sm ${colorClass}">
-                    <span class="w-1.5 h-1.5 rounded-full ${dotClass}"></span>
-                    <span>نسبة مطابقة: ${score}%</span>
+                <div class="relative flex items-center justify-center w-16 h-16 md:w-20 md:h-20 shrink-0 select-none">
+                    <!-- Gauge SVG -->
+                    <svg class="w-full h-full relative z-0" viewBox="0 0 36 36">
+                        <defs>
+                            <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="0%">
+                                ${stopsHtml}
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Background Track -->
+                        <circle
+                            cx="18"
+                            cy="18"
+                            r="16"
+                            fill="none"
+                            stroke="#E2E8F0"
+                            class="dark:stroke-slate-800"
+                            stroke-width="2.5"
+                            stroke-dasharray="75 100"
+                            stroke-linecap="round"
+                            transform="rotate(135 18 18)"
+                        />
+
+                        <!-- Active Progress Glow (Ambient glow) -->
+                        <circle
+                            cx="18"
+                            cy="18"
+                            r="16"
+                            fill="none"
+                            stroke="url(#${gradientId})"
+                            stroke-width="4.5"
+                            stroke-dasharray="${score * 0.75} 100"
+                            stroke-linecap="round"
+                            transform="rotate(135 18 18)"
+                            opacity="0.15"
+                            class="transition-all duration-1000 ease-out"
+                        />
+
+                        <!-- Active Progress Track -->
+                        <circle
+                            cx="18"
+                            cy="18"
+                            r="16"
+                            fill="none"
+                            stroke="url(#${gradientId})"
+                            stroke-width="2.8"
+                            stroke-dasharray="${score * 0.75} 100"
+                            stroke-linecap="round"
+                            transform="rotate(135 18 18)"
+                            class="transition-all duration-1000 ease-out"
+                        />
+
+                        <!-- Start (0) and End (100) labels -->
+                        <text x="7.5" y="34" font-size="3" font-weight="extrabold" fill="#E11D48" text-anchor="middle" class="font-sans">0</text>
+                        <text x="28.5" y="34" font-size="3" font-weight="extrabold" fill="#10B981" text-anchor="middle" class="font-sans">100</text>
+                    </svg>
+
+                    <!-- Inner Bezel (White Circle with shadow) -->
+                    <div class="absolute w-[44px] h-[44px] md:w-[56px] md:h-[56px] rounded-full bg-white dark:bg-dark-card shadow-[0_3px_8px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[0_4px_10px_rgba(0,0,0,0.4)] border border-slate-200/40 dark:border-white/5 flex flex-col items-center justify-center z-10">
+                        <span class="text-xs md:text-sm font-black text-slate-850 dark:text-slate-100 tracking-tight leading-none">${score}%</span>
+                        <span class="text-[8px] md:text-[9px] font-bold text-slate-400 dark:text-slate-500 tracking-wide leading-none mt-1">مطابقة</span>
+                    </div>
                 </div>
             `;
         }
@@ -632,7 +710,14 @@
 
         // عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', () => {
-            loadConversations();
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialUuid = urlParams.get('c');
+            
+            if (initialUuid) {
+                loadConversation(initialUuid);
+            } else {
+                loadConversations();
+            }
             
             // تهيئة السايدبار وحالة الخلفية المظللة حسب حجم الشاشة
             const sidebar = document.getElementById('chat-sidebar');
@@ -761,6 +846,10 @@
             document.getElementById('welcome-visuals').style.display = 'flex';
             loadConversations();
             
+            // تحديث رابط الصفحة بدون إعادة تحميل
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+            
             // إغلاق في الموبايل
             if (window.innerWidth < 768) {
                 document.getElementById('chat-sidebar').classList.add('translate-x-full');
@@ -775,6 +864,10 @@
             currentConversationUuid = uuid;
             const chatMessages = document.getElementById('chat-messages');
             const mainContainer = document.getElementById('chat-container');
+            
+            // تحديث رابط الصفحة بدون إعادة تحميل
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?c=' + uuid;
+            window.history.pushState({ path: newUrl }, '', newUrl);
             
             // إخفاء الواجهة الترحيبية
             document.getElementById('welcome-visuals').style.display = 'none';
@@ -974,6 +1067,8 @@
                 // تحديث الـ UUID للمحادثة الحالية إذا كانت جديدة
                 if (!currentConversationUuid && data.conversation_uuid) {
                     currentConversationUuid = data.conversation_uuid;
+                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?c=' + currentConversationUuid;
+                    window.history.pushState({ path: newUrl }, '', newUrl);
                     if (!isLoggedIn) {
                         saveGuestConversationUuid(data.conversation_uuid);
                     }
