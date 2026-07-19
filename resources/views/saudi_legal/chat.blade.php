@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>المساعد القانوني الذكي | رديف</title>
-    
+
     {{-- Favicons --}}
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/icon.png') }}">
     <link rel="shortcut icon" href="{{ asset('images/icon.png') }}">
     {{-- External CSS/JS Libraries --}}
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     {{-- Tailwind Configuration --}}
     <script>
         tailwind.config = {
@@ -23,26 +25,26 @@
                         'sans': ['Tajawal', 'sans-serif'],
                     },
                     colors: {
-                        'dark-navy':       '#0b1120',
-                        'dark-card':       '#111827',
-                        'dark-border':     '#1f2d40',
-                        'slate-light':     '#F8FAFC',
-                        'brand-primary':   '#4F46E5',
+                        'dark-navy': '#0b1120',
+                        'dark-card': '#111827',
+                        'dark-border': '#1f2d40',
+                        'slate-light': '#F8FAFC',
+                        'brand-primary': '#4F46E5',
                         'brand-secondary': '#8B5CF6',
-                        'brand-dark':      '#1E293B',
-                        'brand-green':     '#0d9488',
+                        'brand-dark': '#1E293B',
+                        'brand-green': '#0d9488',
                         'brand-green-dim': '#0f766e',
-                        'brand-teal':      '#0d9488',
-                        'brand-cyan':      '#06b6d4',
+                        'brand-teal': '#0d9488',
+                        'brand-cyan': '#06b6d4',
                     },
                     backgroundImage: {
                         'gradient-primary': 'linear-gradient(135deg, #4F46E5 0%, #8B5CF6 100%)',
-                        'gradient-green':   'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)',
+                        'gradient-green': 'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)',
                     },
                     boxShadow: {
-                        'glow':       '0 0 20px rgba(79, 70, 229, 0.4)',
+                        'glow': '0 0 20px rgba(79, 70, 229, 0.4)',
                         'green-glow': '0 0 20px rgba(13, 148, 136, 0.35)',
-                        'teal-glow':  '0 0 15px rgba(13, 148, 136, 0.3)',
+                        'teal-glow': '0 0 15px rgba(13, 148, 136, 0.3)',
                     }
                 }
             }
@@ -59,10 +61,16 @@
             document.documentElement.classList.remove('dark');
         }
     </script>
-    
+
     <style>
-        body, input, button, select, textarea { font-family: 'Tajawal', sans-serif; }
-        
+        body,
+        input,
+        button,
+        select,
+        textarea {
+            font-family: 'Tajawal', sans-serif;
+        }
+
         /* Radial Gradients Background (Platform Identity) */
         .premium-bg {
             background-color: transparent;
@@ -72,6 +80,7 @@
             position: relative;
             overflow: hidden;
         }
+
         .dark .premium-bg {
             background-image:
                 radial-gradient(ellipse at 20% 20%, rgba(79, 70, 229, 0.08) 0%, transparent 55%),
@@ -88,6 +97,7 @@
             pointer-events: none;
             z-index: 0;
         }
+
         .dark body::before {
             background-image: radial-gradient(circle, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
         }
@@ -100,6 +110,7 @@
             border: 1px solid rgba(255, 255, 255, 0.8);
             box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.03);
         }
+
         .dark .glass-panel {
             background: rgba(17, 24, 39, 0.7);
             backdrop-filter: blur(16px);
@@ -115,6 +126,7 @@
             border-left: 1px solid rgba(15, 23, 42, 0.05);
             box-shadow: 4px 0 24px rgba(0, 0, 0, 0.01);
         }
+
         .dark .glass-sidebar {
             background: rgba(17, 24, 39, 0.6);
             backdrop-filter: blur(20px);
@@ -127,14 +139,15 @@
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 1);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
             border-radius: 2rem 2rem 0 2rem;
         }
+
         .dark .glass-bubble {
             background: rgba(17, 24, 39, 0.9);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
         }
 
         /* Gradient Text (Brand Colors) */
@@ -149,6 +162,7 @@
             box-shadow: 0 0 30px rgba(13, 148, 136, 0.15);
             border-color: rgba(13, 148, 136, 0.4);
         }
+
         .dark .input-glow:focus-within {
             box-shadow: 0 0 30px rgba(13, 148, 136, 0.25);
             border-color: rgba(13, 148, 136, 0.5);
@@ -159,26 +173,32 @@
             width: 5px;
             height: 5px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-track {
             background: transparent;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: rgba(13, 148, 136, 0.3);
             border-radius: 999px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(13, 148, 136, 0.6);
         }
+
         /* Mobile input safe area support */
         .chat-input-bar {
             padding-bottom: 5rem;
             padding-top: 0.5rem;
         }
+
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
             .chat-input-bar {
                 padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
             }
         }
+
         @media (min-width: 768px) {
             .chat-input-bar {
                 padding-bottom: 1.5rem;
@@ -186,13 +206,17 @@
         }
     </style>
 </head>
-<body class="bg-[#f8fafc] dark:bg-dark-navy h-screen h-[100dvh] overflow-hidden flex font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors duration-300">
+
+<body
+    class="bg-[#f8fafc] dark:bg-dark-navy h-screen h-[100dvh] overflow-hidden flex font-sans antialiased text-slate-800 dark:text-slate-100 transition-colors duration-300">
 
     <!-- Sidebar (سجل المحادثات الجانبي) -->
-    <aside id="chat-sidebar" class="w-80 h-full glass-sidebar flex flex-col z-30 transition-all duration-300 fixed right-0 top-0 transform translate-x-0">
+    <aside id="chat-sidebar"
+        class="w-80 h-full glass-sidebar flex flex-col z-30 transition-all duration-300 fixed right-0 top-0 transform translate-x-0">
         <!-- Sidebar Header: New Chat Button -->
         <div class="p-4 border-b border-slate-200/50 dark:border-white/10">
-            <button onclick="startNewChat()" class="w-full py-3.5 px-4 bg-gradient-to-br from-brand-green to-brand-green-dim text-white rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-brand-green/20 active:scale-[0.98] transition-all cursor-pointer font-bold text-sm shadow-md">
+            <button onclick="startNewChat()"
+                class="w-full py-3.5 px-4 bg-gradient-to-br from-brand-green to-brand-green-dim text-white rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-brand-green/20 active:scale-[0.98] transition-all cursor-pointer font-bold text-sm shadow-md">
                 <i class="fa-solid fa-plus text-xs"></i>
                 محادثة جديدة
             </button>
@@ -209,13 +233,17 @@
         </div>
 
         <!-- Sidebar Usage Limit Widget (مؤشر حدود الاستخدام والرسائل المجانية) -->
-        <div id="usage-limit-widget" class="px-4 py-3.5 mx-3 mb-4 bg-white/70 dark:bg-dark-card/70 border border-slate-200/50 dark:border-white/10 rounded-2xl shadow-sm hidden">
-            <div class="flex items-center justify-between text-[11px] font-bold mb-1.5 text-slate-700 dark:text-slate-350">
+        <div id="usage-limit-widget"
+            class="px-4 py-3.5 mx-3 mb-4 bg-white/70 dark:bg-dark-card/70 border border-slate-200/50 dark:border-white/10 rounded-2xl shadow-sm hidden">
+            <div
+                class="flex items-center justify-between text-[11px] font-bold mb-1.5 text-slate-700 dark:text-slate-350">
                 <span id="usage-limit-label">الرسائل المتبقية:</span>
                 <span id="usage-limit-ratio">...</span>
             </div>
             <div class="w-full bg-slate-200/80 dark:bg-slate-700/80 rounded-full h-1.5 overflow-hidden">
-                <div id="usage-limit-bar" class="bg-gradient-to-r from-brand-green to-brand-teal h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                <div id="usage-limit-bar"
+                    class="bg-gradient-to-r from-brand-green to-brand-teal h-full rounded-full transition-all duration-300"
+                    style="width: 0%"></div>
             </div>
             <div id="usage-limit-action" class="mt-2 text-center">
                 <!-- Injected link/button -->
@@ -223,9 +251,11 @@
         </div>
 
         <!-- Sidebar Footer: Logged User info -->
-        <div class="p-4 border-t border-slate-200/50 dark:border-white/10 bg-white/20 dark:bg-white/5 flex items-center justify-between gap-3">
+        <div
+            class="p-4 border-t border-slate-200/50 dark:border-white/10 bg-white/20 dark:bg-white/5 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center text-sm font-bold shadow-sm">
+                <div
+                    class="w-9 h-9 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center text-sm font-bold shadow-sm">
                     @auth
                         {{ mb_substr(auth()->user()->name, 0, 1) }}
                     @else
@@ -243,31 +273,35 @@
                     <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500">الوصول المجاني</span>
                 </div>
             </div>
-            <button onclick="toggleSidebar()" class="md:hidden w-8 h-8 rounded-lg bg-slate-200/60 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 flex items-center justify-center text-xs hover:bg-slate-200 dark:hover:bg-slate-800">
+            <button onclick="toggleSidebar()"
+                class="md:hidden w-8 h-8 rounded-lg bg-slate-200/60 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 flex items-center justify-center text-xs hover:bg-slate-200 dark:hover:bg-slate-800">
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
     </aside>
 
     <!-- Backdrop for mobile sidebar -->
-    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/40 z-20 hidden backdrop-blur-sm transition-all duration-300"></div>
+    <div id="sidebar-backdrop" onclick="toggleSidebar()"
+        class="fixed inset-0 bg-black/40 z-20 hidden backdrop-blur-sm transition-all duration-300"></div>
 
     <!-- Main Chat Window (النافذة الرئيسية) -->
-    <div id="main-content" class="flex-1 h-full flex flex-col relative overflow-hidden transition-all duration-300 md:mr-80">
-        
+    <div id="main-content"
+        class="flex-1 h-full flex flex-col relative overflow-hidden transition-all duration-300 md:mr-80">
+
         <!-- Navbar -->
         <nav class="relative z-10 glass-panel px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-brand-green hover:bg-teal-50 dark:hover:bg-teal-950/30 transition shadow-sm cursor-pointer border border-slate-200/50 dark:border-white/10">
+                <button onclick="toggleSidebar()"
+                    class="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-brand-green hover:bg-teal-50 dark:hover:bg-teal-950/30 transition shadow-sm cursor-pointer border border-slate-200/50 dark:border-white/10">
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <div class="flex items-center gap-2 sm:gap-3">
                     <img src="{{ asset('images/icon.png') }}"
-                        onerror="this.src='https://placehold.co/40x40/0d9488/0b1120?text=R'"
-                        alt="Logo"
+                        onerror="this.src='https://placehold.co/40x40/0d9488/0b1120?text=R'" alt="Logo"
                         class="h-8 w-8 sm:h-10 sm:w-10 rounded-full shadow-md object-cover ring-2 ring-brand-green/30">
                     <div>
-                        <h1 class="text-sm sm:text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight">رديف القانوني</h1>
+                        <h1 class="text-sm sm:text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight">رديف
+                            القانوني</h1>
 
                     </div>
                 </div>
@@ -279,25 +313,29 @@
             </div>
 
             <!-- Exit button -->
-            <a href="{{ url('/') }}" class="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition shadow-sm border border-slate-200/50 dark:border-white/10">
+            <a href="{{ url('/') }}"
+                class="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition shadow-sm border border-slate-200/50 dark:border-white/10">
                 <i class="fa-solid fa-arrow-left"></i>
             </a>
         </nav>
 
         <!-- Chat Container -->
         <div class="premium-bg flex-1 w-full flex flex-col relative overflow-hidden">
-            <main id="chat-container" class="flex-1 relative z-10 flex flex-col max-w-7xl mx-auto w-full px-4 pt-10 pb-4 overflow-y-auto custom-scrollbar">
-                
+            <main id="chat-container"
+                class="flex-1 relative z-10 flex flex-col max-w-7xl mx-auto w-full px-4 pt-10 pb-4 overflow-y-auto custom-scrollbar">
+
                 <!-- Welcome visuals / screen -->
                 <div class="flex-1 flex flex-col items-center justify-center relative mb-12" id="welcome-visuals">
                     <img src="{{ asset('images/icon.png') }}"
-                        onerror="this.src='https://placehold.co/80x80/0d9488/0b1120?text=R'"
-                        alt="Radiif Logo"
+                        onerror="this.src='https://placehold.co/80x80/0d9488/0b1120?text=R'" alt="Radiif Logo"
                         class="w-20 h-20 rounded-full shadow-xl object-cover ring-4 ring-brand-green/30 mb-6">
-                    <div class="glass-bubble p-8 max-w-2xl text-center relative border border-slate-200/50 dark:border-white/10">
-                        <h2 class="text-xl font-black text-slate-800 dark:text-slate-100 mb-3">مرحباً بك في مستشارك القانوني الذكي!</h2>
+                    <div
+                        class="glass-bubble p-8 max-w-2xl text-center relative border border-slate-200/50 dark:border-white/10">
+                        <h2 class="text-xl font-black text-slate-800 dark:text-slate-100 mb-3">مرحباً بك في مستشارك
+                            القانوني الذكي!</h2>
                         <p class="text-sm text-slate-650 dark:text-slate-300 leading-relaxed font-medium">
-                            أنا هنا لمساعدتك في استخراج السوابق والأحكام القضائية، وقراءة نصوص الأنظمة والتشريعات السعودية المترابطة بالمعنى الدلالي. محادثتي الآن مزودة بالذاكرة الكاملة لحفظ سياق حديثك.
+                            أنا هنا لمساعدتك في استخراج السوابق والأحكام القضائية، وقراءة نصوص الأنظمة والتشريعات
+                            السعودية المترابطة بالمعنى الدلالي. محادثتي الآن مزودة بالذاكرة الكاملة لحفظ سياق حديثك.
                         </p>
                     </div>
                 </div>
@@ -305,19 +343,21 @@
                 <!-- Chat messages log -->
                 <div id="chat-messages" class="flex flex-col w-full max-w-4xl mx-auto mt-6 px-2 pb-4">
                 </div>
-                
+
             </main>
 
             <!-- Chat input area -->
             <div class="w-full relative z-20 chat-input-bar">
                 <div class="max-w-4xl mx-auto px-4">
-                    <div class="relative w-full input-glow transition-all duration-300 rounded-full bg-white dark:bg-dark-card border border-slate-200/50 dark:border-white/10 shadow-xl shadow-black/5">
-                        <input type="text" id="question-input" 
+                    <div
+                        class="relative w-full input-glow transition-all duration-300 rounded-full bg-white dark:bg-dark-card border border-slate-200/50 dark:border-white/10 shadow-xl shadow-black/5">
+                        <input type="text" id="question-input"
                             class="w-full bg-transparent border-none focus:ring-0 px-6 md:px-8 py-4 md:py-5 text-sm md:text-base text-slate-800 dark:text-slate-100 font-medium placeholder-slate-400 dark:placeholder-slate-500 outline-none pr-16 md:pr-20 text-right"
                             placeholder="اكتب سؤالك القانوني هنا... (مثال: ما هي شروط تملك العقار؟)"
                             onkeypress="if(event.key === 'Enter') submitQuestion()">
-                        
-                        <button onclick="submitQuestion()" id="btn-send" class="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-brand-green to-brand-teal text-white rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg shadow-brand-green/20 cursor-pointer z-50">
+
+                        <button onclick="submitQuestion()" id="btn-send"
+                            class="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-brand-green to-brand-teal text-white rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg shadow-brand-green/20 cursor-pointer z-50">
                             <i class="fa-solid fa-paper-plane text-base md:text-lg rtl:-scale-x-100"></i>
                         </button>
                     </div>
@@ -340,19 +380,19 @@
 
             function renderGroup(items, groupId, label, icon, isJudgment) {
                 if (items.length === 0) return '';
-                
+
                 const initialVisibleCount = 2;
                 const showMoreBtn = items.length > initialVisibleCount;
-                
+
                 let visibleHtml = '';
                 let hiddenHtml = '';
-                
+
                 items.forEach((item, index) => {
                     const title = item.title || 'مرجع قانوني';
                     const text = item.text || '';
                     const confidence = item.score ? Math.round(item.score * 100) : null;
                     const confidenceBadge = confidence ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 border border-slate-200/50 dark:border-white/5 shrink-0 select-none">${confidence}% تطابق</span>` : '';
-                    
+
                     let titleHtml = '';
                     if (isJudgment) {
                         const systemInfo = item.system ? `<span class="text-[10px] font-black text-brand-green dark:text-brand-teal tracking-wide leading-tight">${item.system}</span>` : '';
@@ -379,7 +419,7 @@
                         titleHtml = `<span class="text-xs font-black text-slate-700 dark:text-slate-200 leading-snug">${title}</span>`;
                     }
 
-                    const typeBadge = isJudgment 
+                    const typeBadge = isJudgment
                         ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-455 border border-indigo-100 dark:border-indigo-900/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-gavel text-[8px]"></i> حكم قضائي</span>`
                         : `<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-650 dark:text-emerald-450 border border-emerald-100 dark:border-emerald-900/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-scroll text-[8px]"></i> مادة نظامية</span>`;
 
@@ -399,7 +439,7 @@
                             <p class="text-xs text-slate-800 dark:text-slate-100 leading-relaxed text-right font-medium max-h-24 overflow-y-auto custom-scrollbar pr-1.5">${text}</p>
                         </div>
                     `;
-                    
+
                     if (index < initialVisibleCount) {
                         visibleHtml += cardHtml;
                     } else {
@@ -421,10 +461,10 @@
                     `;
                 }
 
-                const labelColorClass = isJudgment 
-                    ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' 
+                const labelColorClass = isJudgment
+                    ? 'text-indigo-600 dark:text-indigo-400 font-extrabold'
                     : 'text-brand-green dark:text-brand-teal font-extrabold';
-                
+
                 const iconColorClass = isJudgment
                     ? 'text-indigo-500/70 dark:text-indigo-500/50'
                     : 'text-brand-green/70 dark:text-brand-teal/50';
@@ -474,48 +514,42 @@
             }
         }
 
-        // دالة لعرض شارة مؤشر الثقة بتنسيق جميل
+        // دالة لعرض شارة مؤشر الثقة بتنسيق جميل بلون موحد للفئة (أحمر للضعيف، برتقالي للمتوسط، أخضر للمرتفع)
         function renderConfidenceBadge(score) {
             const gradientId = 'gauge-grad-' + Math.random().toString(36).substr(2, 9);
-            
-            // تحديد محطات التدرج ديناميكياً لتناسب النسبة المئوية
-            let stopsHtml = '';
-            
-            if (score >= 90) {
-                // للنسب العالية جداً: يبدأ الأحمر وينتهي سريعاً ليكون الأخضر هو الغالب على معظم القوس
-                stopsHtml = `
-                    <stop offset="0%" stop-color="#E11D48" />   <!-- أحمر في البداية -->
-                    <stop offset="20%" stop-color="#F59E0B" />  <!-- أصفر سريع -->
-                    <stop offset="45%" stop-color="#10B981" />  <!-- أخضر يبدأ مبكراً -->
-                    <stop offset="100%" stop-color="#059669" /> <!-- أخضر داكن في النهاية -->
-                `;
-            } else if (score >= 75) {
-                // للنسب المتوسطة المرتفعة: تدرج طبيعي متوازن يظهر فيه الأخضر في النهاية فقط
-                stopsHtml = `
-                    <stop offset="0%" stop-color="#E11D48" />
-                    <stop offset="45%" stop-color="#F59E0B" />
-                    <stop offset="85%" stop-color="#10B981" />
-                    <stop offset="100%" stop-color="#10B981" />
-                `;
+
+            let textColorClass = 'text-emerald-500 dark:text-emerald-450';
+
+            if (score < 50) {
+                // ضعيف (أحمر)
+                textColorClass = 'text-rose-650 dark:text-rose-500';
+            } else if (score < 80) {
+                // متوسط (برتقالي)
+                textColorClass = 'text-orange-600 dark:text-orange-500';
             } else {
-                // للنسب المنخفضة: تدرج من الأحمر إلى الأصفر فقط بدون أي لون أخضر
-                stopsHtml = `
-                    <stop offset="0%" stop-color="#E11D48" />
-                    <stop offset="60%" stop-color="#E11D48" />
-                    <stop offset="100%" stop-color="#FBBF24" />
-                `;
+                // مرتفع (أخضر)
+                textColorClass = 'text-emerald-500 dark:text-emerald-450';
             }
-            
+
+            // تدرج لوني مائل وموزّع بدقة: أحمر صغير في البداية، ثم أصفر صغير، ثم أخضر يستمر على طول القوس
+            const stopsHtml = `
+                <stop offset="0%" stop-color="#EF4444" />    <!-- أحمر ضعيف في البداية -->
+                <stop offset="15%" stop-color="#EF4444" />
+                <stop offset="25%" stop-color="#F59E0B" />   <!-- أصفر/برتقالي انتقالي صغير -->
+                <stop offset="40%" stop-color="#10B981" />   <!-- أخضر يبدأ مبكراً -->
+                <stop offset="100%" stop-color="#059669" />  <!-- أخضر مرتفع داكن للنهاية -->
+            `;
+
             return `
                 <div class="relative flex items-center justify-center w-16 h-16 md:w-20 md:h-20 shrink-0 select-none">
                     <!-- Gauge SVG -->
                     <svg class="w-full h-full relative z-0" viewBox="0 0 36 36">
                         <defs>
-                            <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <linearGradient id="${gradientId}" x1="34" y1="18" x2="7" y2="29" gradientUnits="userSpaceOnUse">
                                 ${stopsHtml}
                             </linearGradient>
                         </defs>
-
+ 
                         <!-- Background Track -->
                         <circle
                             cx="18"
@@ -529,7 +563,7 @@
                             stroke-linecap="round"
                             transform="rotate(135 18 18)"
                         />
-
+ 
                         <!-- Active Progress Glow (Ambient glow) -->
                         <circle
                             cx="18"
@@ -544,7 +578,7 @@
                             opacity="0.15"
                             class="transition-all duration-1000 ease-out"
                         />
-
+ 
                         <!-- Active Progress Track -->
                         <circle
                             cx="18"
@@ -558,15 +592,15 @@
                             transform="rotate(135 18 18)"
                             class="transition-all duration-1000 ease-out"
                         />
-
+ 
                         <!-- Start (0) and End (100) labels -->
-                        <text x="7.5" y="34" font-size="3" font-weight="extrabold" fill="#E11D48" text-anchor="middle" class="font-sans">0</text>
-                        <text x="28.5" y="34" font-size="3" font-weight="extrabold" fill="#10B981" text-anchor="middle" class="font-sans">100</text>
+                        <text x="7.5" y="34" font-size="3" font-weight="extrabold" fill="#10B981" text-anchor="middle" class="font-sans">100</text>
+                        <text x="28.5" y="34" font-size="3" font-weight="extrabold" fill="#E11D48" text-anchor="middle" class="font-sans">0</text>
                     </svg>
-
+ 
                     <!-- Inner Bezel (White Circle with shadow) -->
                     <div class="absolute w-[44px] h-[44px] md:w-[56px] md:h-[56px] rounded-full bg-white dark:bg-dark-card shadow-[0_3px_8px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[0_4px_10px_rgba(0,0,0,0.4)] border border-slate-200/40 dark:border-white/5 flex flex-col items-center justify-center z-10">
-                        <span class="text-xs md:text-sm font-black text-slate-850 dark:text-slate-100 tracking-tight leading-none">${score}%</span>
+                        <span class="text-xs md:text-sm font-black tracking-tight leading-none ${textColorClass}">${score}%</span>
                         <span class="text-[8px] md:text-[9px] font-bold text-slate-400 dark:text-slate-500 tracking-wide leading-none mt-1">مطابقة</span>
                     </div>
                 </div>
@@ -581,18 +615,18 @@
             const ratioSpan = document.getElementById('usage-limit-ratio');
             const bar = document.getElementById('usage-limit-bar');
             const actionDiv = document.getElementById('usage-limit-action');
-            
+
             userReferralLink = usage.referral_link || '';
-            
+
             widget.classList.remove('hidden');
             const remaining = Math.max(0, usage.limit - usage.count);
             remainingMessagesCount = remaining;
             labelSpan.textContent = 'الرسائل المتبقية:';
             ratioSpan.textContent = `${remaining} رسالة`;
-            
+
             const percentage = Math.min(100, (usage.count / usage.limit) * 100);
             bar.style.width = `${percentage}%`;
-            
+
             // تلوين البار حسب الاستهلاك
             if (percentage >= 90) {
                 bar.className = "bg-gradient-to-r from-rose-500 to-orange-500 h-full rounded-full transition-all duration-300";
@@ -601,7 +635,7 @@
             } else {
                 bar.className = "bg-gradient-to-r from-brand-green to-brand-teal h-full rounded-full transition-all duration-300";
             }
-            
+
             // تعيين الرابط أو الزر
             if (!usage.is_logged_in) {
                 actionDiv.innerHTML = `
@@ -616,7 +650,7 @@
                     </button>
                 `;
             }
-            
+
             // إظهار المودال مباشرة إذا انتهى الرصيد
             if (usage.count >= usage.limit) {
                 showLimitModal(usage.is_logged_in);
@@ -629,13 +663,13 @@
             const title = document.getElementById('limit-modal-title');
             const desc = document.getElementById('limit-modal-description');
             const actions = document.getElementById('limit-modal-actions');
-            
+
             modal.classList.remove('hidden');
             setTimeout(() => {
                 box.classList.remove('scale-95', 'opacity-0');
                 box.classList.add('scale-100', 'opacity-100');
             }, 50);
-            
+
             if (!isLoggedIn) {
                 title.textContent = 'لقد استنفدت الرسائل التجريبية!';
                 desc.textContent = 'لقد استخدمت الحد الأقصى المتاح للزوار وهو 10 رسائل. للتكملة والحصول على 10 رسائل إضافية، يرجى تسجيل بياناتك مجاناً.';
@@ -712,13 +746,13 @@
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const initialUuid = urlParams.get('c');
-            
+
             if (initialUuid) {
                 loadConversation(initialUuid);
             } else {
                 loadConversations();
             }
-            
+
             // تهيئة السايدبار وحالة الخلفية المظللة حسب حجم الشاشة
             const sidebar = document.getElementById('chat-sidebar');
             const mainContent = document.getElementById('main-content');
@@ -738,7 +772,7 @@
             const sidebar = document.getElementById('chat-sidebar');
             const mainContent = document.getElementById('main-content');
             const backdrop = document.getElementById('sidebar-backdrop');
-            
+
             if (sidebar.classList.contains('translate-x-0')) {
                 sidebar.classList.remove('translate-x-0');
                 sidebar.classList.add('translate-x-full');
@@ -775,7 +809,7 @@
                 const data = await response.json();
                 const conversations = data.conversations || [];
                 const usage = data.usage;
-                
+
                 // تحديث الـ Widget بناءً على الاستهلاك الحالي المرسل من السيرفر
                 if (usage) {
                     updateUsageUi(usage);
@@ -812,7 +846,7 @@
         // حذف محادثة
         async function deleteConversation(uuid, event) {
             event.stopPropagation();
-            if(!confirm('هل أنت متأكد من رغبتك في حذف هذه المحادثة؟')) return;
+            if (!confirm('هل أنت متأكد من رغبتك في حذف هذه المحادثة؟')) return;
 
             try {
                 const response = await fetch(`/legal-assistant/conversations/${uuid}`, {
@@ -845,11 +879,11 @@
             document.getElementById('chat-messages').innerHTML = '';
             document.getElementById('welcome-visuals').style.display = 'flex';
             loadConversations();
-            
+
             // تحديث رابط الصفحة بدون إعادة تحميل
             const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             window.history.pushState({ path: newUrl }, '', newUrl);
-            
+
             // إغلاق في الموبايل
             if (window.innerWidth < 768) {
                 document.getElementById('chat-sidebar').classList.add('translate-x-full');
@@ -864,11 +898,11 @@
             currentConversationUuid = uuid;
             const chatMessages = document.getElementById('chat-messages');
             const mainContainer = document.getElementById('chat-container');
-            
+
             // تحديث رابط الصفحة بدون إعادة تحميل
             const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?c=' + uuid;
             window.history.pushState({ path: newUrl }, '', newUrl);
-            
+
             // إخفاء الواجهة الترحيبية
             document.getElementById('welcome-visuals').style.display = 'none';
 
@@ -889,9 +923,9 @@
                     throw new Error("HTTP status " + response.status);
                 }
                 const data = await response.json();
-                
+
                 chatMessages.innerHTML = '';
-                
+
                 data.messages.forEach(m => {
                     if (m.role === 'user') {
                         const userHtml = `
@@ -926,7 +960,7 @@
                         const confidenceHtml = (Array.isArray(citations) && citations.length > 0)
                             ? renderConfidenceBadge(confidenceScore)
                             : '';
-                        
+
                         const aiHtml = `
                             <div class="flex justify-end mb-8">
                                 <div class="bg-white/95 dark:bg-dark-card/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/5 border border-slate-200/50 dark:border-white/5 px-4 md:px-8 py-5 md:py-7 w-full md:max-w-[95%] rounded-3xl rounded-tl-none relative overflow-hidden">
@@ -974,7 +1008,7 @@
         async function submitQuestion() {
             const input = document.getElementById('question-input');
             const question = input.value.trim();
-            if(!question) return;
+            if (!question) return;
 
             // منع الإرسال محلياً إذا تم تخطي الحد
             if (remainingMessagesCount <= 0) {
@@ -987,7 +1021,7 @@
 
             // إخفاء المحتويات الترحيبية
             const visuals = document.getElementById('welcome-visuals');
-            if(visuals) visuals.style.display = 'none';
+            if (visuals) visuals.style.display = 'none';
 
             // إضافة رسالة المستخدم للشاشة
             const userMsgHtml = `
@@ -998,7 +1032,7 @@
                 </div>
             `;
             chatMessages.insertAdjacentHTML('beforeend', userMsgHtml);
-            
+
             const loadingId = 'loading-' + Date.now();
             const loadingHtml = `
                 <div id="${loadingId}" class="flex justify-end mb-8">
@@ -1025,7 +1059,7 @@
                         'X-CSRF-TOKEN': "{{ csrf_token() }}",
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         question: question,
                         conversation_uuid: currentConversationUuid
                     })
@@ -1040,16 +1074,16 @@
                                 // إزالة رسالة المستخدم الأخيرة من الشاشة لعدم اكتمال الإرسال
                                 const lastUserMsg = chatMessages.lastElementChild;
                                 if (lastUserMsg) lastUserMsg.remove();
-                                
+
                                 // إرجاع السؤال المكتوب وإعادة تفعيل زر الإرسال
                                 input.value = question;
                                 document.getElementById('btn-send').disabled = false;
                                 document.getElementById('btn-send').innerHTML = '<i class="fa-solid fa-paper-plane text-lg rtl:-scale-x-100"></i>';
-                                
+
                                 showLimitModal(isLoggedIn);
                                 return;
                             }
-                        } catch(e) {}
+                        } catch (e) { }
                     }
                     throw new Error("HTTP status " + response.status);
                 }
@@ -1061,7 +1095,7 @@
                 if (!data || !data.answer) {
                     throw new Error("Empty answer from API");
                 }
-                
+
                 document.getElementById(loadingId).remove();
 
                 // تحديث الـ UUID للمحادثة الحالية إذا كانت جديدة
@@ -1093,7 +1127,7 @@
                 const confidenceHtml = (Array.isArray(citations) && citations.length > 0)
                     ? renderConfidenceBadge(confidenceScore)
                     : '';
-                
+
                 const aiMsgHtml = `
                     <div class="flex justify-end mb-8">
                         <div class="bg-white/95 dark:bg-dark-card/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/5 border border-slate-200/50 dark:border-white/5 px-4 md:px-8 py-5 md:py-7 w-full md:max-w-[95%] rounded-3xl rounded-tl-none relative overflow-hidden">
@@ -1118,7 +1152,7 @@
                     </div>
                 `;
                 chatMessages.insertAdjacentHTML('beforeend', aiMsgHtml);
-                
+
                 // إعادة تحميل قائمة المحادثات لتحديث العنوان
                 loadConversations();
 
@@ -1141,17 +1175,23 @@
     </script>
 
     <!-- Limit Reached Modal (شاشة حظر تخطي الحد المجاني) -->
-    <div id="limit-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 hidden">
-        <div class="bg-white/95 dark:bg-dark-card/95 rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-200/50 dark:border-white/10 text-center transform transition-all duration-300 scale-95 opacity-0 relative" id="limit-modal-box">
+    <div id="limit-modal"
+        class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-white/95 dark:bg-dark-card/95 rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-200/50 dark:border-white/10 text-center transform transition-all duration-300 scale-95 opacity-0 relative"
+            id="limit-modal-box">
             <!-- Close Button -->
-            <button onclick="closeLimitModal()" class="absolute left-4 top-4 w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-400 dark:text-slate-500 hover:text-slate-650 dark:hover:text-slate-350 transition cursor-pointer">
+            <button onclick="closeLimitModal()"
+                class="absolute left-4 top-4 w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-400 dark:text-slate-500 hover:text-slate-650 dark:hover:text-slate-350 transition cursor-pointer">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
-            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-brand-green to-brand-green-dim text-white flex items-center justify-center text-2xl shadow-lg shadow-brand-green/20 mx-auto mb-5">
+            <div
+                class="w-16 h-16 rounded-full bg-gradient-to-br from-brand-green to-brand-green-dim text-white flex items-center justify-center text-2xl shadow-lg shadow-brand-green/20 mx-auto mb-5">
                 <i class="fa-solid fa-lock"></i>
             </div>
-            <h3 class="text-lg font-black text-slate-800 dark:text-slate-100 mb-2" id="limit-modal-title">لقد نفدت رسائلك المجانية!</h3>
-            <p class="text-sm text-slate-650 dark:text-slate-350 leading-relaxed mb-6 font-semibold" id="limit-modal-description">
+            <h3 class="text-lg font-black text-slate-800 dark:text-slate-100 mb-2" id="limit-modal-title">لقد نفدت
+                رسائلك المجانية!</h3>
+            <p class="text-sm text-slate-650 dark:text-slate-350 leading-relaxed mb-6 font-semibold"
+                id="limit-modal-description">
                 يرجى التسجيل لفتح 10 رسائل إضافية مجاناً ومتابعة استشارتك القانونية.
             </p>
             <div class="flex flex-col gap-3" id="limit-modal-actions">
@@ -1161,4 +1201,5 @@
     </div>
 
 </body>
+
 </html>
