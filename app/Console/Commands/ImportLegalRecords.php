@@ -133,17 +133,20 @@ class ImportLegalRecords extends Command
 
         LazyCollection::make(function () use ($file) {
             $handle = fopen($file, 'r');
+            $lineIndex = 0;
             while (($line = fgets($handle)) !== false) {
-                yield trim($line);
+                $lineIndex++;
+                yield [$lineIndex, trim($line)];
             }
             fclose($handle);
         })
-        ->filter(fn($line) => !empty($line))
+        ->filter(fn($item) => !empty($item[1]))
         ->when($limit, fn($col) => $col->take($limit))
-        ->each(function (string $line) use ($bar, $clientId) {
+        ->each(function (array $item) use ($bar, $clientId) {
+            [$lineIndex, $line] = $item;
             try {
                 $data = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
-                $this->importRecord($data, $clientId);
+                $this->importRecord($data, $clientId, $lineIndex);
                 unset($data);
             } catch (\Throwable $e) {
                 $this->errors++;
@@ -192,7 +195,7 @@ class ImportLegalRecords extends Command
         return $string;
     }
 
-    private function importRecord(array $data, ?int $clientId): void
+    private function importRecord(array $data, ?int $clientId, int $lineIndex = 0): void
     {
         $meta      = $data['metadata'] ?? [];
         $caseNum   = trim($meta['case_number'] ?? '');
@@ -200,7 +203,7 @@ class ImportLegalRecords extends Command
         $date      = trim($meta['date']        ?? '');
 
         // Skip if already imported
-        $recordId = $this->buildRecordId($caseNum);
+        $recordId = $this->buildRecordId($caseNum, $lineIndex);
         if (LegalRecord::where('record_id', $recordId)->exists()) {
             $this->skipped++;
             return;
@@ -720,11 +723,11 @@ class ImportLegalRecords extends Command
         return $articleCache[$cacheKey];
     }
 
-    private function buildRecordId(string $caseNumber): string
+    private function buildRecordId(string $caseNumber, int $lineIndex = 0): string
     {
-        // Deterministic: hash case number to consistent short ID
-        $hash = substr(md5($caseNumber), 0, 8);
-        return 'RD-LGL-' . strtoupper($hash);
+        // Deterministic: index + hash case number to guarantee unique record ID per entry
+        $hash = substr(md5($caseNumber), 0, 6);
+        return 'RD-LGL-' . sprintf('%05d', $lineIndex) . '-' . strtoupper($hash);
     }
 
     private function resolveSubDomain(string $courtType): string
