@@ -293,6 +293,11 @@ Route::middleware(['superadmin'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/azure', [\App\Http\Controllers\Admin\AzureManagementController::class, 'index'])->name('azure.index');
     Route::post('/azure/sync', [\App\Http\Controllers\Admin\AzureManagementController::class, 'sync'])->name('azure.sync');
 
+    // AI Chat Logs & Monitoring
+    Route::get('/ai-chats', [\App\Http\Controllers\Admin\AdminAiChatLogsController::class, 'index'])->name('ai_chats.index');
+    Route::get('/ai-chats/{uuid}', [\App\Http\Controllers\Admin\AdminAiChatLogsController::class, 'show'])->name('ai_chats.show');
+    Route::post('/ai-chats/messages/{messageId}/convert-task', [\App\Http\Controllers\Admin\AdminAiChatLogsController::class, 'convertToTask'])->name('ai_chats.convert_task');
+
     Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('users.index');
     Route::patch('/users/{id}/toggle-status', [\App\Http\Controllers\Admin\AdminUserController::class, 'toggleStatus'])->name('users.toggle-status');
     Route::delete('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'destroy'])->name('users.destroy');

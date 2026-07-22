@@ -86,6 +86,10 @@
                         <i class="fa-solid fa-file-contract w-6 text-center group-hover:text-white transition {{ request()->routeIs('admin.legal.*') ? 'text-white' : '' }}"></i>
                         <span class="mx-3 font-medium">الإدارة القانونية</span>
                     </a>
+                    <a class="flex items-center px-4 py-2.5 {{ request()->routeIs('admin.ai_chats.*') ? 'text-white bg-sidebar-hover' : 'text-slate-400 hover:bg-sidebar-hover hover:text-white' }} rounded-lg transition group" href="{{ route('admin.ai_chats.index') }}">
+                        <i class="fa-solid fa-comments w-6 text-center group-hover:text-white transition {{ request()->routeIs('admin.ai_chats.*') ? 'text-white' : '' }}"></i>
+                        <span class="mx-3 font-medium">محادثات البوت (AI Logs)</span>
+                    </a>
                     <a class="flex items-center px-4 py-2.5 {{ request()->routeIs('admin.azure.*') ? 'text-white bg-sidebar-hover' : 'text-slate-400 hover:bg-sidebar-hover hover:text-white' }} rounded-lg transition group" href="{{ route('admin.azure.index') }}">
                         <i class="fa-solid fa-cloud w-6 text-center group-hover:text-white transition {{ request()->routeIs('admin.azure.*') ? 'text-white' : '' }}"></i>
                         <span class="mx-3 font-medium">تكامل Azure</span>
