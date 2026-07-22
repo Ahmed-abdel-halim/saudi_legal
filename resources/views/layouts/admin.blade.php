@@ -64,7 +64,7 @@
             
             <div class="flex items-center justify-between pl-2 mb-8 pr-2">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/30">R</div>
+                    <img src="{{ asset('images/icon.png') }}" alt="Logo" class="w-10 h-10 rounded-xl shadow-md object-cover ring-2 ring-emerald-500/30">
                     <span class="text-2xl font-black text-white tracking-tight">{!! __('admin.radiif_admin') !!}</span>
                 </a>
                 <button @click="sidebarOpen = false" class="lg:hidden text-slate-400 hover:text-white transition">
