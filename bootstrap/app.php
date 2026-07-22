@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Exclude Stripe webhook from CSRF verification — signature check in controller provides security
         $middleware->validateCsrfTokens(except: [
             '/stripe/webhook',
+            '/stripe/ai-subscription/webhook',
         ]);
 
         $middleware->web(append: [

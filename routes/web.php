@@ -298,6 +298,16 @@ Route::middleware(['superadmin'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/ai-chats/{uuid}', [\App\Http\Controllers\Admin\AdminAiChatLogsController::class, 'show'])->name('ai_chats.show');
     Route::post('/ai-chats/messages/{messageId}/convert-task', [\App\Http\Controllers\Admin\AdminAiChatLogsController::class, 'convertToTask'])->name('ai_chats.convert_task');
 
+    // AI Subscription Packages Management
+    Route::get('/ai-packages', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'index'])->name('ai_packages.index');
+    Route::get('/ai-packages/create', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'create'])->name('ai_packages.create');
+    Route::post('/ai-packages', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'store'])->name('ai_packages.store');
+    Route::get('/ai-packages/{aiPackage}/edit', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'edit'])->name('ai_packages.edit');
+    Route::put('/ai-packages/{aiPackage}', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'update'])->name('ai_packages.update');
+    Route::patch('/ai-packages/{aiPackage}/toggle', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'toggleActive'])->name('ai_packages.toggle');
+    Route::delete('/ai-packages/{aiPackage}', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'destroy'])->name('ai_packages.destroy');
+    Route::get('/ai-packages-subscriptions', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'subscriptions'])->name('ai_packages.subscriptions');
+
     Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('users.index');
     Route::patch('/users/{id}/toggle-status', [\App\Http\Controllers\Admin\AdminUserController::class, 'toggleStatus'])->name('users.toggle-status');
     Route::delete('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'destroy'])->name('users.destroy');
@@ -379,6 +389,19 @@ Route::get('/stripe/webhook', function () {
         'docs' => 'https://stripe.com/docs/webhooks',
     ], 200);
 });
+
+// ─── AI Subscription Packages Routes ────────────────────────────────────────
+// Public Pricing Page
+Route::get('/ai-assistant/packages', [App\Http\Controllers\Legal\AiSubscriptionPaymentController::class, 'pricingPage'])->name('ai.packages');
+
+// Subscription Checkout & Success (requires auth)
+Route::middleware('auth')->group(function () {
+    Route::get('/ai-assistant/checkout/{package}', [App\Http\Controllers\Legal\AiSubscriptionPaymentController::class, 'checkout'])->name('ai.subscription.checkout');
+    Route::get('/ai-assistant/subscription/success', [App\Http\Controllers\Legal\AiSubscriptionPaymentController::class, 'success'])->name('ai.subscription.success');
+});
+
+// AI Subscription Stripe Webhook (no auth, no CSRF)
+Route::post('/stripe/ai-subscription/webhook', [App\Http\Controllers\Legal\AiSubscriptionPaymentController::class, 'webhook'])->name('ai.subscription.webhook');
 
 // ─── B2B SaaS Public Pages (Crawlable for Google Approval) ───────────────────
 Route::get('/api-docs', [App\Http\Controllers\PageController::class, 'apiDocs'])->name('pages.api_docs');

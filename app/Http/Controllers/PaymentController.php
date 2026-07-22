@@ -152,6 +152,19 @@ class PaymentController extends Controller
 
         $sessionObj = $event->data->object;
 
+        // ── Route to the correct handler based on metadata.type ──────────────
+        $metadataType = $sessionObj->metadata->type ?? null;
+
+        if ($metadataType === 'ai_subscription') {
+            // Handle AI subscription events
+            match ($event->type) {
+                'checkout.session.completed' => app(\App\Http\Controllers\Legal\AiSubscriptionPaymentController::class)->handleWebhookEvent($sessionObj, 'completed'),
+                'checkout.session.expired'   => app(\App\Http\Controllers\Legal\AiSubscriptionPaymentController::class)->handleWebhookEvent($sessionObj, 'expired'),
+                default => Log::info('Stripe webhook: unhandled AI event', ['type' => $event->type]),
+            };
+            return response()->json(['status' => 'ok'], 200);
+        }
+
         switch ($event->type) {
 
             // ── Payment confirmed ────────────────────────────────────────────

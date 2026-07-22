@@ -807,46 +807,79 @@ class LegalAiController extends Controller
     }
 
     /**
-     * التحقق من حد الرسائل المسموح بها للزائر / العضو / الإحالة
+     * التحقق من حد الرسائل المسموح بها للزائر / العضو / الإحالة / الاشتراك
      */
     private function checkMessageLimit(Request $request, &$messageCount, &$limit)
     {
         if (auth()->check()) {
             $user = auth()->user();
-            
-            // حساب الرسائل المرسلة بواسطة العضو المسجل
+
+            // ── Check active paid subscription first ───────────────────────────
+            $subscription = \App\Models\AiSubscription::where('user_id', $user->id)
+                ->where('status', 'active')
+                ->where(function ($q) {
+                    $q->whereNull('ends_at')->orWhere('ends_at', '>', now());
+                })
+                ->with('package')
+                ->latest()
+                ->first();
+
+            if ($subscription && $subscription->package) {
+                // Subscription is active — count queries used in this billing period
+                $periodStart = $subscription->starts_at ?? now()->startOfMonth();
+
+                $messageCount = AiMessage::where('role', 'user')
+                    ->whereHas('conversation', function ($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                    })
+                    ->where('created_at', '>=', $periodStart)
+                    ->count();
+
+                if ($subscription->package->is_unlimited || $subscription->package->query_limit === -1) {
+                    $limit = PHP_INT_MAX; // لامحدود
+                } else {
+                    $limit = $subscription->package->query_limit;
+                }
+
+                // Sync queries_used in subscription record
+                $subscription->update(['queries_used' => $messageCount]);
+                return;
+            }
+
+            // ── Free tier (no active subscription) ───────────────────────────
             $messageCount = AiMessage::where('role', 'user')
                 ->whereHas('conversation', function ($q) use ($user) {
                     $q->where('user_id', $user->id);
                 })
                 ->count();
-                
-            // التحقق مما إذا كان قد قام بدعوة صديق واحد على الأقل
+
+            // التحقق من الإحالات
             $hasReferrals = \App\Models\User::where('referred_by', $user->id)->exists();
-            
-            // 20 رسالة أساسية للأعضاء، وإذا دعا صديقاً تصبح 40 رسالة (20 إضافية) + رصيد التوكنز المستبدل
+
+            // 20 رسالة أساسية، 40 مع إحالة + رصيد إضافي
             $limit = ($hasReferrals ? 40 : 20) + ($user->extra_messages_limit ?? 0);
+
         } else {
             // حساب الرسائل المرسلة كزائر بناءً على الجلسة
             $sessionUuids = session()->get('ai_conversations', []);
-            
+
             $guestUuids = [];
             if ($request->has('guest_uuids')) {
                 $guestUuids = explode(',', $request->input('guest_uuids'));
                 $guestUuids = array_filter($guestUuids, fn($u) => !empty($u) && Str::isUuid($u));
             }
-            
+
             $allUuids = array_unique(array_merge($sessionUuids, $guestUuids));
             if ($request->has('conversation_uuid') && !in_array($request->conversation_uuid, $allUuids)) {
                 $allUuids[] = $request->conversation_uuid;
             }
-            
+
             $messageCount = AiMessage::where('role', 'user')
                 ->whereHas('conversation', function ($q) use ($allUuids) {
                     $q->whereIn('uuid', $allUuids);
                 })
                 ->count();
-                
+
             // 10 رسائل للزوار
             $limit = 10;
         }

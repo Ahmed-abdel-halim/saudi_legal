@@ -643,6 +643,12 @@
                         <i class="fa-solid fa-user-plus"></i> سجل مجاناً لفتح 10 رسائل إضافية!
                     </a>
                 `;
+            } else if (usage.count >= usage.limit) {
+                actionDiv.innerHTML = `
+                    <a href="{{ route('ai.packages') }}" class="text-[10px] font-black text-brand-green hover:underline flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-bolt"></i> ترقية الحساب — باقات المحترف القانوني
+                    </a>
+                `;
             } else {
                 actionDiv.innerHTML = `
                     <button onclick="copyReferralLink()" class="text-[10px] font-black text-brand-teal hover:underline flex items-center justify-center gap-1 mx-auto cursor-pointer border-none bg-transparent">
@@ -682,11 +688,18 @@
                     </a>
                 `;
             } else {
-                title.textContent = 'لقد نفدت رسائلك المجانية للأعضاء!';
-                desc.textContent = 'لقد استخدمت 20 رسالة مجانية. لفتح 20 رسالة إضافية ومواصلة استشاراتك القانونية، يرجى نسخ رابط الدعوة وإرساله لصديق للتسجيل في منصتنا.';
+                title.textContent = '⚡ ارتقِ باشتراكك الآن!';
+                desc.innerHTML = `لقد استخدمت كامل استعلاماتك المجانية.<br>
+                    اختر الباقة المناسبة لاحتياجاتك واحصل على استعلامات مفتوحة وبحث في السوابق القضائية والأنظمة.`;
                 actions.innerHTML = `
-                    <button onclick="copyReferralLink()" class="w-full py-3.5 px-4 bg-gradient-to-br from-brand-green to-brand-teal text-white rounded-2xl font-bold shadow-lg shadow-brand-green/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer border-none">
-                        <i class="fa-solid fa-copy"></i> نسخ رابط الدعوة الخاص بك
+                    <a href="{{ route('ai.packages') }}" class="w-full py-3.5 px-4 bg-gradient-to-br from-brand-green to-brand-teal text-white rounded-2xl font-bold shadow-lg shadow-brand-green/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 block text-center">
+                        <i class="fa-solid fa-bolt"></i> اشترك في باقة المحترف (99 ر.س / شهر)
+                    </a>
+                    <a href="{{ route('ai.packages') }}" class="w-full py-2.5 px-4 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-600/50 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 block text-center text-xs">
+                        <i class="fa-solid fa-layer-group text-amber-400"></i> تصفّح جميع الباقات والخطط الأخرى
+                    </a>
+                    <button onclick="copyReferralLink()" class="w-full mt-1 py-2 px-4 text-slate-400 hover:text-slate-200 rounded-2xl text-xs font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer bg-transparent border-none">
+                        <i class="fa-solid fa-share-nodes"></i> أو أدعُ صديقاً لفتح 20 رسالة مجانية
                     </button>
                 `;
             }
