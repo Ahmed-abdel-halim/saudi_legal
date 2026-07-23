@@ -75,15 +75,9 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
         }
     </script>
     <script>
-        // Init theme immediately to prevent layout shift
-        if (!localStorage.getItem('color-theme')) {
-            localStorage.setItem('color-theme', 'dark');
-        }
-        if (localStorage.getItem('color-theme') === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+        // Force dark mode layout
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('color-theme', 'dark');
     </script>
 
     {{-- Custom Styles --}}
@@ -159,25 +153,11 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
     <header class="fixed w-full top-0 z-50 transition-all duration-500 glass @if(request()->hasCookie('impersonation_token')) mt-[48px] @endif" 
             x-data="{ 
                 mobileMenuOpen: false, 
-                scrolled: false, 
-                darkMode: localStorage.getItem('color-theme') === 'dark' 
+                scrolled: false 
             }" 
             x-init="
                 window.addEventListener('scroll', () => { scrolled = window.scrollY > 20 });
-                $watch('darkMode', val => {
-                    if (val) {
-                        document.documentElement.classList.add('dark');
-                        localStorage.setItem('color-theme', 'dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                        localStorage.setItem('color-theme', 'light');
-                    }
-                });
-                if (darkMode) {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
+                document.documentElement.classList.add('dark');
             " 
             :class="scrolled ? 'shadow-lg shadow-black/30' : ''">
         <nav class="container mx-auto px-6 py-3">
@@ -221,14 +201,6 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
 
                 {{-- Desktop Actions --}}
                 <div class="hidden lg:flex items-center gap-3 text-sm">
-                    {{-- Theme Toggle Button --}}
-                    <button @click="darkMode = !darkMode" class="text-slate-500 dark:text-slate-300 hover:text-brand-green p-2 rounded-full transition-all duration-200 border border-slate-200 dark:border-white/10 hover:border-brand-green/30 flex items-center justify-center" aria-label="Toggle Theme">
-                        <!-- Moon Icon (shown in light mode) -->
-                        <svg x-show="!darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                        <!-- Sun Icon (shown in dark mode) -->
-                        <svg x-show="darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" x-cloak><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.46 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z"></path></svg>
-                    </button>
-
                     {{-- Language Switcher --}}
                     <a href="{{ $switchLangUrl }}"
                         class="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-brand-green border border-slate-200 dark:border-white/10 hover:border-brand-green/30 px-2.5 py-1.5 rounded-full transition-all duration-200">

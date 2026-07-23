@@ -828,10 +828,84 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
         cursor: pointer;
     }
 
-    .ec-btn:hover {
+    /* ─── AI PACKAGES SECTION ──────────────────────────── */
+    .ai-packages-section {
+        background-color: #0b1120;
+        background-image:
+            radial-gradient(ellipse at 50% 0%, rgba(16, 185, 129, 0.15) 0%, transparent 60%),
+            radial-gradient(ellipse at 80% 50%, rgba(79, 70, 229, 0.08) 0%, transparent 50%);
+        padding: 5rem 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .ai-packages-section::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 32px 32px;
+        pointer-events: none;
+    }
+    .pkg-card {
+        background: linear-gradient(145deg, rgba(15, 23, 42, 0.9) 0%, rgba(11, 17, 32, 0.95) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.25rem;
+        padding: 2.25rem 2rem;
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .pkg-card:hover {
+        transform: translateY(-8px);
+        border-color: rgba(16, 185, 129, 0.35);
+        box-shadow: 0 20px 50px -15px rgba(16, 185, 129, 0.25);
+    }
+    .pkg-card.popular {
+        background: linear-gradient(145deg, #0d2b3a 0%, #0a1f33 100%);
+        border-color: rgba(16, 185, 129, 0.45);
+        box-shadow: 0 10px 40px -10px rgba(16, 185, 129, 0.3);
+    }
+    .pkg-card.popular:hover {
+        box-shadow: 0 25px 60px -10px rgba(16, 185, 129, 0.45);
+    }
+    .pkg-badge {
+        position: absolute;
+        top: -14px;
+        right: 24px;
+        background: linear-gradient(90deg, #10b981, #06b6d4);
+        color: #ffffff;
+        font-size: 0.75rem;
+        font-weight: 800;
+        padding: 0.25rem 0.85rem;
+        border-radius: 9999px;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+    .pkg-btn-emerald {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff !important;
+        font-weight: 800;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+        transition: all 0.25s ease;
+    }
+    .pkg-btn-emerald:hover {
+        background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
         transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(13, 148, 136, 0.4);
-        background: linear-gradient(135deg, var(--green) 0%, #2dd4bf 100%);
+    }
+    .pkg-btn-outline {
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #e2e8f0 !important;
+        background: rgba(255, 255, 255, 0.03);
+        font-weight: 700;
+        transition: all 0.25s ease;
+    }
+    .pkg-btn-outline:hover {
+        border-color: rgba(16, 185, 129, 0.5);
+        background: rgba(16, 185, 129, 0.1);
+        color: #34d399 !important;
+        transform: translateY(-2px);
     }
 </style>
 @endpush
@@ -950,6 +1024,226 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                 <p>{{ __('home.WHY_CARD_3_DESC', [], $currentLang) }}</p>
             </div>
         </div>
+    </div>
+</section>
+
+{{-- AI Legal Assistant Packages Section --}}
+<section class="ai-packages-section text-white" dir="{{ $direction }}">
+    <div class="container mx-auto px-4 max-w-6xl relative z-10">
+
+        {{-- Section Badge & Header --}}
+        <div class="text-center max-w-3xl mx-auto mb-14">
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-extrabold tracking-wide mb-4">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                🤖 {{ $currentLang === 'en' ? 'AI Legal Assistant Packages' : 'باقات المساعد القانوني الذكي' }}
+            </span>
+            <h2 class="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight mb-4">
+                {{ $currentLang === 'en' ? 'Exceptional Plans for Legal Professionals' : 'باقات استثنائية لرواد العمل القانوني' }}
+            </h2>
+            <p class="text-slate-400 text-base md:text-lg leading-relaxed">
+                {{ $currentLang === 'en' 
+                    ? 'Invest in AI tools to analyze contracts and search Saudi legal precedents in seconds.' 
+                    : 'استثمر في أدواتك الذكية، واختصر ساعات البحث في السوابق القضائية والأنظمة السعودية بأعلى دقة وسرعة.' }}
+            </p>
+        </div>
+
+        {{-- Packages Grid --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch mb-12">
+            @if(isset($aiPackages) && count($aiPackages) > 0)
+                {{-- Loop from DB packages --}}
+                @foreach($aiPackages as $pkg)
+                    <div class="pkg-card {{ $pkg->is_popular ? 'popular' : '' }}">
+                        @if($pkg->badge_text || $pkg->is_popular)
+                            <div class="pkg-badge">
+                                {{ $pkg->badge_text ?? ($currentLang === 'en' ? 'Most Popular' : '⭐ الأكثر طلباً') }}
+                            </div>
+                        @endif
+
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <h3 class="text-xl font-black text-white">{{ $pkg->name }}</h3>
+                                <span class="text-2xl font-black text-emerald-400">{{ $pkg->price_display }}</span>
+                            </div>
+                            <p class="text-slate-400 text-xs mb-6 leading-relaxed min-h-[36px]">{{ $pkg->description }}</p>
+
+                            <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 mb-6 flex items-center justify-between text-xs text-slate-300">
+                                <span class="font-bold flex items-center gap-1.5">
+                                    <i class="fa-solid fa-bolt text-amber-400"></i>
+                                    {{ $currentLang === 'en' ? 'Monthly Limit' : 'الحد الشهري' }}
+                                </span>
+                                <span class="font-black text-emerald-400">{{ $pkg->query_limit_display }}</span>
+                            </div>
+
+                            <ul class="space-y-3 mb-8 text-xs text-slate-300">
+                                @if(is_array($pkg->features))
+                                    @foreach($pkg->features as $feat)
+                                        <li class="flex items-start gap-2.5">
+                                            <i class="fa-solid fa-circle-check text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+                                            <span>{{ $feat }}</span>
+                                        </li>
+                                    @endforeach
+                                @endif
+                            </ul>
+                        </div>
+
+                        <div>
+                            <a href="{{ route('ai.packages') }}" class="w-full py-3.5 px-4 rounded-xl text-center text-sm block transition-all {{ $pkg->is_popular ? 'pkg-btn-emerald' : 'pkg-btn-outline' }}">
+                                {{ $pkg->is_free ? ($currentLang === 'en' ? 'Start Free Trial' : 'ابدأ مجاناً') : ($currentLang === 'en' ? 'Subscribe Now' : 'اشترك الآن') }}
+                            </a>
+                        </div>
+                    </div>
+                @endforeach
+            @else
+                {{-- Fallback Default Packages --}}
+
+                {{-- 1. Free Package --}}
+                <div class="pkg-card">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <h3 class="text-xl font-black text-white">الباقة التجريبية</h3>
+                            <span class="text-2xl font-black text-emerald-400">مجاناً</span>
+                        </div>
+                        <p class="text-slate-400 text-xs mb-6 leading-relaxed min-h-[36px]">لتجربة المساعد القانوني الذكي واختبار دقة إجاباته في الأنظمة السعودية</p>
+
+                        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 mb-6 flex items-center justify-between text-xs text-slate-300">
+                            <span class="font-bold flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt text-amber-400"></i>
+                                الحد الشهري
+                            </span>
+                            <span class="font-black text-emerald-400">20 استعلاماً شهرياً</span>
+                        </div>
+
+                        <ul class="space-y-3 mb-8 text-xs text-slate-300">
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+                                <span>الوصول للمساعد القانوني الذكي (النسخة القياسية)</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+                                <span>الاطلاع والبحث في الأنظمة واللوائح السعودية</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+                                <span>تحليل الاستفسارات والأسئلة القانونية السريعة</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <a href="{{ route('ai.packages') }}" class="w-full py-3.5 px-4 rounded-xl text-center text-sm block pkg-btn-outline">
+                            ابدأ مجاناً
+                        </a>
+                    </div>
+                </div>
+
+                {{-- 2. Pro Package (Popular) --}}
+                <div class="pkg-card popular">
+                    <div class="pkg-badge">
+                        ⭐ الأكثر طلباً
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <h3 class="text-xl font-black text-white">باقة المحامي الاحترافية</h3>
+                            <div>
+                                <span class="text-2xl font-black text-emerald-400">149 ر.س</span>
+                                <span class="text-[10px] text-slate-400 block text-left">/ شهرياً</span>
+                            </div>
+                        </div>
+                        <p class="text-slate-400 text-xs mb-6 leading-relaxed min-h-[36px]">المثالية للمحامين والمستشارين للبحث المكثف وصياغة المستندات</p>
+
+                        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 mb-6 flex items-center justify-between text-xs text-slate-300">
+                            <span class="font-bold flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt text-amber-400"></i>
+                                الحد الشهري
+                            </span>
+                            <span class="font-black text-emerald-400">150 استعلاماً شهرياً</span>
+                        </div>
+
+                        <ul class="space-y-3 mb-8 text-xs text-slate-300">
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+                                <span>تحليل وتدقيق العقود والاتفاقيات بالذكاء الاصطناعي</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+                                <span>البحث المتقدم في السوابق والأحكام القضائية</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+                                <span>توليد وصياغة المذكرات واللوائح الاعتراضية</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+                                <span>دعم أولوية وحفظ محادثات البحث القانوني</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <a href="{{ route('ai.packages') }}" class="w-full py-3.5 px-4 rounded-xl text-center text-sm block pkg-btn-emerald">
+                            اشترك الآن
+                        </a>
+                    </div>
+                </div>
+
+                {{-- 3. Enterprise Unlimited Package --}}
+                <div class="pkg-card">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <h3 class="text-xl font-black text-white">الباقة المؤسسية</h3>
+                            <div>
+                                <span class="text-2xl font-black text-emerald-400">399 ر.س</span>
+                                <span class="text-[10px] text-slate-400 block text-left">/ شهرياً</span>
+                            </div>
+                        </div>
+                        <p class="text-slate-400 text-xs mb-6 leading-relaxed min-h-[36px]">شاملة كافة الخصائص بدون قيود لمكاتب المحاماة والشركات الكبرى</p>
+
+                        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 mb-6 flex items-center justify-between text-xs text-slate-300">
+                            <span class="font-bold flex items-center gap-1.5">
+                                <i class="fa-solid fa-infinity text-cyan-400"></i>
+                                الحد الشهري
+                            </span>
+                            <span class="font-black text-cyan-400">استعلامات غير محدودة</span>
+                        </div>
+
+                        <ul class="space-y-3 mb-8 text-xs text-slate-300">
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+                                <span>جميع ميزات باقة المحامي بدون أي حدود</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+                                <span>ربط وتكامل API مخصص للمكاتب والشركات</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+                                <span>تصدير المخرجات والتقارير القانونية بصيغ (PDF / Word)</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+                                <span>مدير حساب مخصص ودعم فني على مدار الساعة 24/7</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <a href="{{ route('ai.packages') }}" class="w-full py-3.5 px-4 rounded-xl text-center text-sm block pkg-btn-outline">
+                            ترقية للباقة المؤسسية
+                        </a>
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        {{-- Footer Link --}}
+        <div class="text-center">
+            <a href="{{ route('ai.packages') }}" class="inline-flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 font-bold transition-all hover:underline">
+                <span>{{ $currentLang === 'en' ? 'Explore all packages details & FAQs' : 'عرض كافة تفاصيل الباقات والأسئلة الشائعة' }}</span>
+                <i class="fa-solid {{ $direction === 'rtl' ? 'fa-arrow-left' : 'fa-arrow-right' }} text-xs"></i>
+            </a>
+        </div>
+
     </div>
 </section>
 

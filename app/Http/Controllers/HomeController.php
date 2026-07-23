@@ -40,6 +40,15 @@ class HomeController extends Controller
         $exploreUrl = route('services.browse');
         $supplierUrl = $isLoggedIn ? '#' : '#';
 
-        return view('home', compact('services', 'isLoggedIn', 'exploreUrl', 'supplierUrl'));
+        $aiPackages = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('ai_packages')) {
+                $aiPackages = \App\Models\AiPackage::where('is_active', true)->orderBy('sort_order')->get();
+            }
+        } catch (\Throwable $e) {
+            $aiPackages = collect();
+        }
+
+        return view('home', compact('services', 'isLoggedIn', 'exploreUrl', 'supplierUrl', 'aiPackages'));
     }
 }
