@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->integer('audit_tokens')->default(0)->after('trust_score');
-            $table->integer('extra_messages_limit')->default(0)->after('audit_tokens');
+            if (!Schema::hasColumn('users', 'audit_tokens')) {
+                $table->integer('audit_tokens')->default(0)->after('trust_score');
+            }
+            if (!Schema::hasColumn('users', 'extra_messages_limit')) {
+                $table->integer('extra_messages_limit')->default(0)->after('audit_tokens');
+            }
         });
     }
 
@@ -23,7 +27,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['audit_tokens', 'extra_messages_limit']);
+            if (Schema::hasColumn('users', 'extra_messages_limit')) {
+                $table->dropColumn('extra_messages_limit');
+            }
+            if (Schema::hasColumn('users', 'audit_tokens')) {
+                $table->dropColumn('audit_tokens');
+            }
         });
     }
 };
