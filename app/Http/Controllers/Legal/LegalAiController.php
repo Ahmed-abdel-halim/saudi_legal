@@ -463,7 +463,8 @@ class LegalAiController extends Controller
         // 5. بناء الـ Prompt وهيكلة تاريخ الرسائل بالكامل
         $prompt = "أنت المستشار القانوني الذكي لمنصة 'رديف'. وظيفتك هي صياغة استشارات قانونية دقيقة بناءً على نصوص القضايا والمواد النظامية السعودية المرفقة فقط.
 
-قواعد العمل الصارمة:
+ قواعد العمل الصارمة:
+- عدم كتابة التفكير الداخلي: يُمنع منعاً باتاً إخراج أفكارك الداخلية أو التفكير بصوت عالٍ أو إدراج نصوص تبدأ بـ 'THOUGHT:' أو 'Reasoning:' أو استخدام وسم '<thought>'. صُغ الاستجابة الموجهة للمستخدم فوراً وبصيغة نهائية مباشرة باللغة العربية.
 - تحديد نطاق العمل والأسئلة غير القانونية: إذا كان سؤال المستخدم عاماً، أو دردشة، أو ترحيباً، أو خارج النطاق القانوني والقضائي السعودي تماماً (مثال: 'ما هو اسم الرئيس المصري السابق؟'، أو أي أسئلة تاريخية أو جغرافية أو عامة لا تغطيها نصوص القضايا المرفقة)، فيجب عليك إجابته باختصار وبلطف وبصيغة ودية كفقرة عادية واحدة مباشرة بأنك متخصص فقط في الأنظمة والقضايا السعودية، ولا تقم أبداً بتقسيم إجابتك أو استخدام الهيكل الثلاثي (الرأي القانوني، الاستدلال، التحليل) في هذه الحالة.
 - الالتزام بالمصادر للأسئلة القانونية: لا تخرج عن نطاق نصوص القضايا والمواد النظامية التي تم تزويدك بها. إذا كانت المعلومات غير كافية للإجابة، اذكر بوضوح: 'بناءً على السوابق القضائية المتوفرة، لم نجد ما يغطي هذه الجزئية بدقة، ولكن المبدأ العام المتبع هو...' (ولا تختلق إجابة).
 - منع الإشارة لمراجع خارجية: يمنع منعاً باتاً استحضار أو ذكر أرقام مواد نظامية أو أنظمة غير موجودة في (السياق المتاح حالياً). لا تستشهد بـ 'المادة 164 من اللائحة التنفيذية لنظام المحاكم التجارية' أو غيرها ما لم تكن واردة في السياق.
@@ -518,6 +519,9 @@ class LegalAiController extends Controller
             $answer = $this->callGeminiApi($contents);
             $searchMethod .= '_gemini';
         }
+
+        // 6.2. تنقية الرد من أي نصوص تفكير داخلية (Chain of Thought / THOUGHT: / <thought>)
+        $answer = $this->cleanModelResponse($answer);
 
         // 6.5. فحص الإجابة واستخراج المواد التي تمت الإشارة إليها فعلياً وإضافتها للـ citations
         $answerArticles = $this->referenceService->getMentionedArticles($answer);
@@ -623,7 +627,7 @@ class LegalAiController extends Controller
             Log::info("Gemini Flash Response Status: " . $response->status() . " | Body: " . mb_substr($response->body(), 0, 500));
 
             if ($response->successful()) {
-                return $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? "عذراً، لم أتمكن من صياغة الإجابة.";
+                return $this->extractGeminiResponseText($response->json());
             }
 
             // Fallback to Gemini 3.5 Flash if 2.5 fails
@@ -635,7 +639,7 @@ class LegalAiController extends Controller
                     ]);
 
                 if ($response->successful()) {
-                    return $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? "عذراً، لم أتمكن من صياغة الإجابة.";
+                    return $this->extractGeminiResponseText($response->json());
                 }
             }
 
@@ -646,6 +650,68 @@ class LegalAiController extends Controller
         } catch (\Exception $e) {
             return "خطأ في الاتصال بالمحرك: " . $e->getMessage();
         }
+    }
+
+    /**
+     * استخراج نص الإجابة النهائي من استجابة Gemini مع استبعاد أجزاء التفكير (thought parts)
+     */
+    private function extractGeminiResponseText(array $responseJson): string
+    {
+        $parts = $responseJson['candidates'][0]['content']['parts'] ?? [];
+        $textParts = [];
+
+        foreach ($parts as $part) {
+            // استبعاد أجزاء التفكير المحددة بعلامة thought
+            if (!empty($part['thought'])) {
+                continue;
+            }
+            if (isset($part['text'])) {
+                $textParts[] = $part['text'];
+            }
+        }
+
+        $text = trim(implode("", $textParts));
+
+        // Fallback إذا لم توجد أجزاء نصية بدون thought
+        if (empty($text) && isset($parts[0]['text'])) {
+            $text = trim($parts[0]['text']);
+        }
+
+        return $this->cleanModelResponse($text);
+    }
+
+    /**
+     * تنقية استجابة النموذج من أفكار التفكير الداخلي (THOUGHT: / CoT / <thought> tags)
+     */
+    private function cleanModelResponse(string $answer): string
+    {
+        if (empty($answer)) {
+            return $answer;
+        }
+
+        // 1. إزالة وسوم التفكير <thought>...</thought>
+        $answer = preg_replace('/<thought>[\s\S]*?<\/thought>/iu', '', $answer);
+
+        // 2. إزالة أي نص تفكير يبدأ بـ THOUGHT: أو Reasoning:
+        if (preg_match('/^(THOUGHT|Reasoning):/i', trim($answer))) {
+            // البحث عن بداية الاستجابة الفعلية بالعربية (الرأي القانوني، الاستدلال، أو فقرة عربية)
+            $cleaned = preg_replace('/^(THOUGHT|Reasoning):[\s\S]*?(?=(\r?\n\r?\n[أ-ي]|\r?\n[أ-ي]|\bالرأي القانوني\b|\bالاستدلال\b|\bالتحليل\b|$))/u', '', $answer);
+            $cleaned = trim($cleaned);
+
+            if (!empty($cleaned) && !preg_match('/^(THOUGHT|Reasoning):/i', $cleaned)) {
+                $answer = $cleaned;
+            } else {
+                // تصفية أسطر التفكير بالإنجليزية المبتدئة بـ THOUGHT: أو أسطر باللغة الإنجليزية كاملة
+                $lines = explode("\n", $answer);
+                $arabicLines = array_filter($lines, function($line) {
+                    $trimmed = trim($line);
+                    return !preg_match('/^(THOUGHT|Reasoning):/i', $trimmed) && preg_match('/[\x{0600}-\x{06FF}]/u', $trimmed);
+                });
+                $answer = trim(implode("\n", $arabicLines));
+            }
+        }
+
+        return trim($answer);
     }
 
     /**
