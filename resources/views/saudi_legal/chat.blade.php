@@ -353,7 +353,7 @@
                         class="relative w-full input-glow transition-all duration-300 rounded-full bg-white dark:bg-dark-card border border-slate-200/50 dark:border-white/10 shadow-xl shadow-black/5">
                         <input type="text" id="question-input"
                             class="w-full bg-transparent border-none focus:ring-0 px-6 md:px-8 py-4 md:py-5 text-sm md:text-base text-slate-800 dark:text-slate-100 font-medium placeholder-slate-400 dark:placeholder-slate-500 outline-none pr-16 md:pr-20 text-right"
-                            placeholder="اكتب سؤالك القانوني هنا... (مثال: ما هي شروط تملك العقار؟)"
+                            placeholder="مثال :على من يقع عبئ اثبات التزوير؟"
                             onkeypress="if(event.key === 'Enter') submitQuestion()">
 
                         <button onclick="submitQuestion()" id="btn-send"
