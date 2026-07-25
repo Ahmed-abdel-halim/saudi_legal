@@ -1141,8 +1141,9 @@
                     ? renderConfidenceBadge(confidenceScore)
                     : '';
 
+                const aiMsgId = 'ai-msg-' + Date.now();
                 const aiMsgHtml = `
-                    <div class="flex justify-end mb-8">
+                    <div id="${aiMsgId}" class="flex justify-end mb-8">
                         <div class="bg-white/95 dark:bg-dark-card/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/5 border border-slate-200/50 dark:border-white/5 px-4 md:px-8 py-5 md:py-7 w-full md:max-w-[95%] rounded-3xl rounded-tl-none relative overflow-hidden">
                             <div class="absolute -top-10 -left-10 w-40 h-40 bg-brand-green/10 rounded-full blur-3xl"></div>
                             
@@ -1166,6 +1167,15 @@
                 `;
                 chatMessages.insertAdjacentHTML('beforeend', aiMsgHtml);
 
+                // التمرير السلس لبداية إجابة المساعد الذكي بدلاً من أسفل الشاشة
+                setTimeout(() => {
+                    const aiElement = document.getElementById(aiMsgId);
+                    if (aiElement) {
+                        const topPos = aiElement.offsetTop - 24;
+                        mainContainer.scrollTo({ top: Math.max(0, topPos), behavior: 'smooth' });
+                    }
+                }, 50);
+
                 // إعادة تحميل قائمة المحادثات لتحديث العنوان
                 loadConversations();
 
@@ -1182,7 +1192,6 @@
             } finally {
                 document.getElementById('btn-send').disabled = false;
                 document.getElementById('btn-send').innerHTML = '<i class="fa-solid fa-paper-plane text-lg rtl:-scale-x-100"></i>';
-                mainContainer.scrollTop = mainContainer.scrollHeight;
             }
         }
     </script>

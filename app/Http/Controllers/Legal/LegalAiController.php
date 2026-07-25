@@ -357,16 +357,22 @@ class LegalAiController extends Controller
 
         // إعادة الدمج بالترتيب المنطقي: المواد المطابقة بدقة أولاً، ثم الأحكام القضائية، ثم المواد العامة الأخرى
         if ($isDirectArticleRequest) {
-            $contextTasks = $exactArticlesPart->merge($articlesPart);
-            if ($contextTasks->isEmpty()) {
-                $contextTasks = $exactArticlesPart->merge($casesPart)->merge($articlesPart);
+            if ($exactArticlesPart->isNotEmpty()) {
+                // عند طلب نص مادة مباشرة، نكتفي بالمادة المطابقة بدقة فقط ونستبعد أي مواد فرعية أو متشابهة في أنظمة أخرى
+                $contextTasks = $exactArticlesPart;
+            } else {
+                // إذا لم توجد مطابقة دقيقة من الاستعلام، نأخذ المادة الأكثر صلة فقط (مادة واحدة)
+                $contextTasks = $articlesPart->take(1);
+                if ($contextTasks->isEmpty()) {
+                    $contextTasks = $casesPart->take(1);
+                }
             }
         } else {
             $contextTasks = $exactArticlesPart->merge($casesPart)->merge($articlesPart);
         }
 
         // استخراج المواد المشارة إليها من الأحكام لتوسيع السياق
-        if ($contextTasks->isNotEmpty()) {
+        if ($contextTasks->isNotEmpty() && ! $isDirectArticleRequest) {
             foreach ($contextTasks as $task) {
                 if (! isset($task->source_type) || $task->source_type != 'article') {
                     $textToScan = ($task->case_text ?: '') . ' ' . ($task->correct_answer ?: '');
@@ -429,7 +435,7 @@ class LegalAiController extends Controller
             ];
         }
 
-        // إضافة الأنظمة والمواد المترابطة المستخرجة من أسباب الأحكام (فقط التي لم تُضف مسبقاً في السياق لتجنب التكرار)
+        // إضافة الأنظمة والمواد المترابطة المستخرجة من أسباب الأحكام (فقط في الأسئلة الاستشارية العامة وعند عدم وجود تكرار)
         $addedArticleIds = $contextTasks->filter(fn($t) => (isset($t->source_type) && $t->source_type === 'article'))
             ->map(function($t) {
                 if (is_string($t->id) && str_starts_with($t->id, 'article_')) {
@@ -438,7 +444,7 @@ class LegalAiController extends Controller
                 return (int) $t->id;
             })->toArray();
 
-        if ($allArticles->isNotEmpty()) {
+        if (! $isDirectArticleRequest && $allArticles->isNotEmpty()) {
             $hasHeader = false;
             foreach ($allArticles->unique('id') as $article) {
                 if (in_array($article->id, $addedArticleIds)) {
@@ -449,10 +455,20 @@ class LegalAiController extends Controller
                     $hasHeader = true;
                 }
                 $contextText .= "[{$article->legislation_title} - {$article->article_title}]:\n{$article->content}\n\n";
-
-
             }
         }
+
+        // تنقية مصفوفة المراجع (Citations) لمنع أي تكرار
+        $uniqueCitations = [];
+        $seenCitationKeys = [];
+        foreach ($citations as $cite) {
+            $citeKey = ($cite['title'] ?? '') . '_' . ($cite['system'] ?? '') . '_' . md5(trim($cite['text'] ?? ''));
+            if (!isset($seenCitationKeys[$citeKey])) {
+                $seenCitationKeys[$citeKey] = true;
+                $uniqueCitations[] = $cite;
+            }
+        }
+        $citations = $uniqueCitations;
 
         // جلب الإحصائيات إذا سأل المستخدم أسئلة إحصائية حول قاعدة البيانات
         $statsSummary = $this->referenceService->getSystemStatsSummary($searchQuery);
