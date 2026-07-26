@@ -5,6 +5,8 @@ namespace App\Http\Controllers\WhatsApp;
 use App\Http\Controllers\Controller;
 use App\Models\WhatsAppConversation;
 use App\Models\WhatsAppMessage;
+use App\Models\LegalTask;
+use App\Models\LegalJudgment;
 use App\Services\TwilioService;
 use App\Services\WhatsAppRagService;
 use Illuminate\Http\Request;
@@ -12,6 +14,11 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppController extends Controller
 {
+    /**
+     * إخلاء المسؤولية الموحد المُضاف في نهاية كل رسالة وفي الفوتر
+     */
+    const DISCLAIMER = "\n\n⚠️ *إخلاء مسؤولية:* جميع الإجابات والمعلومات القانونية المرفقة هي لغايات الاسترشاد والمعرفة العامة فقط ولا تُعد استشارة قانونية رسمية ملزمة.";
+
     public function __construct(
         protected TwilioService      $twilio,
         protected WhatsAppRagService $rag
@@ -23,7 +30,7 @@ class WhatsAppController extends Controller
 
     public function webhook(Request $request)
     {
-        // 1. التحقق من صحة التوقيع إذا كانت البيانات متوفرة (اختياري في وضع التطوير)
+        // 1. التحقق من صحة التوقيع إذا كانت البيانات متوفرة (في بيئة الإنتاج)
         if (config('app.env') === 'production') {
             $signature = $request->header('X-Twilio-Signature', '');
             $url       = $request->fullUrl();
@@ -67,6 +74,7 @@ class WhatsAppController extends Controller
         $reply = match ($intent) {
             'start_chat'  => $this->handleStartChat($conversation),
             'end_chat'    => $this->handleEndChat($conversation),
+            'case_lookup' => $this->handleCaseLookup($conversation, $body),
             'legal_query' => $this->handleLegalQuery($conversation, $body),
             'idle_prompt' => $this->getIdlePrompt(),
             default       => $this->getDefaultReply(),
@@ -86,7 +94,12 @@ class WhatsAppController extends Controller
     {
         $normalizedBody = mb_strtolower(trim($body));
 
-        // 1. إذا كانت الجلسة نشطة بالفعل (in_chat)
+        // 1. كشف الاستفسار عن رقم قضية مباشر (مثل: 4471036594 أو قضية 4471036594)
+        if (preg_match('/^(?:عرض\s+|قضية\s+|مرجع\s+|رقم\s+)?(\d{3,15})$/u', $normalizedBody)) {
+            return 'case_lookup';
+        }
+
+        // 2. إذا كانت الجلسة نشطة بالفعل (in_chat)
         if ($sessionState === 'in_chat') {
             // كشف طلب الخروج Explicit Exit
             $endExactTriggers = ['0', 'رجوع', 'خروج', 'انهاء', 'إنهاء', 'وداعا', 'وداعاً', 'bye', 'exit', 'quit'];
@@ -105,7 +118,7 @@ class WhatsAppController extends Controller
             return 'legal_query';
         }
 
-        // 2. إذا كانت الجلسة غير نشطة (idle)
+        // 3. إذا كانت الجلسة غير نشطة (idle)
         $startPhrases = [
             'مساعد قانوني', 'مساعد', 'قانوني', 'ابدأ', 'ابدا',
             'تصفح المساعدة', 'استشارة', 'مرحبا', 'مرحباً', 'هاي', 'hi', 'hello',
@@ -136,7 +149,7 @@ class WhatsAppController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * بدء جلسة المحادثة وإرسال رسالة الترحيب
+     * بدء جلسة المحادثة وإرسال رسالة الترحيب مع خيارات التفاعل وإخلاء المسؤولية
      */
     private function handleStartChat(WhatsAppConversation $conversation): string
     {
@@ -150,7 +163,7 @@ class WhatsAppController extends Controller
 
         return "🌟 *مرحباً بك{$name} في المساعد القانوني لمنصة رديف!*
 
-⚖️ يمكنك طرح أي سؤال قانوني يخص الأنظمة والقضايا السعودية، وسأجيبك بناءً على أحدث المراجع القانونية.
+⚖️ يمكنك طرح أي سؤال قانوني يخص الأنظمة والقضايا السعودية، وسأجيبك بناءً على أحدث المراجع والقضايا القضائية.
 
 📌 *أمثلة على الأسئلة:*
 • على من يقع عبء إثبات التزوير؟
@@ -158,7 +171,11 @@ class WhatsAppController extends Controller
 • ما شروط تملك العقار للأجانب في السعودية؟
 
 💡 لديك *{$remaining} استشارة مجانية* متبقية.
-اكتب سؤالك الآن، أو اكتب *رجوع* للخروج.";
+
+🔘 *خيارات التفاعل والسرعة:*
+[ 1 ] 💬 *طرح سؤال قانوني:* اكتب سؤالك فوراً في المحادثة.
+[ 0 ] 🛑 *إنهاء الجلسة:* أرسل الرقم *0* أو كلمة *رجوع*."
+        . self::DISCLAIMER;
     }
 
     /**
@@ -171,7 +188,72 @@ class WhatsAppController extends Controller
         return "👋 *تم إنهاء جلسة الاستشارة بنجاح.*
 
 شكراً لاستخدامك المساعد القانوني لمنصة *رديف*.
-يمكنك العودة في أي وقت بكتابة: *مساعد قانوني* 🔁";
+يمكنك العودة في أي وقت بإرسال: *مساعد قانوني* 🔁"
+        . self::DISCLAIMER;
+    }
+
+    /**
+     * عرض نص القضية الكاملة عند إرسال رقم القضية أو المرجع مباشرة
+     */
+    private function handleCaseLookup(WhatsAppConversation $conversation, string $body): string
+    {
+        if (!preg_match('/(\d{3,15})/u', $body, $matches)) {
+            return "لم نتمكن من التعرف على رقم القضية. يرجى إرسال رقم القضية مجرداً (مثال: 4471036594)." . self::DISCLAIMER;
+        }
+
+        $caseNumber = $matches[1];
+
+        // البحث في جدول المهام والقضايا LegalTask
+        $task = LegalTask::where('case_reference', $caseNumber)
+            ->orWhere('case_reference', 'LIKE', "%{$caseNumber}%")
+            ->orWhere('id', (int)$caseNumber)
+            ->first();
+
+        if ($task) {
+            $ref = $task->case_reference ?? "قضية #{$task->id}";
+            $questionText = trim($task->question ?? '');
+            $caseText = trim($task->case_text ?? $task->proposed_answer ?? '');
+            $correctAnswer = trim($task->correct_answer ?? '');
+
+            $output = "📜 *تفاصيل نص القضية الكاملة (مرجع رقم: {$ref})*\n\n";
+
+            if (!empty($questionText)) {
+                $output .= "📌 *موضوع الدعوى / السؤال:* \n{$questionText}\n\n";
+            }
+
+            if (!empty($caseText)) {
+                $output .= "⚖️ *أسباب الحكم والوقائع:* \n{$caseText}\n\n";
+            }
+
+            if (!empty($correctAnswer) && $correctAnswer !== $caseText) {
+                $output .= "✅ *المنطوق / النتيجة:* \n{$correctAnswer}\n\n";
+            }
+
+            $output .= "💡 *نصيحة:* يمكنك كتابة أي سؤال قانوني آخر أو إرسال رقم قضية أخرى لعرض تفاصيلها.";
+            return $output . self::DISCLAIMER;
+        }
+
+        // البحث الثانوي في الأحكام LegalJudgment
+        $judgment = LegalJudgment::where('case_number', $caseNumber)
+            ->orWhere('case_number', 'LIKE', "%{$caseNumber}%")
+            ->orWhere('id', (int)$caseNumber)
+            ->first();
+
+        if ($judgment) {
+            $output = "📜 *تفاصيل الحكم القضائي (رقم القضية: {$judgment->case_number})*\n\n";
+            if (!empty($judgment->title)) {
+                $output .= "📌 *العنوان:* {$judgment->title}\n\n";
+            }
+            if (!empty($judgment->summary)) {
+                $output .= "⚖️ *الملخص/الأسباب:* \n{$judgment->summary}\n\n";
+            }
+            if (!empty($judgment->judgment_text)) {
+                $output .= "✅ *نص الحكم:* \n{$judgment->judgment_text}\n\n";
+            }
+            return $output . self::DISCLAIMER;
+        }
+
+        return "🔍 لم نجد تفاصيل مخزنة برقم القضية أو المرجع (*{$caseNumber}*) في قاعدة البيانات حالياً. يمكنك طرح سؤالك القانوني وسنبحث لك في كافة السوابق والأنظمة." . self::DISCLAIMER;
     }
 
     /**
@@ -227,7 +309,8 @@ class WhatsAppController extends Controller
             $formattedAnswer .= "\n\n⚠️ _تبقى لك {$remaining} استشارة مجانية فقط._";
         }
 
-        return $formattedAnswer;
+        // إضافة إخلاء المسؤولية الموحد في نهاية الرسالة
+        return $formattedAnswer . self::DISCLAIMER;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -236,6 +319,7 @@ class WhatsAppController extends Controller
 
     /**
      * تحويل الإجابة من HTML/Markdown إلى تنسيق واتساب (plain text + WhatsApp bold)
+     * مع إتاحة النقر/التفاعل مع أرقام القضايا
      */
     private function formatForWhatsApp(string $answer, array $citations): string
     {
@@ -247,6 +331,13 @@ class WhatsAppController extends Controller
 
         // تحويل bold Markdown إلى WhatsApp bold
         $text = preg_replace('/\*\*(.+?)\*\*/u', '*$1*', $text);
+
+        // جعل أرقام القضايا تفاعلية بحيث يُضاف إرشاد تفاعلي للمستخدم للنقر/الإرسال
+        $text = preg_replace_callback('/(القضية\s+رقم\s+|مرجع\s+قانوني\s+\[?|مرجع\s+#)(\d{3,15})\]?/u', function ($matches) {
+            $prefix = $matches[1];
+            $num    = $matches[2];
+            return "{$prefix}{$num} 🔗 *(لِعرض نص القضية كاملاً أرسل: {$num})*";
+        }, $text);
 
         // تنظيف المسافات الزائدة
         $text = preg_replace('/\n{3,}/', "\n\n", $text);
@@ -279,19 +370,22 @@ class WhatsAppController extends Controller
 للاستمرار في الاستفادة من المساعد القانوني، يرجى التسجيل على منصة رديف:
 🔗 {$appUrl}/register/company
 
-✨ سيحصل كل عضو على *20 استشارة مجانية* إضافية عند التسجيل!";
+✨ سيحصل كل عضو على *20 استشارة مجانية* إضافية عند التسجيل!"
+        . self::DISCLAIMER;
     }
 
     private function getIdlePrompt(): string
     {
-        return "👋 مرحباً! أنا *المساعد القانوني لمنصة رديف*.
+        return "👋 *مرحباً بك في المساعد القانوني لمنصة رديف.*
 
-لبدء جلسة استشارة قانونية، اكتب:
-➡️ *مساعد قانوني*";
+لبدء جلسة استشارة قانونية جديدة:
+➡️ أرسل: *مساعد قانوني* أو *1*"
+        . self::DISCLAIMER;
     }
 
     private function getDefaultReply(): string
     {
-        return "لم أفهم طلبك. اكتب *مساعد قانوني* لبدء استشارة قانونية، أو *رجوع* للخروج.";
+        return "لم أفهم طلبك. أرسل *مساعد قانوني* أو *1* لبدء استشارة قانونية، أو *0* للخروج."
+        . self::DISCLAIMER;
     }
 }
