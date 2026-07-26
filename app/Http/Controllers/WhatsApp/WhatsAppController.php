@@ -86,33 +86,48 @@ class WhatsAppController extends Controller
     {
         $normalizedBody = mb_strtolower(trim($body));
 
-        // كلمات تفعيل جلسة المساعد
-        $startTriggers = [
-            'مساعد قانوني', 'مساعد', 'قانوني', '1', 'ابدأ', 'ابدا',
+        // 1. إذا كانت الجلسة نشطة بالفعل (in_chat)
+        if ($sessionState === 'in_chat') {
+            // كشف طلب الخروج Explicit Exit
+            $endExactTriggers = ['0', 'رجوع', 'خروج', 'انهاء', 'إنهاء', 'وداعا', 'وداعاً', 'bye', 'exit', 'quit'];
+            foreach ($endExactTriggers as $trigger) {
+                if ($normalizedBody === $trigger || mb_strpos($normalizedBody, 'خروج') !== false || mb_strpos($normalizedBody, 'إنهاء الجلسة') !== false) {
+                    return 'end_chat';
+                }
+            }
+
+            // كشف طلب إعادة البدء الصريح Explicit Restart Menu
+            if ($normalizedBody === '1' || $normalizedBody === 'مساعد قانوني' || $normalizedBody === 'تصفح المساعدة' || $normalizedBody === 'تصفح المساعدة القانونية') {
+                return 'start_chat';
+            }
+
+            // أي رسالة أخرى تُمثل سؤالاً قانونياً
+            return 'legal_query';
+        }
+
+        // 2. إذا كانت الجلسة غير نشطة (idle)
+        $startPhrases = [
+            'مساعد قانوني', 'مساعد', 'قانوني', 'ابدأ', 'ابدا',
             'تصفح المساعدة', 'استشارة', 'مرحبا', 'مرحباً', 'هاي', 'hi', 'hello',
         ];
 
-        // كلمات إنهاء الجلسة
-        $endTriggers = ['رجوع', '0', 'خروج', 'انهاء', 'إنهاء', 'وداعا', 'وداعاً', 'bye', 'exit', 'quit'];
+        // المطابقة الدقيقة للرقم 1 فقط كرمز بدء
+        if ($normalizedBody === '1') {
+            return 'start_chat';
+        }
 
-        foreach ($startTriggers as $trigger) {
-            if (mb_strpos($normalizedBody, $trigger) !== false) {
+        foreach ($startPhrases as $phrase) {
+            if (mb_strpos($normalizedBody, $phrase) !== false) {
                 return 'start_chat';
             }
         }
 
-        foreach ($endTriggers as $trigger) {
-            if (mb_strpos($normalizedBody, $trigger) !== false) {
-                return 'end_chat';
-            }
+        // مطابقة كلمة الخروج في وضع البداية
+        if ($normalizedBody === '0' || $normalizedBody === 'رجوع') {
+            return 'end_chat';
         }
 
-        // إذا الجلسة نشطة → معالجة كسؤال قانوني
-        if ($sessionState === 'in_chat') {
-            return 'legal_query';
-        }
-
-        // الجلسة غير نشطة والرسالة غير محددة
+        // أي شيء آخر يُظهر رسالة الترحيب والتعليمات للبدء
         return 'idle_prompt';
     }
 
