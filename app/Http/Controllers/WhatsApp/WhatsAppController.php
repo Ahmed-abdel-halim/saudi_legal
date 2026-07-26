@@ -159,6 +159,7 @@ class WhatsAppController extends Controller
         $startPhrases = [
             'مساعد قانوني', 'مساعد', 'قانوني', 'ابدأ', 'ابدا',
             'تصفح المساعدة', 'استشارة', 'مرحبا', 'مرحباً', 'هاي', 'hi', 'hello',
+            'السلام عليكم', 'سلام عليكم', 'مساء الخير', 'صباح الخير', 'أهلا', 'أهلاً', 'اهلاً', 'اهدا',
         ];
 
         // المطابقة الدقيقة للرقم 1 فقط كرمز بدء
@@ -173,12 +174,12 @@ class WhatsAppController extends Controller
         }
 
         // مطابقة كلمة الخروج في وضع البداية
-        if ($normalizedBody === '0' || $normalizedBody === 'رجوع') {
+        if ($normalizedBody === '0' || $normalizedBody === 'رجوع' || $normalizedBody === 'خروج') {
             return 'end_chat';
         }
 
-        // أي شيء آخر يُظهر رسالة الترحيب والتعليمات للبدء
-        return 'idle_prompt';
+        // تفعيل الجلسة تلقائياً والإجابة المباشرة على أي سؤال يُرسل في أول رسالة دون إجبار المستخدم على كتابة كلمة معينة
+        return 'legal_query';
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -296,6 +297,14 @@ class WhatsAppController extends Controller
      */
     private function handleLegalQuery(WhatsAppConversation $conversation, string $question): string
     {
+        // تفعيل الجلسة تلقائياً إذا كانت غير نشطة
+        if ($conversation->session_state !== 'in_chat') {
+            $conversation->update([
+                'session_state'  => 'in_chat',
+                'last_active_at' => now(),
+            ]);
+        }
+
         // التحقق من حد الرسائل
         if ($conversation->hasReachedLimit()) {
             return $this->getLimitReachedMessage($conversation);
