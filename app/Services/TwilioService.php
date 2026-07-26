@@ -21,9 +21,14 @@ class TwilioService
     }
 
     /**
-     * إرسال رسالة واتساب عبر Twilio REST API
+     * إرسال رسالة واتساب عبر Twilio REST API مع دعم الأزرار التفاعلية (Quick Reply Buttons)
+     *
+     * @param string $to       رقم المستلم (whatsapp:+966...)
+     * @param string $body     نص الرسالة
+     * @param array  $buttons  مصفوفة الأزرار التفاعلية (مثال: ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'])
+     * @return bool
      */
-    public function sendMessage(string $to, string $body): bool
+    public function sendMessage(string $to, string $body, array $buttons = []): bool
     {
         if (empty($this->sid) || empty($this->token)) {
             Log::warning('[Twilio] TWILIO_SID أو TWILIO_AUTH_TOKEN غير محددان في .env');
@@ -31,19 +36,34 @@ class TwilioService
         }
 
         try {
+            $params = [
+                'From' => $this->from,
+                'To'   => $to,
+                'Body' => $body,
+            ];
+
+            // بناء استعلام URL-encoded لضمان تكرار معيار PersistentAction بالشكل الصحيح في Twilio
+            $bodyData = http_build_query($params);
+
+            if (!empty($buttons)) {
+                foreach ($buttons as $btn) {
+                    $bodyData .= '&PersistentAction=' . urlencode('reply:' . $btn);
+                }
+            }
+
             $response = Http::withBasicAuth($this->sid, $this->token)
-                ->asForm()
+                ->withHeaders([
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ])
                 ->timeout(30)
-                ->post("{$this->baseUrl}/Messages.json", [
-                    'From' => $this->from,
-                    'To'   => $to,
-                    'Body' => $body,
-                ]);
+                ->withBody($bodyData, 'application/x-www-form-urlencoded')
+                ->post("{$this->baseUrl}/Messages.json");
 
             if ($response->successful()) {
                 Log::info('[Twilio] رسالة أُرسلت بنجاح', [
-                    'to'  => $to,
-                    'sid' => $response->json('sid'),
+                    'to'      => $to,
+                    'sid'     => $response->json('sid'),
+                    'buttons' => $buttons,
                 ]);
                 return true;
             }

@@ -70,18 +70,40 @@ class WhatsAppController extends Controller
         // 4. كشف النية (Intent Detection)
         $intent = $this->detectIntent($body, $conversation->session_state);
 
-        // 5. معالجة الـ Intent وإرسال الرد المناسب
-        $reply = match ($intent) {
-            'start_chat'  => $this->handleStartChat($conversation),
-            'end_chat'    => $this->handleEndChat($conversation),
-            'case_lookup' => $this->handleCaseLookup($conversation, $body),
-            'legal_query' => $this->handleLegalQuery($conversation, $body),
-            'idle_prompt' => $this->getIdlePrompt(),
-            default       => $this->getDefaultReply(),
-        };
+        // 5. معالجة الـ Intent وإعداد الرد والأزرار التفاعلية (Quick Reply Buttons)
+        $reply   = '';
+        $buttons = [];
 
-        // 6. إرسال الرد عبر Twilio
-        $this->twilio->sendMessage($from, $reply);
+        switch ($intent) {
+            case 'start_chat':
+                $reply   = $this->handleStartChat($conversation);
+                $buttons = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
+                break;
+
+            case 'end_chat':
+                $reply   = $this->handleEndChat($conversation);
+                $buttons = ['المساعد القانوني ⚖️'];
+                break;
+
+            case 'case_lookup':
+                $reply   = $this->handleCaseLookup($conversation, $body);
+                $buttons = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
+                break;
+
+            case 'legal_query':
+                $reply   = $this->handleLegalQuery($conversation, $body);
+                $buttons = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
+                break;
+
+            case 'idle_prompt':
+            default:
+                $reply   = $this->getIdlePrompt();
+                $buttons = ['المساعد القانوني ⚖️'];
+                break;
+        }
+
+        // 6. إرسال الرد المنسق مع الأزرار التفاعلية عبر Twilio
+        $this->twilio->sendMessage($from, $reply, $buttons);
 
         return response('OK', 200);
     }
@@ -94,12 +116,25 @@ class WhatsAppController extends Controller
     {
         $normalizedBody = mb_strtolower(trim($body));
 
-        // 1. كشف الاستفسار عن رقم قضية مباشر (مثل: 4471036594 أو قضية 4471036594)
+        // 1. كشف الضغط على الأزرار التفاعلية أو الكلمات الرئيسية للصنع الصريح
+        if ($normalizedBody === 'القائمة الرئيسية' || $normalizedBody === 'القائمة الرئيسية 🏠' || $normalizedBody === 'الرئيسية') {
+            return 'start_chat';
+        }
+
+        if ($normalizedBody === 'إنهاء المحادثة' || $normalizedBody === 'إنهاء المحادثة 🛑' || $normalizedBody === 'إنهاء الجلسة') {
+            return 'end_chat';
+        }
+
+        if ($normalizedBody === 'المساعد القانوني' || $normalizedBody === 'المساعد القانوني ⚖️') {
+            return 'start_chat';
+        }
+
+        // 2. كشف الاستفسار عن رقم قضية مباشر (مثل: 4471036594 أو قضية 4471036594)
         if (preg_match('/^(?:عرض\s+|قضية\s+|مرجع\s+|رقم\s+)?(\d{3,15})$/u', $normalizedBody)) {
             return 'case_lookup';
         }
 
-        // 2. إذا كانت الجلسة نشطة بالفعل (in_chat)
+        // 3. إذا كانت الجلسة نشطة بالفعل (in_chat)
         if ($sessionState === 'in_chat') {
             // كشف طلب الخروج Explicit Exit
             $endExactTriggers = ['0', 'رجوع', 'خروج', 'انهاء', 'إنهاء', 'وداعا', 'وداعاً', 'bye', 'exit', 'quit'];
@@ -118,7 +153,7 @@ class WhatsAppController extends Controller
             return 'legal_query';
         }
 
-        // 3. إذا كانت الجلسة غير نشطة (idle)
+        // 4. إذا كانت الجلسة غير نشطة (idle)
         $startPhrases = [
             'مساعد قانوني', 'مساعد', 'قانوني', 'ابدأ', 'ابدا',
             'تصفح المساعدة', 'استشارة', 'مرحبا', 'مرحباً', 'هاي', 'hi', 'hello',
@@ -172,10 +207,8 @@ class WhatsAppController extends Controller
 
 💡 لديك *{$remaining} استشارة مجانية* متبقية.
 
-🔘 *خيارات التفاعل والسرعة:*
-[ 1 ] 💬 *طرح سؤال قانوني:* اكتب سؤالك فوراً في المحادثة.
-[ 0 ] 🛑 *إنهاء الجلسة:* أرسل الرقم *0* أو كلمة *رجوع*."
-        . self::DISCLAIMER;
+👇 *يمكنك استخدام الأزرار أدناه أو كتابة سؤالك مباشرة:*
+" . self::DISCLAIMER;
     }
 
     /**
@@ -188,7 +221,7 @@ class WhatsAppController extends Controller
         return "👋 *تم إنهاء جلسة الاستشارة بنجاح.*
 
 شكراً لاستخدامك المساعد القانوني لمنصة *رديف*.
-يمكنك العودة في أي وقت بإرسال: *مساعد قانوني* 🔁"
+يمكنك العودة في أي وقت بالنقر على زر *المساعد القانوني ⚖️* أدناه."
         . self::DISCLAIMER;
     }
 
@@ -290,7 +323,7 @@ class WhatsAppController extends Controller
             $citations = [];
         }
 
-        // تنسيق الإجابة لواتساب
+        // تنسيق الإجابة لواتساب مع تنقية وتعرِيب المصادر
         $formattedAnswer = $this->formatForWhatsApp($answer, $citations);
 
         // حفظ رد المساعد
@@ -319,7 +352,7 @@ class WhatsAppController extends Controller
 
     /**
      * تحويل الإجابة من HTML/Markdown إلى تنسيق واتساب (plain text + WhatsApp bold)
-     * مع إتاحة النقر/التفاعل مع أرقام القضايا
+     * مع تعريب وتجميل قسم المصادر وإتاحة التفاعل المباشر
      */
     private function formatForWhatsApp(string $answer, array $citations): string
     {
@@ -332,7 +365,7 @@ class WhatsAppController extends Controller
         // تحويل bold Markdown إلى WhatsApp bold
         $text = preg_replace('/\*\*(.+?)\*\*/u', '*$1*', $text);
 
-        // جعل أرقام القضايا تفاعلية بحيث يُضاف إرشاد تفاعلي للمستخدم للنقر/الإرسال
+        // جعل أرقام القضايا داخل النص تفاعلية
         $text = preg_replace_callback('/(القضية\s+رقم\s+|مرجع\s+قانوني\s+\[?|مرجع\s+#)(\d{3,15})\]?/u', function ($matches) {
             $prefix = $matches[1];
             $num    = $matches[2];
@@ -343,23 +376,68 @@ class WhatsAppController extends Controller
         $text = preg_replace('/\n{3,}/', "\n\n", $text);
         $text = trim($text);
 
-        // إضافة المصادر إذا وُجدت
+        // صياغة قسم المصادر بشكل عربي أنيق ومنظم بدون مصطلحات إنجليزية
         if (!empty($citations)) {
-            $sourcesText = "\n\n📚 *المصادر:*";
+            $sourcesText = "\n\n📚 *المصادر والمرجعيات القضائية:*";
             $seen        = [];
             $count       = 0;
+
             foreach ($citations as $cite) {
-                $key = trim($cite['title'] ?? '');
-                if (empty($key) || isset($seen[$key]) || $count >= 3) continue;
-                $seen[$key] = true;
+                $rawTitle = trim($cite['title'] ?? '');
+                if (empty($rawTitle) || isset($seen[$rawTitle]) || $count >= 4) continue;
+                $seen[$rawTitle] = true;
                 $count++;
-                $system = !empty($cite['system']) ? " - {$cite['system']}" : '';
-                $sourcesText .= "\n• {$key}{$system}";
+
+                // تعريب وتعذيب اسم النظام أو المرجع
+                $systemName = $this->translateSystemName($cite['system'] ?? '');
+
+                // تنسيق عنوان المرجع
+                $formattedTitle = $rawTitle;
+                if (is_numeric($rawTitle)) {
+                    $formattedTitle = "حكم قضائي رقم {$rawTitle}";
+                }
+
+                // استخراج الأرقام لربطها برابط تفاعلي
+                if (preg_match('/(\d{3,15})/', $rawTitle, $numMatch)) {
+                    $caseNum = $numMatch[1];
+                    $sourcesText .= "\n• 📜 *{$formattedTitle}* - {$systemName}\n  👈 _أرسل *{$caseNum}* لعرض نص القضية كاملاً_";
+                } else {
+                    $sourcesText .= "\n• 📜 *{$formattedTitle}* - {$systemName}";
+                }
             }
+
             $text .= $sourcesText;
         }
 
         return $text;
+    }
+
+    /**
+     * ترجمة وتنقية أسماء الأنظمة والمراجع إلى أسماء عربية رسمية
+     */
+    private function translateSystemName(string $system): string
+    {
+        $system = trim($system);
+        if (empty($system)) {
+            return 'السوابق والأحكام القضائية';
+        }
+
+        $translations = [
+            'Commercial Law'         => 'نظام المحاكم التجارية',
+            'Commercial'             => 'نظام المحاكم التجارية',
+            'Commercial Courts Law'  => 'نظام المحاكم التجارية',
+            'Labor Law'              => 'نظام العمل السعودي',
+            'Labor'                  => 'نظام العمل السعودي',
+            'Civil Law'              => 'نظام المعاملات المدنية',
+            'Civil System'           => 'نظام المعاملات المدنية',
+            'Evidence Law'           => 'نظام الإثبات',
+            'Evidence'               => 'نظام الإثبات',
+            'Personal Status'        => 'نظام الأحوال الشخصية',
+            'Criminal Law'           => 'نظام الإجراءات الجزائية',
+            'Executive Regulations'  => 'اللائحة التنفيذية',
+        ];
+
+        return $translations[$system] ?? $system;
     }
 
     private function getLimitReachedMessage(WhatsAppConversation $conversation): string
@@ -378,14 +456,13 @@ class WhatsAppController extends Controller
     {
         return "👋 *مرحباً بك في المساعد القانوني لمنصة رديف.*
 
-لبدء جلسة استشارة قانونية جديدة:
-➡️ أرسل: *مساعد قانوني* أو *1*"
+اضغط على الزر أدناه لبدء جلسة استشارة جديدة:"
         . self::DISCLAIMER;
     }
 
     private function getDefaultReply(): string
     {
-        return "لم أفهم طلبك. أرسل *مساعد قانوني* أو *1* لبدء استشارة قانونية، أو *0* للخروج."
+        return "لم أفهم طلبك. استخدم الأزرار أدناه لبدء استشارة قانونية جديدة أو لإنهائها."
         . self::DISCLAIMER;
     }
 }
