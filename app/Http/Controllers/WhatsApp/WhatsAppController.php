@@ -70,14 +70,16 @@ class WhatsAppController extends Controller
         // 4. كشف النية (Intent Detection)
         $intent = $this->detectIntent($body, $conversation->session_state);
 
-        // 5. معالجة الـ Intent وإعداد الرد والأزرار التفاعلية (Quick Reply Buttons)
-        $reply   = '';
-        $buttons = [];
+        // 5. معالجة الـ Intent وإعداد الرد والأزرار التفاعلية (Quick Reply Buttons) والصورة المرفقة
+        $reply    = '';
+        $buttons  = [];
+        $mediaUrl = null;
 
         switch ($intent) {
             case 'start_chat':
-                $reply   = $this->handleStartChat($conversation);
-                $buttons = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
+                $reply    = $this->handleStartChat($conversation);
+                $buttons  = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
+                $mediaUrl = config('app.url') . '/images/logo.png';
                 break;
 
             case 'end_chat':
@@ -102,8 +104,8 @@ class WhatsAppController extends Controller
                 break;
         }
 
-        // 6. إرسال الرد المنسق مع الأزرار التفاعلية عبر Twilio
-        $this->twilio->sendMessage($from, $reply, $buttons);
+        // 6. إرسال الرد المنسق مع الأزرار التفاعلية والصورة المرفقة عبر Twilio
+        $this->twilio->sendMessage($from, $reply, $buttons, $mediaUrl);
 
         return response('OK', 200);
     }

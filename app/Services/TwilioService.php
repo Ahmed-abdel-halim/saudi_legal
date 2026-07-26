@@ -21,14 +21,15 @@ class TwilioService
     }
 
     /**
-     * إرسال رسالة واتساب عبر Twilio REST API مع دعم الأزرار التفاعلية (Quick Reply Buttons)
+     * إرسال رسالة واتساب عبر Twilio REST API مع دعم الأزرار التفاعلية وصور الوسائط (Logo/Images)
      *
-     * @param string $to       رقم المستلم (whatsapp:+966...)
-     * @param string $body     نص الرسالة
-     * @param array  $buttons  مصفوفة الأزرار التفاعلية (مثال: ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'])
+     * @param string      $to        رقم المستلم (whatsapp:+966...)
+     * @param string      $body      نص الرسالة
+     * @param array       $buttons   مصفوفة الأزرار التفاعلية (مثل: ['القائمة الرئيسية 🏠'])
+     * @param string|null $mediaUrl  رابط صورة مرفقة مع الرسالة (مثل صورة اللوجو)
      * @return bool
      */
-    public function sendMessage(string $to, string $body, array $buttons = []): bool
+    public function sendMessage(string $to, string $body, array $buttons = [], ?string $mediaUrl = null): bool
     {
         if (empty($this->sid) || empty($this->token)) {
             Log::warning('[Twilio] TWILIO_SID أو TWILIO_AUTH_TOKEN غير محددان في .env');
@@ -41,6 +42,10 @@ class TwilioService
                 'To'   => $to,
                 'Body' => $body,
             ];
+
+            if (!empty($mediaUrl)) {
+                $params['MediaUrl'] = $mediaUrl;
+            }
 
             // بناء استعلام URL-encoded لضمان تكرار معيار PersistentAction بالشكل الصحيح في Twilio
             $bodyData = http_build_query($params);
@@ -61,9 +66,10 @@ class TwilioService
 
             if ($response->successful()) {
                 Log::info('[Twilio] رسالة أُرسلت بنجاح', [
-                    'to'      => $to,
-                    'sid'     => $response->json('sid'),
-                    'buttons' => $buttons,
+                    'to'       => $to,
+                    'sid'      => $response->json('sid'),
+                    'buttons'  => $buttons,
+                    'media_url'=> $mediaUrl,
                 ]);
                 return true;
             }
@@ -89,7 +95,6 @@ class TwilioService
             return false;
         }
 
-        // ترتيب الـ params أبجدياً ودمجها مع الـ URL
         ksort($params);
         $data = $url;
         foreach ($params as $key => $value) {
