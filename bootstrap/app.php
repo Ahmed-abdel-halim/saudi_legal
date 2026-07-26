@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             '/stripe/webhook',
             '/stripe/ai-subscription/webhook',
+            'api/whatsapp/webhook', // Twilio يُرسل POST بدون CSRF token، التحقق يتم عبر X-Twilio-Signature
         ]);
 
         $middleware->web(append: [

@@ -5,6 +5,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ContractController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\WhatsApp\WhatsAppController;
+
+// ─── WhatsApp Webhook (عام — بدون مصادقة، Twilio يتصل به مباشرة) ─────────────
+Route::post('/whatsapp/webhook', [WhatsAppController::class, 'webhook'])
+    ->name('whatsapp.webhook');
 
 Route::middleware('auth:sanctum')->group(function () {
     

@@ -53,4 +53,11 @@ return [
         'enabled'    => env('QDRANT_ENABLED', false),
     ],
 
+    'twilio' => [
+        'sid'           => env('TWILIO_SID', ''),
+        'token'         => env('TWILIO_AUTH_TOKEN', ''),
+        'whatsapp_from' => env('TWILIO_WHATSAPP_FROM', ''),
+        'free_limit'    => env('WHATSAPP_FREE_LIMIT', 10),
+    ],
+
 ];
