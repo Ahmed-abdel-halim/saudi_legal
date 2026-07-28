@@ -92,6 +92,11 @@ class WhatsAppController extends Controller
                 $buttons = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
                 break;
 
+            case 'pure_greeting':
+                $reply   = $this->handlePureGreeting($conversation, $body);
+                $buttons = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
+                break;
+
             case 'legal_query':
                 $reply   = $this->handleLegalQuery($conversation, $body);
                 $buttons = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
@@ -136,7 +141,12 @@ class WhatsAppController extends Controller
             return 'case_lookup';
         }
 
-        // 3. إذا كانت الجلسة نشطة بالفعل (in_chat)
+        // 3. كشف التحية المجردة والمجاملات (سواء كانت الجلسة active أم idle)
+        if ($this->isPureGreeting($body)) {
+            return 'pure_greeting';
+        }
+
+        // 4. إذا كانت الجلسة نشطة بالفعل (in_chat)
         if ($sessionState === 'in_chat') {
             // كشف طلب الخروج Explicit Exit
             $endExactTriggers = ['0', 'رجوع', 'خروج', 'انهاء', 'إنهاء', 'وداعا', 'وداعاً', 'bye', 'exit', 'quit'];
@@ -155,11 +165,10 @@ class WhatsAppController extends Controller
             return 'legal_query';
         }
 
-        // 4. إذا كانت الجلسة غير نشطة (idle)
+        // 5. إذا كانت الجلسة غير نشطة (idle)
         $startPhrases = [
             'مساعد قانوني', 'مساعد', 'قانوني', 'ابدأ', 'ابدا',
-            'تصفح المساعدة', 'استشارة', 'مرحبا', 'مرحباً', 'هاي', 'hi', 'hello',
-            'السلام عليكم', 'سلام عليكم', 'مساء الخير', 'صباح الخير', 'أهلا', 'أهلاً', 'اهلاً', 'اهدا',
+            'تصفح المساعدة', 'استشارة',
         ];
 
         // المطابقة الدقيقة للرقم 1 فقط كرمز بدء
@@ -328,10 +337,12 @@ class WhatsAppController extends Controller
             $result = $this->rag->ask($question, $history);
             $answer = $result['answer'];
             $citations = $result['citations'];
+            $isGreeting = $result['is_greeting'] ?? false;
         } catch (\Exception $e) {
             Log::error('[WhatsApp] RAG error: ' . $e->getMessage());
             $answer    = 'عذراً، حدث خطأ فني. يرجى المحاولة لاحقاً.';
             $citations = [];
+            $isGreeting = false;
         }
 
         // تنسيق الإجابة لواتساب مع تنقية وتعرِيب المصادر
@@ -347,6 +358,11 @@ class WhatsAppController extends Controller
         // تحديث عداد الرسائل
         $conversation->incrementAndTouch();
 
+        // إذا تم تصنيف الرسالة كتحية، يُكتفى بالرد دون إخلاء مسؤولية أو تنبيه بالحد
+        if ($isGreeting) {
+            return $formattedAnswer;
+        }
+
         // إضافة تذكير بالرصيد المتبقي إذا اقترب من الحد
         $remaining = max(0, $conversation->free_limit - $conversation->message_count - 1);
         if ($remaining <= 2 && $remaining > 0) {
@@ -355,6 +371,110 @@ class WhatsAppController extends Controller
 
         // إضافة إخلاء المسؤولية الموحد في نهاية الرسالة
         return $formattedAnswer . self::DISCLAIMER;
+    }
+
+    /**
+     * معالجة التحية المجردة وإرجاع رد تحية بسيط ومباشر بدون مصادر أو إخلاء مسؤولية
+     */
+    private function handlePureGreeting(WhatsAppConversation $conversation, string $body): string
+    {
+        $conversation->update([
+            'session_state'  => 'in_chat',
+            'last_active_at' => now(),
+        ]);
+
+        return $this->getGreetingReply($body);
+    }
+
+    /**
+     * التحقق مما إذا كانت الرسالة تحية مجردة أو مجاملة بدون سؤال قانوني
+     */
+    private function isPureGreeting(string $text): bool
+    {
+        $clean = mb_strtolower(trim($text));
+
+        // تنظيف العلامات والرموز والتواكيل والتطويل
+        $clean = preg_replace('/[^\p{L}\p{N}\s]/u', '', $clean);
+        $clean = preg_replace('/\s+/', ' ', $clean);
+
+        if (empty($clean)) {
+            return false;
+        }
+
+        // قائمة الكلمات الدالة على التحية والمجاملة
+        $greetingWords = [
+            'السلام', 'عليكم', 'ورحمة', 'الله', 'وبركاته', 'سلام', 'سلامات',
+            'مرحبا', 'مرحباً', 'مرحبتين', 'مراحيب',
+            'اهلا', 'أهلا', 'اهلاً', 'أهلاً', 'اهلين', 'أهلين', 'اهدا', 'وسهلاً', 'وسهلا',
+            'صباح', 'مساء', 'الخير', 'النور', 'الورد', 'السرور',
+            'كيف', 'حالك', 'الحال', 'الحالية', 'كيفك', 'اخبارك', 'شخبارك', 'علومك', 'شلونك',
+            'يعطيك', 'العافية', 'يعطيكوا', 'عافية', 'الله', 'يعافيك',
+            'شكرا', 'شكراً', 'مشكور', 'مشكورة', 'تسلم', 'تسلمي', 'جزاك', 'خير', 'خيور', 'جزيل', 'الشكر',
+            'يا', 'هلا', 'غالي', 'حياك', 'حياكم',
+            'hi', 'hello', 'hey', 'good', 'morning', 'evening', 'afternoon', 'how', 'are', 'you', 'thanks', 'thank'
+        ];
+
+        $words = explode(' ', $clean);
+
+        // إزالة كل كلمات التحية
+        $nonGreetingWords = array_values(array_filter($words, function ($w) use ($greetingWords) {
+            return !in_array($w, $greetingWords, true);
+        }));
+
+        // إذا لم تتبقَ أي كلمات بعد إزالة كلمات التحية -> فهي تحية مجردة مؤكدة
+        if (empty($nonGreetingWords)) {
+            return true;
+        }
+
+        // إذا كانت الكلمات المتبقية أقل من أو تساوي كلمتين ولا تحتوي على كلمات قانونية أو دالة على سؤال
+        if (count($nonGreetingWords) <= 2) {
+            $legalKeywords = [
+                'مادة', 'نظام', 'قضية', 'حكم', 'عقد', 'عمل', 'استئناف', 'محكمة', 'عقوبة',
+                'تعويض', 'حق', 'تركة', 'طلاق', 'تزوير', 'شركة', 'شركات', 'عقار', 'إثبات',
+                'اثبات', 'سؤال', 'استفسار', 'طلب', 'مساعدة', 'نص', 'شرط', 'شروط', 'لوائح',
+                'لائحة', 'تنفيذية', 'مبلغ', 'حقوق', 'راتب', 'فصل', 'إنهاء', 'انهاء'
+            ];
+
+            $questionMarkers = [
+                'ما', 'ماذا', 'هل', 'كيف', 'متى', 'اين', 'أين', 'كم', 'ليه', 'لماذا', 'مين', 'من'
+            ];
+
+            foreach ($nonGreetingWords as $w) {
+                if (in_array($w, $legalKeywords, true) || in_array($w, $questionMarkers, true)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * صياغة رد التحية بشكل مقتضب وأنيق دون مصادر أو إخلاء مسؤولية
+     */
+    private function getGreetingReply(string $body): string
+    {
+        $clean = mb_strtolower(trim($body));
+
+        if (mb_strpos($clean, 'صباح') !== false) {
+            return "صباح النور والسرور! 🌸 كيف يمكنني مساعدتك في الأنظمة والقضايا السعودية اليوم؟";
+        }
+
+        if (mb_strpos($clean, 'مساء') !== false) {
+            return "مساء النور والسرور! 🌸 كيف يمكنني مساعدتك في الأنظمة والقضايا السعودية اليوم؟";
+        }
+
+        if (mb_strpos($clean, 'شكرا') !== false || mb_strpos($clean, 'شكراً') !== false || mb_strpos($clean, 'مشكور') !== false || mb_strpos($clean, 'يعطيك') !== false || mb_strpos($clean, 'جزاك') !== false) {
+            return "العفو! أهلاً وسهلاً بك في أي وقت. ⚖️ هل لديك أي استفسار قانوني آخر؟";
+        }
+
+        if (mb_strpos($clean, 'سلام') !== false) {
+            return "وعليكم السلام ورحمة الله وبركاته. 🌸 كيف يمكنني مساعدتك في الأنظمة والقضايا السعودية اليوم؟";
+        }
+
+        return "أهلاً وسهلاً بك! 🌸 كيف يمكنني مساعدتك في الأنظمة والقضايا السعودية اليوم؟";
     }
 
     // ─────────────────────────────────────────────────────────────────────────
