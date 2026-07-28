@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Log;
 class WhatsAppController extends Controller
 {
     /**
-     * إخلاء المسؤولية الموحد المُضاف في نهاية كل رسالة وفي الفوتر
+     * إخلاء المسؤولية الموحد المُضاف في فوتر الرسائل
      */
-    const DISCLAIMER = "\n\n⚠️ *إخلاء مسؤولية:* جميع الإجابات والمعلومات القانونية المرفقة هي لغايات الاسترشاد والمعرفة العامة فقط ولا تُعد استشارة قانونية رسمية ملزمة.";
+    const DISCLAIMER = "\n\n───────────────\n⚠️ _إخلاء مسؤولية: جميع الإجابات والمعلومات القانونية المرفقة هي لغايات الاسترشاد والمعرفة العامة فقط ولا تُعد استشارة قانونية رسمية ملزمة._";
 
     public function __construct(
         protected TwilioService      $twilio,
@@ -42,10 +42,14 @@ class WhatsAppController extends Controller
 
         // 2. استخراج بيانات الرسالة الواردة من Twilio
         $from        = $request->input('From', '');   // مثال: whatsapp:+966500000000
+        $to          = $request->input('To', '');     // رقم البوت المـُستلم: whatsapp:+966570079182
         $body        = trim($request->input('Body', ''));
         $profileName = $request->input('ProfileName', '');
 
-        Log::info('[WhatsApp] رسالة واردة', ['from' => $from, 'body' => $body]);
+        // تنظيف رقم البوت لاستخدامه في روابط wa.me الضغطة الواحدة
+        $botPhone    = preg_replace('/\D/', '', $to ?: config('services.twilio.whatsapp_from', ''));
+
+        Log::info('[WhatsApp] رسالة واردة', ['from' => $from, 'body' => $body, 'botPhone' => $botPhone]);
 
         if (empty($from) || empty($body)) {
             return response('OK', 200);
@@ -79,7 +83,7 @@ class WhatsAppController extends Controller
             case 'start_chat':
                 $reply    = $this->handleStartChat($conversation);
                 $buttons  = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
-                $mediaUrl = config('app.url') . '/images/logo.png';
+                $mediaUrl = config('app.url') . '/images/icon.png';
                 break;
 
             case 'end_chat':
@@ -88,7 +92,7 @@ class WhatsAppController extends Controller
                 break;
 
             case 'case_lookup':
-                $reply   = $this->handleCaseLookup($conversation, $body);
+                $reply   = $this->handleCaseLookup($conversation, $body, $botPhone);
                 $buttons = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
                 break;
 
@@ -98,7 +102,7 @@ class WhatsAppController extends Controller
                 break;
 
             case 'legal_query':
-                $reply   = $this->handleLegalQuery($conversation, $body);
+                $reply   = $this->handleLegalQuery($conversation, $body, $botPhone);
                 $buttons = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
                 break;
 
@@ -136,8 +140,8 @@ class WhatsAppController extends Controller
             return 'start_chat';
         }
 
-        // 2. كشف الاستفسار عن رقم قضية مباشر (مثل: 4471036594 أو قضية 4471036594)
-        if (preg_match('/^(?:عرض\s+|قضية\s+|مرجع\s+|رقم\s+)?(\d{3,15})$/u', $normalizedBody)) {
+        // 2. كشف الاستفسار عن رقم قضية مباشر (مثل: 4471036594 أو قضية 4471036594 أو حكم 4430630992)
+        if (preg_match('/^(?:عرض\s+|قضية\s+|مرجع\s+|رقم\s+|حكم\s+|قرار\s+|حكم\s+رقم\s+|قضية\s+رقم\s+)?(\d{3,15})$/u', $normalizedBody)) {
             return 'case_lookup';
         }
 
@@ -240,7 +244,7 @@ class WhatsAppController extends Controller
     /**
      * عرض نص القضية الكاملة عند إرسال رقم القضية أو المرجع مباشرة
      */
-    private function handleCaseLookup(WhatsAppConversation $conversation, string $body): string
+    private function handleCaseLookup(WhatsAppConversation $conversation, string $body, string $botPhone = ''): string
     {
         if (!preg_match('/(\d{3,15})/u', $body, $matches)) {
             return "لم نتمكن من التعرف على رقم القضية. يرجى إرسال رقم القضية مجرداً (مثال: 4471036594)." . self::DISCLAIMER;
@@ -248,7 +252,7 @@ class WhatsAppController extends Controller
 
         $caseNumber = $matches[1];
 
-        // البحث في جدول المهام والقضايا LegalTask
+        // 1. البحث في جدول المهام والقضايا LegalTask
         $task = LegalTask::where('case_reference', $caseNumber)
             ->orWhere('case_reference', 'LIKE', "%{$caseNumber}%")
             ->orWhere('id', (int)$caseNumber)
@@ -263,22 +267,26 @@ class WhatsAppController extends Controller
             $output = "📜 *تفاصيل نص القضية الكاملة (مرجع رقم: {$ref})*\n\n";
 
             if (!empty($questionText)) {
-                $output .= "📌 *موضوع الدعوى / السؤال:* \n{$questionText}\n\n";
+                $output .= "📌 *موضوع الدعوى / السؤال:* \n" . mb_substr($questionText, 0, 300) . (mb_strlen($questionText) > 300 ? '...' : '') . "\n\n";
             }
 
             if (!empty($caseText)) {
-                $output .= "⚖️ *أسباب الحكم والوقائع:* \n{$caseText}\n\n";
+                $output .= "⚖️ *أسباب الحكم والوقائع:* \n" . mb_substr($caseText, 0, 600) . (mb_strlen($caseText) > 600 ? '...' : '') . "\n\n";
             }
 
             if (!empty($correctAnswer) && $correctAnswer !== $caseText) {
-                $output .= "✅ *المنطوق / النتيجة:* \n{$correctAnswer}\n\n";
+                $output .= "✅ *المنطوق / النتيجة:* \n" . mb_substr($correctAnswer, 0, 300) . (mb_strlen($correctAnswer) > 300 ? '...' : '') . "\n\n";
+            }
+
+            if (!empty($botPhone)) {
+                $output .= "🔗 *رابط إعادة الإرسال السريع:* https://wa.me/{$botPhone}?text={$caseNumber}\n\n";
             }
 
             $output .= "💡 *نصيحة:* يمكنك كتابة أي سؤال قانوني آخر أو إرسال رقم قضية أخرى لعرض تفاصيلها.";
             return $output . self::DISCLAIMER;
         }
 
-        // البحث الثانوي في الأحكام LegalJudgment
+        // 2. البحث الثانوي في الأحكام LegalJudgment
         $judgment = LegalJudgment::where('case_number', $caseNumber)
             ->orWhere('case_number', 'LIKE', "%{$caseNumber}%")
             ->orWhere('id', (int)$caseNumber)
@@ -290,21 +298,37 @@ class WhatsAppController extends Controller
                 $output .= "📌 *العنوان:* {$judgment->title}\n\n";
             }
             if (!empty($judgment->summary)) {
-                $output .= "⚖️ *الملخص/الأسباب:* \n{$judgment->summary}\n\n";
+                $output .= "⚖️ *الملخص/الأسباب:* \n" . mb_substr($judgment->summary, 0, 500) . (mb_strlen($judgment->summary) > 500 ? '...' : '') . "\n\n";
             }
             if (!empty($judgment->judgment_text)) {
-                $output .= "✅ *نص الحكم:* \n{$judgment->judgment_text}\n\n";
+                $output .= "✅ *نص الحكم:* \n" . mb_substr($judgment->judgment_text, 0, 600) . (mb_strlen($judgment->judgment_text) > 600 ? '...' : '') . "\n\n";
             }
+
+            if (!empty($botPhone)) {
+                $output .= "🔗 *رابط إعادة الإرسال السريع:* https://wa.me/{$botPhone}?text={$caseNumber}\n\n";
+            }
+
             return $output . self::DISCLAIMER;
         }
 
-        return "🔍 لم نجد تفاصيل مخزنة برقم القضية أو المرجع (*{$caseNumber}*) في قاعدة البيانات حالياً. يمكنك طرح سؤالك القانوني وسنبحث لك في كافة السوابق والأنظمة." . self::DISCLAIMER;
+        // 3. المحاولة الثالثة: البحث الذكي عبر RAG وقواعد البيانات المتجهة Vector Search
+        try {
+            $ragResult = $this->rag->ask("عرض تفاصيل ووقائع الحكم أو القضية رقم {$caseNumber}");
+            if (!empty($ragResult['answer']) && mb_strlen(trim($ragResult['answer'])) > 20) {
+                return $this->formatForWhatsApp($ragResult['answer'], $ragResult['citations'] ?? [], $botPhone) . self::DISCLAIMER;
+            }
+        } catch (\Exception $e) {
+            Log::warning('[WhatsApp] Fallback RAG lookup failed for case ' . $caseNumber . ': ' . $e->getMessage());
+        }
+
+        $linkInfo = !empty($botPhone) ? "\n👉 *إعادة إرسال رقم الحكم بضغطة واحدة:* https://wa.me/{$botPhone}?text={$caseNumber}" : "";
+        return "🔍 لم نجد تفاصيل مخزنة برقم القضية أو المرجع (*{$caseNumber}*) في قاعدة البيانات حالياً. يمكنك طرح سؤالك القانوني وسنبحث لك في كافة السوابق والأنظمة." . $linkInfo . self::DISCLAIMER;
     }
 
     /**
      * معالجة السؤال القانوني عبر محرك RAG
      */
-    private function handleLegalQuery(WhatsAppConversation $conversation, string $question): string
+    private function handleLegalQuery(WhatsAppConversation $conversation, string $question, string $botPhone = ''): string
     {
         // تفعيل الجلسة تلقائياً إذا كانت غير نشطة
         if ($conversation->session_state !== 'in_chat') {
@@ -346,7 +370,7 @@ class WhatsAppController extends Controller
         }
 
         // تنسيق الإجابة لواتساب مع تنقية وتعرِيب المصادر
-        $formattedAnswer = $this->formatForWhatsApp($answer, $citations);
+        $formattedAnswer = $this->formatForWhatsApp($answer, $citations, $botPhone);
 
         // حفظ رد المساعد
         WhatsAppMessage::create([
@@ -459,11 +483,11 @@ class WhatsAppController extends Controller
         $clean = mb_strtolower(trim($body));
 
         if (mb_strpos($clean, 'صباح') !== false) {
-            return "صباح النور والسرور! 🌸 كيف يمكنني مساعدتك في الأنظمة والقضايا السعودية اليوم؟";
+            return "صباح النور والسرور! كيف يمكنني مساعدتك في الأنظمة والقضايا السعودية اليوم؟";
         }
 
         if (mb_strpos($clean, 'مساء') !== false) {
-            return "مساء النور والسرور! 🌸 كيف يمكنني مساعدتك في الأنظمة والقضايا السعودية اليوم؟";
+            return "مساء النور والسرور! كيف يمكنني مساعدتك في الأنظمة والقضايا السعودية اليوم؟";
         }
 
         if (mb_strpos($clean, 'شكرا') !== false || mb_strpos($clean, 'شكراً') !== false || mb_strpos($clean, 'مشكور') !== false || mb_strpos($clean, 'يعطيك') !== false || mb_strpos($clean, 'جزاك') !== false) {
@@ -471,10 +495,10 @@ class WhatsAppController extends Controller
         }
 
         if (mb_strpos($clean, 'سلام') !== false) {
-            return "وعليكم السلام ورحمة الله وبركاته. 🌸 كيف يمكنني مساعدتك في الأنظمة والقضايا السعودية اليوم؟";
+            return "وعليكم السلام ورحمة الله وبركاته. كيف يمكنني مساعدتك في الأنظمة والقضايا السعودية اليوم؟";
         }
 
-        return "أهلاً وسهلاً بك! 🌸 كيف يمكنني مساعدتك في الأنظمة والقضايا السعودية اليوم؟";
+        return "أهلاً وسهلاً بك! كيف يمكنني مساعدتك في الأنظمة والقضايا السعودية اليوم؟";
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -483,9 +507,9 @@ class WhatsAppController extends Controller
 
     /**
      * تحويل الإجابة من HTML/Markdown إلى تنسيق واتساب (plain text + WhatsApp bold)
-     * مع تعريب وتجميل قسم المصادر وإتاحة التفاعل المباشر
+     * مع تعريب وتجميل قسم المصادر وإتاحة التفاعل المباشر عبر رابط wa.me
      */
-    private function formatForWhatsApp(string $answer, array $citations): string
+    private function formatForWhatsApp(string $answer, array $citations, string $botPhone = ''): string
     {
         // إزالة HTML tags
         $text = strip_tags($answer);
@@ -496,10 +520,13 @@ class WhatsAppController extends Controller
         // تحويل bold Markdown إلى WhatsApp bold
         $text = preg_replace('/\*\*(.+?)\*\*/u', '*$1*', $text);
 
-        // جعل أرقام القضايا داخل النص تفاعلية
-        $text = preg_replace_callback('/(القضية\s+رقم\s+|مرجع\s+قانوني\s+\[?|مرجع\s+#)(\d{3,15})\]?/u', function ($matches) {
+        // جعل أرقام القضايا داخل النص تفاعلية عبر رابط wa.me
+        $text = preg_replace_callback('/(القضية\s+رقم\s+|مرجع\s+قانوني\s+\[?|مرجع\s+#|حكم\s+رقم\s+)(\d{3,15})\]?/u', function ($matches) use ($botPhone) {
             $prefix = $matches[1];
             $num    = $matches[2];
+            if (!empty($botPhone)) {
+                return "{$prefix}{$num} 🔗 *(اضغط للإرسال التلقائي: https://wa.me/{$botPhone}?text={$num} )*";
+            }
             return "{$prefix}{$num} 🔗 *(لِعرض نص القضية كاملاً أرسل: {$num})*";
         }, $text);
 
@@ -507,7 +534,7 @@ class WhatsAppController extends Controller
         $text = preg_replace('/\n{3,}/', "\n\n", $text);
         $text = trim($text);
 
-        // صياغة قسم المصادر بشكل عربي أنيق ومنظم بدون مصطلحات إنجليزية
+        // صياغة قسم المصادر بشكل عربي أنيق ومنظم بدون مصطلحات إنجليزية مع روابط تفاعلية
         if (!empty($citations)) {
             $sourcesText = "\n\n📚 *المصادر والمرجعيات القضائية:*";
             $seen        = [];
@@ -519,7 +546,7 @@ class WhatsAppController extends Controller
                 $seen[$rawTitle] = true;
                 $count++;
 
-                // تعريب وتعذيب اسم النظام أو المرجع
+                // تعريب اسم النظام أو المرجع
                 $systemName = $this->translateSystemName($cite['system'] ?? '');
 
                 // تنسيق عنوان المرجع
@@ -528,10 +555,15 @@ class WhatsAppController extends Controller
                     $formattedTitle = "حكم قضائي رقم {$rawTitle}";
                 }
 
-                // استخراج الأرقام لربطها برابط تفاعلي
+                // استخراج الأرقام لربطها برابط تفاعلي مباشر
                 if (preg_match('/(\d{3,15})/', $rawTitle, $numMatch)) {
                     $caseNum = $numMatch[1];
-                    $sourcesText .= "\n• 📜 *{$formattedTitle}* - {$systemName}\n  👈 _أرسل *{$caseNum}* لعرض نص القضية كاملاً_";
+                    if (!empty($botPhone)) {
+                        $waLink = "https://wa.me/{$botPhone}?text={$caseNum}";
+                        $sourcesText .= "\n• 📜 *{$formattedTitle}* - {$systemName}\n  👉 *اضغط هنا لإرسال رقم الحكم تلقائياً:* {$waLink}";
+                    } else {
+                        $sourcesText .= "\n• 📜 *{$formattedTitle}* - {$systemName}\n  👈 _أرسل *{$caseNum}* لعرض نص القضية كاملاً_";
+                    }
                 } else {
                     $sourcesText .= "\n• 📜 *{$formattedTitle}* - {$systemName}";
                 }

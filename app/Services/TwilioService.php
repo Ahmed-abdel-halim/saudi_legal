@@ -36,6 +36,30 @@ class TwilioService
             return false;
         }
 
+        // ضمان عدم تجاوز الحد الأقصى لطول الرسالة في واتساب (1600 حرف)
+        if (mb_strlen($body) > 1550) {
+            $body = mb_substr($body, 0, 1500) . "\n\n⚠️ _(تم اختصار باقي النص لتجاوز الحد الأقصى للرسالة)_";
+        }
+
+        $sent = $this->executeSend($to, $body, $buttons, $mediaUrl);
+
+        // محاولة إعادة الإرسال بدون أزرار تفاعلية في حال فشلت المحاولة الأولى
+        if (!$sent && !empty($buttons)) {
+            Log::info('[Twilio] إعادة المحاولة بدون أزرار تفاعلية...');
+            $sent = $this->executeSend($to, $body, [], $mediaUrl);
+        }
+
+        // محاولة إعادة الإرسال بدون وسائط في حال الفشل
+        if (!$sent && !empty($mediaUrl)) {
+            Log::info('[Twilio] إعادة المحاولة بدون وسائط...');
+            $sent = $this->executeSend($to, $body, [], null);
+        }
+
+        return $sent;
+    }
+
+    private function executeSend(string $to, string $body, array $buttons = [], ?string $mediaUrl = null): bool
+    {
         try {
             $params = [
                 'From' => $this->from,
