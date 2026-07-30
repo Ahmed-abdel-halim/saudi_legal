@@ -6,10 +6,16 @@ use App\Http\Controllers\Api\ContractController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\WhatsApp\WhatsAppController;
+use App\Http\Controllers\Api\ChatwootWebhookController;
 
 // ─── WhatsApp Webhook (عام — بدون مصادقة، Twilio يتصل به مباشرة) ─────────────
 Route::post('/whatsapp/webhook', [WhatsAppController::class, 'webhook'])
     ->name('whatsapp.webhook');
+
+// ─── Chatwoot Webhook (عام — بدون مصادقة، Chatwoot يتصل به مباشرة) ────────────
+Route::post('/chatwoot/webhook', [ChatwootWebhookController::class, 'webhook'])
+    ->name('chatwoot.webhook');
+
 
 Route::middleware('auth:sanctum')->group(function () {
     

@@ -60,4 +60,11 @@ return [
         'free_limit'    => env('WHATSAPP_FREE_LIMIT', 10),
     ],
 
+    'chatwoot' => [
+        'url'        => env('CHATWOOT_URL', 'https://app.chatwoot.com'),
+        'account_id' => env('CHATWOOT_ACCOUNT_ID', '177354'),
+        'token'      => env('CHATWOOT_API_TOKEN', 'NVvdPMa9b2VVA5tFMsiYbz1B'),
+        'inbox_id'   => env('CHATWOOT_INBOX_ID', '124151'),
+    ],
+
 ];

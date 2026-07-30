@@ -9,6 +9,7 @@ use App\Models\LegalTask;
 use App\Models\LegalJudgment;
 use App\Services\TwilioService;
 use App\Services\WhatsAppRagService;
+use App\Services\ChatwootService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -21,7 +22,8 @@ class WhatsAppController extends Controller
 
     public function __construct(
         protected TwilioService      $twilio,
-        protected WhatsAppRagService $rag
+        protected WhatsAppRagService $rag,
+        protected ChatwootService    $chatwoot
     ) {}
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -115,6 +117,13 @@ class WhatsAppController extends Controller
 
         // 6. إرسال الرد المنسق مع الأزرار التفاعلية والصورة المرفقة عبر Twilio
         $this->twilio->sendMessage($from, $reply, $buttons, $mediaUrl);
+
+        // 7. مزامنة الرسالة والرد مع حساب Chatwoot تلقائياً
+        try {
+            $this->chatwoot->syncIncomingAndOutgoing($from, $profileName, $body, $reply);
+        } catch (\Exception $e) {
+            Log::warning('[WhatsApp Controller] Chatwoot sync error: ' . $e->getMessage());
+        }
 
         return response('OK', 200);
     }
