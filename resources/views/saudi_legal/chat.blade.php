@@ -331,12 +331,13 @@
                         class="w-20 h-20 rounded-full shadow-xl object-cover ring-4 ring-brand-green/30 mb-6">
                     <div
                         class="glass-bubble p-8 max-w-2xl text-center relative border border-slate-200/50 dark:border-white/10">
-                        <h2 class="text-xl font-black text-slate-800 dark:text-slate-100 mb-3">مرحباً بك في مستشارك
-                            القانوني الذكي!</h2>
-                        <p class="text-sm text-slate-650 dark:text-slate-300 leading-relaxed font-medium">
-                            أنا هنا لمساعدتك في استخراج السوابق والأحكام القضائية، وقراءة نصوص الأنظمة والتشريعات
-                            السعودية المترابطة بالمعنى الدلالي. محادثتي الآن مزودة بالذاكرة الكاملة لحفظ سياق حديثك.
+                        <h2 class="text-xl font-black text-slate-800 dark:text-slate-100 mb-3">رديف | المساعد الذكي القضائي</h2>
+                        <p class="text-sm text-slate-650 dark:text-slate-300 leading-relaxed font-medium mb-4">
+                            متخصص في الأنظمة والتشريعات السعودية , متميز في القضايا التجارية والعمالية
                         </p>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-200/30 dark:border-white/10 font-medium">
+                            ⚠️ <strong>إخلاء المسئولية :</strong> أقدم معلومات استرشادية وليست استشارة قانونية رسمية
+                        </div>
                     </div>
                 </div>
 
