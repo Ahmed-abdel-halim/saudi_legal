@@ -35,6 +35,28 @@ class AiSubscriptionPaymentController extends Controller
                 ->with('package')
                 ->latest()
                 ->first();
+
+            // Fallback: If no active sub found, check if a pending sub was already paid at Stripe
+            if (!$currentSubscription) {
+                $pendingSub = AiSubscription::where('user_id', auth()->id())
+                    ->where('status', 'pending')
+                    ->whereNotNull('stripe_session_id')
+                    ->latest()
+                    ->first();
+
+                if ($pendingSub) {
+                    try {
+                        $stripe = $this->stripe();
+                        $session = $stripe->checkout->sessions->retrieve($pendingSub->stripe_session_id);
+                        if ($session && $session->payment_status === 'paid') {
+                            $this->handleCheckoutCompleted($session);
+                            $currentSubscription = $pendingSub->fresh(['package']);
+                        }
+                    } catch (\Exception $e) {
+                        Log::warning('AI Pricing Page: Error verifying pending sub with Stripe', ['error' => $e->getMessage()]);
+                    }
+                }
+            }
         }
 
         return view('legal.ai_packages', compact('packages', 'currentSubscription'));
@@ -160,6 +182,23 @@ class AiSubscriptionPaymentController extends Controller
             $subscription = AiSubscription::where('stripe_session_id', $sessionId)
                 ->with('package')
                 ->first();
+
+            // Instant Activation Fallback: If sub is pending, check directly with Stripe API
+            if ($subscription && $subscription->status === 'pending') {
+                try {
+                    $stripe = $this->stripe();
+                    $session = $stripe->checkout->sessions->retrieve($sessionId);
+                    if ($session && $session->payment_status === 'paid') {
+                        $this->handleCheckoutCompleted($session);
+                        $subscription->refresh();
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('AI Subscription Success Page: Could not verify Stripe session', [
+                        'session_id' => $sessionId,
+                        'error'      => $e->getMessage(),
+                    ]);
+                }
+            }
         }
 
         return view('legal.ai_subscription_success', compact('subscription'));
