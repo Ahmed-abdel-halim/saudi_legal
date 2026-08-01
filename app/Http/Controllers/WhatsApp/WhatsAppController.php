@@ -90,7 +90,7 @@ class WhatsAppController extends Controller
 
             case 'end_chat':
                 $reply   = $this->handleEndChat($conversation);
-                $buttons = ['المساعد القانوني ⚖️'];
+                $buttons = ['ابدأ الاستشارة ⚖️'];
                 break;
 
             case 'case_lookup':
@@ -100,7 +100,7 @@ class WhatsAppController extends Controller
 
             case 'pure_greeting':
                 $reply   = $this->handlePureGreeting($conversation, $body);
-                $buttons = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
+                $buttons = ['ابدأ الاستشارة ⚖️', 'إنهاء المحادثة 🛑'];
                 break;
 
             case 'legal_query':
@@ -111,7 +111,7 @@ class WhatsAppController extends Controller
             case 'idle_prompt':
             default:
                 $reply   = $this->getIdlePrompt();
-                $buttons = ['المساعد القانوني ⚖️'];
+                $buttons = ['ابدأ الاستشارة ⚖️'];
                 break;
         }
 
@@ -137,16 +137,18 @@ class WhatsAppController extends Controller
         $normalizedBody = mb_strtolower(trim($body));
 
         // 1. كشف الضغط على الأزرار التفاعلية أو الكلمات الرئيسية للصنع الصريح
-        if ($normalizedBody === 'القائمة الرئيسية' || $normalizedBody === 'القائمة الرئيسية 🏠' || $normalizedBody === 'الرئيسية') {
+        if (in_array($normalizedBody, [
+            'القائمة الرئيسية', 'القائمة الرئيسية 🏠', 'الرئيسية',
+            'المساعد القانوني', 'المساعد القانوني ⚖️', 'مساعد قانوني',
+            'ابدأ الاستشارة', 'ابدأ الاستشارة ⚖️', 'ابدأ', 'ابدا', 'ابدأ الآن', 'ابدأ الان'
+        ], true)) {
             return 'start_chat';
         }
 
-        if ($normalizedBody === 'إنهاء المحادثة' || $normalizedBody === 'إنهاء المحادثة 🛑' || $normalizedBody === 'إنهاء الجلسة') {
+        if (in_array($normalizedBody, [
+            'إنهاء المحادثة', 'إنهاء المحادثة 🛑', 'إنهاء الجلسة', 'إنهاء'
+        ], true)) {
             return 'end_chat';
-        }
-
-        if ($normalizedBody === 'المساعد القانوني' || $normalizedBody === 'المساعد القانوني ⚖️') {
-            return 'start_chat';
         }
 
         // 2. كشف الاستفسار عن رقم قضية مباشر (مثل: 4471036594 أو قضية 4471036594 أو حكم 4430630992)
