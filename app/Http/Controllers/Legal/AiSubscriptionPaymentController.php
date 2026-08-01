@@ -36,10 +36,10 @@ class AiSubscriptionPaymentController extends Controller
                 ->latest()
                 ->first();
 
-            // Fallback: If no active sub found, check if a pending sub was already paid at Stripe
+            // Fallback: If no active sub found, check if a pending/recent sub was already paid at Stripe
             if (!$currentSubscription) {
                 $pendingSub = AiSubscription::where('user_id', auth()->id())
-                    ->where('status', 'pending')
+                    ->whereIn('status', ['pending', 'cancelled'])
                     ->whereNotNull('stripe_session_id')
                     ->latest()
                     ->first();
