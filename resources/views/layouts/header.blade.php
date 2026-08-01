@@ -34,6 +34,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
     {{-- External CSS/JS Libraries --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="//unpkg.com/alpinejs" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
 
     {{-- Custom Stylesheet --}}
