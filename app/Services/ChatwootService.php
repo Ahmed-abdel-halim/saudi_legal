@@ -186,7 +186,7 @@ class ChatwootService
     }
 
     /**
-     * مزامنة الرسالة الواردة ورد الذكاء الاصطناعي مع Chatwoot دفعة واحدة
+     * مزامنة الرسالة الواردة ورد الذكاء الاصطناعي مع Chatwoot كـ سجل داخلي لمنع تكرار الإرسال
      */
     public function syncIncomingAndOutgoing(string $phone, string $name, string $userMessage, string $aiReply): bool
     {
@@ -200,18 +200,17 @@ class ChatwootService
 
         $convId = $conv['id'];
 
-        // 1. تسجيل رسالة العميل الواردة كـ Note أو Message
+        // 1. تسجيل رسالة العميل الواردة
         if (!empty($userMessage)) {
             $sent = $this->sendMessage($convId, $userMessage, 'incoming');
             if (!$sent) {
-                // إذا رفض Chatwoot استقبال message_type=incoming، يُسجل كملاحظة رسمية داخل المحادثة
                 $this->sendMessage($convId, "💬 **سؤال العميل:**\n" . $userMessage, 'outgoing', true);
             }
         }
 
-        // 2. تسجيل رد الذكاء الاصطناعي الصادر
+        // 2. تسجيل رد الذكاء الاصطناعي كـ ملاحظة خاصة داخلية لمنع إرسال رسالة مكررة للعميل عبر Chatwoot
         if (!empty($aiReply)) {
-            $this->sendMessage($convId, $aiReply, 'outgoing');
+            $this->sendMessage($convId, "🤖 **رد منصة رديف:**\n" . $aiReply, 'outgoing', true);
         }
 
         return true;

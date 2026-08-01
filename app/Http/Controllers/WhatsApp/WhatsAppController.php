@@ -422,18 +422,20 @@ class WhatsAppController extends Controller
     }
 
     /**
-     * التحقق مما إذا كانت الرسالة تحية مجردة أو مجاملة بدون سؤال قانوني
+     * التحقق مما إذا كانت الرسالة تحية مجردة أو رمزا/علامة بدون سؤال قانوني
      */
     private function isPureGreeting(string $text): bool
     {
-        $clean = mb_strtolower(trim($text));
+        $raw = trim($text);
 
-        // تنظيف العلامات والرموز والتواكيل والتطويل
-        $clean = preg_replace('/[^\p{L}\p{N}\s]/u', '', $clean);
-        $clean = preg_replace('/\s+/', ' ', $clean);
+        // إذا كانت الرسالة عبارة عن رموز، نقطة (.)، أو علامات ترقيم فقط، أو نص قصير جداً بدون أحرف قانونية
+        $clean = mb_strtolower($raw);
+        $cleanAlpha = preg_replace('/[^\p{L}\p{N}\s]/u', '', $clean);
+        $cleanAlpha = preg_replace('/\s+/', ' ', trim($cleanAlpha));
 
-        if (empty($clean)) {
-            return false;
+        // إذا كانت الرسالة مجرد رموز أو نقطة أو فارغة بعد إزالة الرموز
+        if (empty($cleanAlpha) || mb_strlen($raw) <= 2) {
+            return true;
         }
 
         // قائمة الكلمات الدالة على التحية والمجاملة
@@ -449,7 +451,7 @@ class WhatsAppController extends Controller
             'hi', 'hello', 'hey', 'good', 'morning', 'evening', 'afternoon', 'how', 'are', 'you', 'thanks', 'thank'
         ];
 
-        $words = explode(' ', $clean);
+        $words = explode(' ', $cleanAlpha);
 
         // إزالة كل كلمات التحية
         $nonGreetingWords = array_values(array_filter($words, function ($w) use ($greetingWords) {
