@@ -182,6 +182,11 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                         <i class="fa-solid fa-robot group-hover:animate-bounce"></i>
                         @if($currentLang === 'en') AI Legal Assistant @else المساعد القانوني @endif
                     </a>
+                    <a href="{{ route('ai.packages') }}"
+                        class="text-emerald-400 font-bold transition-colors duration-200 whitespace-nowrap flex items-center gap-1 hover:text-emerald-300">
+                        <i class="fa-solid fa-gem text-xs"></i>
+                        @if($currentLang === 'en') Packages & Pricing @else الباقات والأسعار @endif
+                    </a>
                     <a href="{{ route('how-it-works') }}"
                         class="text-slate-600 dark:text-slate-300 hover:text-brand-green font-semibold transition-colors duration-200 whitespace-nowrap">
                         {{ __('header.NAV_HOW_IT_WORKS', [], $currentLang) }}
@@ -371,6 +376,10 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                     <a href="{{ route('legal_assistant.public') }}"
                         class="text-brand-primary font-bold flex items-center gap-2 bg-brand-primary/10 p-2 rounded-lg border border-brand-primary/20">
                         <i class="fa-solid fa-robot"></i> {{ $currentLang === 'en' ? 'AI Legal Assistant' : 'المساعد القانوني' }}
+                    </a>
+                    <a href="{{ route('ai.packages') }}"
+                        class="text-emerald-400 font-bold flex items-center gap-2 bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
+                        <i class="fa-solid fa-gem"></i> {{ $currentLang === 'en' ? 'Packages & Pricing' : 'الباقات والأسعار' }}
                     </a>
                     <a href="{{ route('how-it-works') }}"
                         class="text-gray-600 font-bold">
