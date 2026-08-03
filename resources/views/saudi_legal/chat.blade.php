@@ -374,7 +374,47 @@
         const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
         let remainingMessagesCount = 10;
 
-        // دالة لعرض المصادر مقسمة: أحكام + مواد نظامية، كل مجموعة بزرار عرض المزيد / عرض أقل
+        // ─── Citation Data Store & Full Screen Reader Modal Handlers ────────────
+        window.citationDataStore = window.citationDataStore || {};
+
+        function openCitationReader(citationId) {
+            const data = window.citationDataStore[citationId];
+            if (!data) return;
+
+            const modal = document.getElementById('citation-reader-modal');
+            if (!modal) return;
+
+            document.getElementById('reader-modal-title').innerHTML = data.title;
+            document.getElementById('reader-modal-system').innerHTML = data.systemInfo || '';
+            document.getElementById('reader-modal-badges').innerHTML = data.typeBadge + ' ' + (data.confidenceBadge || '');
+            document.getElementById('reader-modal-content').innerText = data.text;
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCitationReader() {
+            const modal = document.getElementById('citation-reader-modal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function copyCitationText() {
+            const content = document.getElementById('reader-modal-content').innerText;
+            if (!content) return;
+            navigator.clipboard.writeText(content).then(() => {
+                const btn = document.getElementById('btn-copy-citation');
+                if (!btn) return;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> <span>تم النسخ بنجاح</span>';
+                setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+
+        // دالة لعرض المصادر مقسمة: أحكام + مواد نظامية بصيغة كروت تفاعلية تفتح شاشة القراءة الكاملة
         function renderCitations(citations, msgId) {
             const judgments = citations.filter(c => c.type === 'judgment');
             const articles = citations.filter(c => c.type === 'article');
@@ -392,11 +432,12 @@
                     const title = item.title || 'مرجع قانوني';
                     const text = item.text || '';
                     const confidence = item.score ? Math.round(item.score * 100) : null;
-                    const confidenceBadge = confidence ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 border border-slate-200/50 dark:border-white/5 shrink-0 select-none">${confidence}% تطابق</span>` : '';
+                    const confidenceBadge = confidence ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-white/5 shrink-0 select-none">${confidence}% تطابق</span>` : '';
 
                     let titleHtml = '';
+                    let systemInfo = '';
                     if (isJudgment) {
-                        const systemInfo = item.system ? `<span class="text-[10px] font-black text-brand-green dark:text-brand-teal tracking-wide leading-tight">${item.system}</span>` : '';
+                        systemInfo = item.system ? `<span class="text-[10px] font-black text-brand-green dark:text-brand-teal tracking-wide leading-tight">${item.system}</span>` : '';
                         const articleInfo = item.article_number ? `<span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">${item.article_number}</span>` : '';
                         titleHtml = `
                             <div class="flex flex-col text-right">
@@ -410,34 +451,52 @@
                         const parts = title.split(separator);
                         const articleNum = parts[0].trim();
                         const systemName = parts[1].trim();
+                        systemInfo = `<span class="text-[10px] font-black text-brand-green dark:text-brand-teal tracking-wide leading-tight">${systemName}</span>`;
                         titleHtml = `
                             <div class="flex flex-col text-right">
-                                <span class="text-[10px] font-black text-brand-green dark:text-brand-teal tracking-wide leading-tight">${systemName}</span>
+                                ${systemInfo}
                                 <span class="text-xs font-black text-slate-800 dark:text-slate-100 mt-0.5">${articleNum}</span>
                             </div>
                         `;
                     } else {
-                        titleHtml = `<span class="text-xs font-black text-slate-700 dark:text-slate-200 leading-snug">${title}</span>`;
+                        titleHtml = `<span class="text-xs font-black text-slate-800 dark:text-slate-100 leading-snug">${title}</span>`;
                     }
 
                     const typeBadge = isJudgment
-                        ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-455 border border-indigo-100 dark:border-indigo-900/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-gavel text-[8px]"></i> حكم قضائي</span>`
-                        : `<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-650 dark:text-emerald-450 border border-emerald-100 dark:border-emerald-900/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-scroll text-[8px]"></i> مادة نظامية</span>`;
+                        ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-gavel text-[8px]"></i> حكم قضائي</span>`
+                        : `<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-650 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-scroll text-[8px]"></i> مادة نظامية</span>`;
 
                     const borderClass = isJudgment
                         ? 'border-r-4 border-r-indigo-500'
                         : 'border-r-4 border-r-brand-green';
 
+                    const citationId = 'citation-' + Math.random().toString(36).substr(2, 9);
+                    window.citationDataStore[citationId] = {
+                        title: isJudgment ? `قضية رقم: ${title}` : title,
+                        systemInfo: systemInfo,
+                        typeBadge: typeBadge,
+                        confidenceBadge: confidenceBadge,
+                        text: text
+                    };
+
                     const cardHtml = `
-                        <div class="p-4 rounded-2xl bg-white dark:bg-dark-card border border-slate-200/50 dark:border-white/10 hover:shadow-md hover:border-slate-350 dark:hover:border-slate-600 transition flex flex-col gap-2.5 relative ${borderClass}">
-                            <div class="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-white/5 pb-2.5">
+                        <div onclick="openCitationReader('${citationId}')"
+                            class="p-4 rounded-2xl bg-white dark:bg-dark-card border border-slate-200/60 dark:border-white/10 hover:border-brand-green/60 dark:hover:border-brand-teal/60 hover:shadow-xl hover:shadow-brand-green/5 transition-all duration-200 flex flex-col justify-between gap-3 cursor-pointer group relative overflow-hidden ${borderClass}">
+                            <div class="flex items-start justify-between gap-3">
                                 ${titleHtml}
                                 <div class="flex flex-col items-end gap-1.5 shrink-0">
                                     ${typeBadge}
                                     ${confidenceBadge}
                                 </div>
                             </div>
-                            <p class="text-xs text-slate-800 dark:text-slate-100 leading-relaxed text-right font-medium max-h-24 overflow-y-auto custom-scrollbar pr-1.5">${text}</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed text-right font-normal line-clamp-2">${text}</p>
+                            <div class="flex items-center justify-between text-[11px] font-bold text-brand-green dark:text-brand-teal pt-2 border-t border-slate-100 dark:border-white/5">
+                                <span class="flex items-center gap-1.5 group-hover:translate-x-[-3px] transition-transform">
+                                    <i class="fa-solid fa-expand text-[10px]"></i>
+                                    عرض النص الكامل (قراءة مكبرة)
+                                </span>
+                                <i class="fa-solid fa-chevron-left text-[10px] opacity-70 group-hover:translate-x-[-3px] transition-transform"></i>
+                            </div>
                         </div>
                     `;
 
@@ -1394,6 +1453,45 @@
                 <button type="button" onclick="submitDislikeReason()" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-lg shadow-rose-600/30 transition transform hover:-translate-y-0.5 cursor-pointer">
                     إرسال الملاحظة
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full Screen Citation Reader Modal (نافذة القراءة للأنظمة والأحكام القضائية - الشاشة كلها) -->
+    <div id="citation-reader-modal" class="fixed inset-0 z-[9999] bg-slate-950/98 backdrop-blur-2xl flex flex-col hidden transition-all duration-300" dir="rtl">
+        <!-- Modal Header Bar -->
+        <div class="bg-slate-900/90 border-b border-white/10 px-4 md:px-8 py-4 flex items-center justify-between gap-4 sticky top-0 z-20 shadow-xl">
+            <div class="flex items-center gap-3">
+                <button onclick="closeCitationReader()" type="button" class="flex items-center gap-2 px-4 py-2.5 bg-brand-green hover:bg-brand-green/90 text-white rounded-2xl font-bold text-xs md:text-sm transition shadow-lg shadow-brand-green/20 cursor-pointer">
+                    <i class="fa-solid fa-arrow-right text-sm"></i>
+                    <span>رجوع لشاشة المساعد</span>
+                </button>
+                <div class="h-6 w-[1px] bg-white/10 hidden sm:block"></div>
+                <div id="reader-modal-badges" class="hidden sm:flex items-center gap-2"></div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="btn-copy-citation" onclick="copyCitationText()" type="button" class="flex items-center gap-1.5 px-3.5 py-2 bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 rounded-xl font-bold text-xs transition cursor-pointer">
+                    <i class="fa-regular fa-copy text-xs"></i>
+                    <span>نسخ النص</span>
+                </button>
+                <button onclick="closeCitationReader()" type="button" class="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/5 transition cursor-pointer" title="إغلاق">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Content Area (عرض مريح في منتصف الشاشة بحجم خط كبير وعالي التباين) -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
+            <div class="max-w-4xl mx-auto bg-slate-900/80 border border-white/10 rounded-3xl p-6 md:p-10 shadow-2xl relative my-4">
+                <div class="mb-6 border-b border-white/10 pb-5">
+                    <div id="reader-modal-system" class="text-xs font-bold text-brand-teal mb-1"></div>
+                    <h2 id="reader-modal-title" class="text-xl md:text-2xl font-black text-white leading-tight"></h2>
+                </div>
+                <div class="relative">
+                    <div id="reader-modal-content" class="text-slate-100 text-base md:text-lg leading-loose font-medium whitespace-pre-line text-right selection:bg-brand-green selection:text-white">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
