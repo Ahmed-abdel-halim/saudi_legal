@@ -146,16 +146,34 @@ class LegalAiController extends Controller
             abort(403, 'غير مصرح لك بمشاهدة هذه المحادثة.');
         }
 
+        $messages = $conversation->messages;
+        $firstUserMessage = $messages->firstWhere('role', 'user')?->message ?? '';
+        $isEnglishConv = preg_match('/[a-zA-Z]/', $firstUserMessage);
+
         return response()->json([
             'conversation' => [
                 'uuid'  => $conversation->uuid,
                 'title' => $conversation->title,
             ],
-            'messages' => $conversation->messages->map(fn($m) => [
-                'role'      => $m->role,
-                'message'   => $m->message,
-                'citations' => $m->citations,
-            ]),
+            'messages' => $messages->map(function($m) use ($isEnglishConv) {
+                $citations = $m->citations;
+                if ($isEnglishConv && !empty($citations) && is_array($citations)) {
+                    $items = $citations['items'] ?? null;
+                    if (is_array($items) && !empty($items)) {
+                        $firstText = $items[0]['text'] ?? '';
+                        if (!preg_match('/[a-zA-Z]{4,}/', $firstText)) {
+                            $translatedItems = $this->translateCitationsIfNeeded($items, 'English question');
+                            $citations['items'] = $translatedItems;
+                            $m->update(['citations' => $citations]);
+                        }
+                    }
+                }
+                return [
+                    'role'      => $m->role,
+                    'message'   => $m->message,
+                    'citations' => $citations,
+                ];
+            }),
         ]);
     }
 
@@ -629,12 +647,28 @@ class LegalAiController extends Controller
         // 7. حساب مؤشر الثقة وحفظ الرسائل الجديدة في قاعدة البيانات وتحديث وقت المحادثة
         $confidenceScore = $this->calculateConfidence($searchMethod, $contextTasks, $allArticles);
 
-        // التحقق مما إذا كانت الإجابة خارج النطاق (أي لا تحتوي على هيكل الاستشارات القانونية)
-        $isOutOfScope = (!str_contains($answer, 'الرأي القانوني') && !str_contains($answer, 'الاستدلال'));
-        if ($isOutOfScope) {
+        // التحقق مما إذا كانت الإجابة خارج النطاق (أسئلة عامة غير قانونية)
+        $isOutOfScope = (
+            str_contains($answer, 'متخصص فقط في الأنظمة') ||
+            str_contains(strtolower($answer), 'only specialized in saudi') ||
+            (
+                !str_contains($answer, 'الرأي القانوني') &&
+                !str_contains($answer, 'الاستدلال') &&
+                !str_contains(strtolower($answer), 'legal opinion') &&
+                !str_contains(strtolower($answer), 'justification') &&
+                !str_contains(strtolower($answer), 'analysis') &&
+                !$isDirectArticleRequest &&
+                $contextTasks->isEmpty()
+            )
+        );
+
+        if ($isOutOfScope && $contextTasks->isEmpty()) {
             $citations = [];
             $confidenceScore = 0;
         }
+
+        // ترجمة المصادر والمواد تلقائياً بلغة العميل إذا كان السؤال غير عربي
+        $citations = $this->translateCitationsIfNeeded($citations, $question);
 
         $citationsPayload = [
             'confidence_score' => $confidenceScore,
@@ -769,20 +803,18 @@ class LegalAiController extends Controller
 
         // 2. إزالة أي نص تفكير يبدأ بـ THOUGHT: أو Reasoning:
         if (preg_match('/^(THOUGHT|Reasoning):/i', trim($answer))) {
-            // البحث عن بداية الاستجابة الفعلية بالعربية (الرأي القانوني، الاستدلال، أو فقرة عربية)
-            $cleaned = preg_replace('/^(THOUGHT|Reasoning):[\s\S]*?(?=(\r?\n\r?\n[أ-ي]|\r?\n[أ-ي]|\bالرأي القانوني\b|\bالاستدلال\b|\bالتحليل\b|$))/u', '', $answer);
+            $cleaned = preg_replace('/^(THOUGHT|Reasoning):[\s\S]*?(?=(\r?\n\r?\n[^\s]|\r?\n[^\s]|\bالرأي القانوني\b|\bLegal Opinion\b|$))/iu', '', $answer);
             $cleaned = trim($cleaned);
 
             if (!empty($cleaned) && !preg_match('/^(THOUGHT|Reasoning):/i', $cleaned)) {
                 $answer = $cleaned;
             } else {
-                // تصفية أسطر التفكير بالإنجليزية المبتدئة بـ THOUGHT: أو أسطر باللغة الإنجليزية كاملة
                 $lines = explode("\n", $answer);
-                $arabicLines = array_filter($lines, function($line) {
+                $validLines = array_filter($lines, function($line) {
                     $trimmed = trim($line);
-                    return !preg_match('/^(THOUGHT|Reasoning):/i', $trimmed) && preg_match('/[\x{0600}-\x{06FF}]/u', $trimmed);
+                    return !preg_match('/^(THOUGHT|Reasoning):/i', $trimmed);
                 });
-                $answer = trim(implode("\n", $arabicLines));
+                $answer = trim(implode("\n", $validLines));
             }
         }
 
@@ -1024,5 +1056,141 @@ class LegalAiController extends Controller
             // 10 رسائل للزوار
             $limit = 10;
         }
+    }
+
+    /**
+     * ترجمة عناوين ونصوص المصادر والمواد تلقائياً للغة الإنجليزية إذا كان سؤال العميل بالإنجليزية
+     */
+    private function translateCitationsIfNeeded(array $citations, string $question): array
+    {
+        if (empty($citations)) {
+            return $citations;
+        }
+
+        // التحقق مما إذا كان السؤال باللغة الإنجليزية/غير العربية
+        if (!preg_match('/[a-zA-Z]/', $question)) {
+            return $citations;
+        }
+
+        // التحقق مما إذا كانت الكروت مترجمة مسبقاً للإنجليزية
+        $firstText = $citations[0]['text'] ?? ($citations['items'][0]['text'] ?? '');
+        if (preg_match('/[a-zA-Z]{5,}/', $firstText)) {
+            return $citations;
+        }
+
+        // بناء حمولة سريعة ومختصرة لتجنب انتهاء مهلة الطلب (cURL timeout)
+        $lightweight = [];
+        foreach ($citations as $idx => $cit) {
+            $lightweight[] = [
+                'idx'     => $idx,
+                'title'   => $cit['title'] ?? '',
+                'system'  => $cit['system'] ?? '',
+                'article' => $cit['article'] ?? '',
+                'text'    => mb_substr($cit['text'] ?? '', 0, 350),
+            ];
+        }
+
+        $azureKey  = trim(env('AZURE_OPENAI_KEY'));
+        $geminiKey = trim(config('services.gemini.key'));
+
+        $prompt = "You are a professional legal translator specializing in Saudi Arabian Law.
+Translate the following legal citation items (laws/court rulings) into clear, professional English.
+Instructions:
+1. For 'system': Translate law name to English and keep original Arabic official name in parentheses, e.g. 'System for Non-Saudi Real Estate Ownership (نظام تملك غير السعوديين للعقار واستثماره)'.
+2. For 'title': Translate to English e.g. 'Article 1 (المادة الأولى)' or 'Case No: 4430630992'.
+3. For 'article': Translate label e.g. 'Statutory Article' or 'Judicial Ruling'.
+4. For 'text': Translate the text snippet into clear English.
+
+Input JSON:
+" . json_encode(['items' => $lightweight], JSON_UNESCAPED_UNICODE) . "
+
+Output a JSON object with key 'items':
+{\"items\": [{\"idx\": 0, \"title\": \"...\", \"system\": \"...\", \"article\": \"...\", \"text\": \"...\"}]}";
+
+        $translatedJson = null;
+
+        // التجربة عبر Azure OpenAI أولاً لسرعته العالية
+        if (!empty($azureKey)) {
+            try {
+                $endpoint   = trim(env('AZURE_OPENAI_ENDPOINT'));
+                $deployment = trim(env('AZURE_OPENAI_DEPLOYMENT', 'gpt-4o'));
+                $apiVersion = trim(env('AZURE_OPENAI_API_VERSION', '2024-02-15-preview'));
+                $url = rtrim($endpoint, '/') . "/openai/deployments/{$deployment}/chat/completions?api-version={$apiVersion}";
+
+                $res = Http::withoutVerifying()
+                    ->withHeaders(['api-key' => $azureKey, 'Content-Type' => 'application/json'])
+                    ->timeout(30)
+                    ->post($url, [
+                        'messages' => [['role' => 'user', 'content' => $prompt]],
+                        'temperature' => 0.1,
+                        'response_format' => ['type' => 'json_object'],
+                    ]);
+
+                if ($res->successful()) {
+                    $translatedJson = $res->json('choices.0.message.content');
+                }
+            } catch (\Exception $e) {
+                Log::warning('[LegalAi] Azure citation translation failed: ' . $e->getMessage());
+            }
+        }
+
+        // استخدام Gemini كـ Fallback في حال عدم توفر Azure
+        if (empty($translatedJson) && !empty($geminiKey)) {
+            try {
+                $res = Http::withoutVerifying()
+                    ->timeout(35)
+                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . $geminiKey, [
+                        'contents' => [['parts' => [['text' => $prompt]]]],
+                        'generationConfig' => [
+                            'response_mime_type' => 'application/json',
+                        ],
+                    ]);
+
+                if ($res->successful()) {
+                    $translatedJson = $this->extractGeminiResponseText($res->json());
+                }
+            } catch (\Exception $e) {
+                Log::warning('[LegalAi] Gemini citation translation failed: ' . $e->getMessage());
+            }
+        }
+
+        if (!empty($translatedJson)) {
+            $rawText = preg_replace('/^```json\s*/i', '', $translatedJson);
+            $rawText = preg_replace('/^```\s*/i', '', $rawText);
+            $rawText = preg_replace('/\s*```$/i', '', $rawText);
+
+            $parsed = json_decode(trim($rawText), true);
+            $itemsList = null;
+            if (isset($parsed['items']) && is_array($parsed['items'])) {
+                $itemsList = $parsed['items'];
+            } elseif (is_array($parsed) && isset($parsed[0])) {
+                $itemsList = $parsed;
+            } elseif (is_array($parsed)) {
+                // Try finding any array inside $parsed
+                foreach ($parsed as $k => $v) {
+                    if (is_array($v) && isset($v[0]['idx'])) {
+                        $itemsList = $v;
+                        break;
+                    }
+                }
+            }
+
+            if (is_array($itemsList)) {
+                foreach ($itemsList as $p) {
+                    $idx = $p['idx'] ?? null;
+                    if ($idx !== null && isset($citations[$idx])) {
+                        if (!empty($p['title']))   $citations[$idx]['title']   = $p['title'];
+                        if (!empty($p['system']))  $citations[$idx]['system']  = $p['system'];
+                        if (!empty($p['article'])) $citations[$idx]['article'] = $p['article'];
+                        if (!empty($p['text']))    $citations[$idx]['text']    = $p['text'];
+                    }
+                }
+                return $citations;
+            } else {
+                Log::warning('[LegalAi] Failed to parse itemsList from translation response: ' . mb_substr($rawText, 0, 300));
+            }
+        }
+
+        return $citations;
     }
 }

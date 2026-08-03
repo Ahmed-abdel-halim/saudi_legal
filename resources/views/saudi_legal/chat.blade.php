@@ -384,10 +384,20 @@
             const modal = document.getElementById('citation-reader-modal');
             if (!modal) return;
 
+            const isEng = data.isEnglish;
             document.getElementById('reader-modal-title').innerHTML = data.title;
             document.getElementById('reader-modal-system').innerHTML = data.systemInfo || '';
             document.getElementById('reader-modal-badges').innerHTML = data.typeBadge + ' ' + (data.confidenceBadge || '');
             document.getElementById('reader-modal-content').innerText = data.text;
+
+            const backBtnSpan = modal.querySelector('button span');
+            if (backBtnSpan) {
+                backBtnSpan.innerText = isEng ? 'Back to Assistant' : 'رجوع لشاشة المساعد';
+            }
+            const copyBtnSpan = document.getElementById('btn-copy-citation')?.querySelector('span');
+            if (copyBtnSpan) {
+                copyBtnSpan.innerText = isEng ? 'Copy Text' : 'نسخ النص';
+            }
 
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
@@ -407,7 +417,7 @@
                 const btn = document.getElementById('btn-copy-citation');
                 if (!btn) return;
                 const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> <span>تم النسخ بنجاح</span>';
+                btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> <span>Copied!</span>';
                 setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
             }).catch(err => {
                 console.error('Failed to copy text: ', err);
@@ -416,8 +426,11 @@
 
         // دالة لعرض المصادر مقسمة: أحكام + مواد نظامية بصيغة كروت تفاعلية تفتح شاشة القراءة الكاملة
         function renderCitations(citations, msgId) {
+            const sampleText = (citations[0]?.title || '') + ' ' + (citations[0]?.system || '') + ' ' + (citations[0]?.text || '');
+            const isEnglish = /[a-zA-Z]/.test(sampleText);
+
             const judgments = citations.filter(c => c.type === 'judgment');
-            const articles = citations.filter(c => c.type === 'article');
+            const articles = citations.filter(c => c.type === 'article' || c.type === 'law_article');
 
             function renderGroup(items, groupId, label, icon, isJudgment) {
                 if (items.length === 0) return '';
@@ -429,19 +442,22 @@
                 let hiddenHtml = '';
 
                 items.forEach((item, index) => {
-                    const title = item.title || 'مرجع قانوني';
+                    const title = item.title || (isEnglish ? 'Legal Citation' : 'مرجع قانوني');
                     const text = item.text || '';
                     const confidence = item.score ? Math.round(item.score * 100) : null;
-                    const confidenceBadge = confidence ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-white/5 shrink-0 select-none">${confidence}% تطابق</span>` : '';
+                    const matchLabel = isEnglish ? 'Match' : 'تطابق';
+                    const confidenceBadge = confidence ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-white/5 shrink-0 select-none">${confidence}% ${matchLabel}</span>` : '';
 
                     let titleHtml = '';
                     let systemInfo = '';
+                    const caseNoLabel = isEnglish ? 'Case No:' : 'قضية رقم:';
+
                     if (isJudgment) {
                         systemInfo = item.system ? `<span class="text-[10px] font-black text-brand-green dark:text-brand-teal tracking-wide leading-tight">${item.system}</span>` : '';
                         const articleInfo = item.article_number ? `<span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">${item.article_number}</span>` : '';
                         titleHtml = `
                             <div class="flex flex-col text-right">
-                                <span class="text-xs font-black text-slate-800 dark:text-slate-100">قضية رقم: ${title}</span>
+                                <span class="text-xs font-black text-slate-800 dark:text-slate-100">${caseNoLabel} ${title}</span>
                                 ${systemInfo}
                                 ${articleInfo}
                             </div>
@@ -462,9 +478,13 @@
                         titleHtml = `<span class="text-xs font-black text-slate-800 dark:text-slate-100 leading-snug">${title}</span>`;
                     }
 
+                    const typeBadgeLabel = isJudgment
+                        ? (isEnglish ? 'Judicial Ruling' : 'حكم قضائي')
+                        : (isEnglish ? 'Statutory Article' : 'مادة نظامية');
+
                     const typeBadge = isJudgment
-                        ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-gavel text-[8px]"></i> حكم قضائي</span>`
-                        : `<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-650 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-scroll text-[8px]"></i> مادة نظامية</span>`;
+                        ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-gavel text-[8px]"></i> ${typeBadgeLabel}</span>`
+                        : `<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-650 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 flex items-center gap-1 shrink-0"><i class="fa-solid fa-scroll text-[8px]"></i> ${typeBadgeLabel}</span>`;
 
                     const borderClass = isJudgment
                         ? 'border-r-4 border-r-indigo-500'
@@ -472,12 +492,15 @@
 
                     const citationId = 'citation-' + Math.random().toString(36).substr(2, 9);
                     window.citationDataStore[citationId] = {
-                        title: isJudgment ? `قضية رقم: ${title}` : title,
+                        title: isJudgment ? `${caseNoLabel} ${title}` : title,
                         systemInfo: systemInfo,
                         typeBadge: typeBadge,
                         confidenceBadge: confidenceBadge,
-                        text: text
+                        text: text,
+                        isEnglish: isEnglish
                     };
+
+                    const expandLabel = isEnglish ? 'View Full Text (Expanded Reader)' : 'عرض النص الكامل (قراءة مكبرة)';
 
                     const cardHtml = `
                         <div onclick="openCitationReader('${citationId}')"
@@ -493,7 +516,7 @@
                             <div class="flex items-center justify-between text-[11px] font-bold text-brand-green dark:text-brand-teal pt-2 border-t border-slate-100 dark:border-white/5">
                                 <span class="flex items-center gap-1.5 group-hover:translate-x-[-3px] transition-transform">
                                     <i class="fa-solid fa-expand text-[10px]"></i>
-                                    عرض النص الكامل (قراءة مكبرة)
+                                    ${expandLabel}
                                 </span>
                                 <i class="fa-solid fa-chevron-left text-[10px] opacity-70 group-hover:translate-x-[-3px] transition-transform"></i>
                             </div>
@@ -509,13 +532,15 @@
 
                 let actionsHtml = '';
                 if (showMoreBtn) {
+                    const moreLabel = isEnglish ? `Show More Sources (${items.length - initialVisibleCount})` : `عرض المزيد من المصادر (${items.length - initialVisibleCount})`;
+                    const lessLabel = isEnglish ? 'Show Less' : 'عرض أقل';
                     actionsHtml = `
                         <div class="col-span-1 md:col-span-2 flex justify-center mt-3 relative z-10">
                             <button id="btn-more-${groupId}" onclick="toggleCitationGroup('${groupId}', true)" class="py-2 px-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full text-xs font-black text-slate-600 dark:text-slate-400 hover:text-brand-green dark:hover:text-brand-teal hover:border-brand-green/30 transition flex items-center gap-1.5 shadow-sm cursor-pointer">
-                                <i class="fa-solid fa-angle-down text-[10px]"></i> عرض المزيد من المصادر (${items.length - initialVisibleCount})
+                                <i class="fa-solid fa-angle-down text-[10px]"></i> ${moreLabel}
                             </button>
                             <button id="btn-less-${groupId}" onclick="toggleCitationGroup('${groupId}', false)" class="py-2 px-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full text-xs font-black text-slate-600 dark:text-slate-400 hover:text-brand-green dark:hover:text-brand-teal hover:border-brand-green/30 transition flex items-center gap-1.5 shadow-sm cursor-pointer hidden">
-                                <i class="fa-solid fa-angle-up text-[10px]"></i> عرض أقل
+                                <i class="fa-solid fa-angle-up text-[10px]"></i> ${lessLabel}
                             </button>
                         </div>
                     `;
@@ -548,8 +573,11 @@
                 `;
             }
 
-            const judgmentsHtml = renderGroup(judgments, `j-${msgId}`, 'السوابق والأحكام القضائية', 'fa-gavel', true);
-            const articlesHtml = renderGroup(articles, `a-${msgId}`, 'النصوص النظامية والمواد القانونية', 'fa-book-open', false);
+            const judgmentsTitle = isEnglish ? 'Judicial Precedents & Rulings' : 'السوابق والأحكام القضائية';
+            const articlesTitle = isEnglish ? 'Statutory Texts & Legal Articles' : 'النصوص النظامية والمواد القانونية';
+
+            const judgmentsHtml = renderGroup(judgments, `j-${msgId}`, judgmentsTitle, 'fa-gavel', true);
+            const articlesHtml = renderGroup(articles, `a-${msgId}`, articlesTitle, 'fa-book-open', false);
 
             return `
                 <div class="mt-8 pt-5 border-t border-slate-200/50 dark:border-white/10 relative z-10">
