@@ -39,8 +39,49 @@ class LegalAiController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    //  API ENDPOINTS FOR CHAT HISTORY & SIDEBAR
+    //  API ENDPOINTS FOR CHAT HISTORY & FEEDBACK
     // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * استقبال وحفظ تقييم المستخدم لإجابة المساعد الذكي (like/dislike + سبب عدم الإفادة)
+     */
+    public function submitFeedback(Request $request)
+    {
+        $validated = $request->validate([
+            'rating'            => 'required|in:like,dislike',
+            'reason'            => 'nullable|string|max:2000',
+            'user_query'        => 'nullable|string|max:4000',
+            'ai_response'       => 'nullable|string|max:10000',
+            'conversation_uuid' => 'nullable|string',
+            'ai_message_id'     => 'nullable|integer',
+        ]);
+
+        $conversationId = null;
+        if (!empty($validated['conversation_uuid'])) {
+            $conv = AiConversation::where('uuid', $validated['conversation_uuid'])->first();
+            if ($conv) {
+                $conversationId = $conv->id;
+            }
+        }
+
+        $feedback = \App\Models\AiMessageFeedback::create([
+            'user_id'            => auth()->id(),
+            'ai_conversation_id' => $conversationId,
+            'ai_message_id'     => $validated['ai_message_id'] ?? null,
+            'rating'             => $validated['rating'],
+            'reason'             => $validated['reason'] ?? null,
+            'user_query'         => $validated['user_query'] ?? null,
+            'ai_response'        => $validated['ai_response'] ?? null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => $validated['rating'] === 'like' 
+                ? 'شكراً لتقييمك الإيجابي!' 
+                : 'شكراً لملاحظتك، تم حفظها وسنقوم بمراجعتها لتطوير المساعد الذكي.',
+            'feedback_id' => $feedback->id,
+        ]);
+    }
 
     /**
      * جلب سجل المحادثات الخاصة بالمستخدم (للـ Sidebar)

@@ -24,6 +24,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // SAUDI LEGAL AI Assistant Public Routes (Temporary)
 Route::get('/legal-assistant', [\App\Http\Controllers\Legal\LegalAiController::class, 'index'])->name('legal_assistant.public');
 Route::post('/legal-assistant/ask', [\App\Http\Controllers\Legal\LegalAiController::class, 'ask'])->name('legal_assistant.public.ask');
+Route::post('/legal-assistant/feedback', [\App\Http\Controllers\Legal\LegalAiController::class, 'submitFeedback'])->name('legal_assistant.feedback');
 Route::get('/legal-assistant/conversations', [\App\Http\Controllers\Legal\LegalAiController::class, 'getConversations'])->name('legal_assistant.conversations');
 Route::get('/legal-assistant/conversations/{uuid}', [\App\Http\Controllers\Legal\LegalAiController::class, 'getMessages'])->name('legal_assistant.messages');
 Route::delete('/legal-assistant/conversations/{uuid}', [\App\Http\Controllers\Legal\LegalAiController::class, 'deleteConversation'])->name('legal_assistant.delete');
@@ -297,6 +298,10 @@ Route::middleware(['superadmin'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/ai-chats', [\App\Http\Controllers\Admin\AdminAiChatLogsController::class, 'index'])->name('ai_chats.index');
     Route::get('/ai-chats/{uuid}', [\App\Http\Controllers\Admin\AdminAiChatLogsController::class, 'show'])->name('ai_chats.show');
     Route::post('/ai-chats/messages/{messageId}/convert-task', [\App\Http\Controllers\Admin\AdminAiChatLogsController::class, 'convertToTask'])->name('ai_chats.convert_task');
+
+    // AI Response Feedbacks
+    Route::get('/ai-feedback', [\App\Http\Controllers\Admin\AdminAiFeedbackController::class, 'index'])->name('ai_feedback.index');
+    Route::delete('/ai-feedback/{id}', [\App\Http\Controllers\Admin\AdminAiFeedbackController::class, 'destroy'])->name('ai_feedback.destroy');
 
     // AI Subscription Packages Management
     Route::get('/ai-packages', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'index'])->name('ai_packages.index');

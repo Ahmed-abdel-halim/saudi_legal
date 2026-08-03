@@ -81,11 +81,12 @@ class LegalTaskController extends Controller
                 })
                 ->whereNotIn('source_id', $skippedIds)
                 ->orderBy('id', 'asc')
-                ->get()
+                ->with('task')
+                ->lazy(50)
                 ->first(function ($lt) {
+                    if (!$lt->task) return false;
                     $activeCount = TaskAssignment::where('task_id', $lt->task_id)->active()->count();
-                    $aiTask = $lt->task;
-                    return ($activeCount + $aiTask->current_responses) < $aiTask->required_responses;
+                    return ($activeCount + $lt->task->current_responses) < $lt->task->required_responses;
                 });
 
             if ($nextLegalTask) {

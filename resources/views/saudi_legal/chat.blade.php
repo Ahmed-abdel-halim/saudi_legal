@@ -975,8 +975,9 @@
                             ? renderConfidenceBadge(confidenceScore)
                             : '';
 
+                        const aiMsgId = 'ai-msg-hist-' + m.id;
                         const aiHtml = `
-                            <div class="flex justify-end mb-8">
+                            <div id="${aiMsgId}" class="flex justify-end mb-8">
                                 <div class="bg-white/95 dark:bg-dark-card/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/5 border border-slate-200/50 dark:border-white/5 px-4 md:px-8 py-5 md:py-7 w-full md:max-w-[95%] rounded-3xl rounded-tl-none relative overflow-hidden">
                                     <div class="absolute -top-10 -left-10 w-40 h-40 bg-brand-green/10 rounded-full blur-3xl"></div>
                                     
@@ -995,6 +996,29 @@
                                         ${formattedAnswer}
                                     </div>
                                     ${citationsContainer}
+
+                                    <div class="mt-5 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 relative z-10">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-semibold text-[11px] text-slate-500 dark:text-slate-400">هل كانت الإجابة مفيدة؟</span>
+                                            <div class="flex items-center gap-1.5">
+                                                <button type="button"
+                                                    onclick="handleFeedbackClick('${aiMsgId}', 'like')"
+                                                    class="feedback-btn-like flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-400 transition-colors"
+                                                    title="إجابة مفيدة">
+                                                    <i class="fa-regular fa-thumbs-up text-xs"></i>
+                                                    <span class="font-bold text-[11px]">مفيدة</span>
+                                                </button>
+                                                <button type="button"
+                                                    onclick="handleFeedbackClick('${aiMsgId}', 'dislike')"
+                                                    class="feedback-btn-dislike flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 transition-colors"
+                                                    title="غير مفيدة">
+                                                    <i class="fa-regular fa-thumbs-down text-xs"></i>
+                                                    <span class="font-bold text-[11px]">غير مفيدة</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <span class="feedback-status text-[11px] font-bold text-emerald-500 hidden"></span>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -1163,6 +1187,29 @@
                                 ${formattedAnswer}
                             </div>
                             ${citationsContainer}
+
+                            <div class="mt-5 pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 relative z-10">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-[11px] text-slate-500 dark:text-slate-400">هل كانت الإجابة مفيدة؟</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <button type="button"
+                                            onclick="handleFeedbackClick('${aiMsgId}', 'like')"
+                                            class="feedback-btn-like flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-400 transition-colors"
+                                            title="إجابة مفيدة">
+                                            <i class="fa-regular fa-thumbs-up text-xs"></i>
+                                            <span class="font-bold text-[11px]">مفيدة</span>
+                                        </button>
+                                        <button type="button"
+                                            onclick="handleFeedbackClick('${aiMsgId}', 'dislike')"
+                                            class="feedback-btn-dislike flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 transition-colors"
+                                            title="غير مفيدة">
+                                            <i class="fa-regular fa-thumbs-down text-xs"></i>
+                                            <span class="font-bold text-[11px]">غير مفيدة</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <span class="feedback-status text-[11px] font-bold text-emerald-500 hidden"></span>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1195,6 +1242,99 @@
                 document.getElementById('btn-send').innerHTML = '<i class="fa-solid fa-paper-plane text-lg rtl:-scale-x-100"></i>';
             }
         }
+
+        // ─── AI Response Feedback (Like / Dislike & Reason Modal) ────────────────
+        let pendingDislikeMsgId = null;
+
+        function handleFeedbackClick(aiMsgId, rating) {
+            if (rating === 'like') {
+                submitFeedbackData(aiMsgId, 'like', null);
+            } else if (rating === 'dislike') {
+                pendingDislikeMsgId = aiMsgId;
+                document.getElementById('dislike-reason-input').value = '';
+                document.getElementById('dislike-feedback-modal').classList.remove('hidden');
+            }
+        }
+
+        function closeDislikeModal() {
+            document.getElementById('dislike-feedback-modal').classList.add('hidden');
+            pendingDislikeMsgId = null;
+        }
+
+        function submitDislikeReason() {
+            const reason = document.getElementById('dislike-reason-input').value.trim();
+            if (!pendingDislikeMsgId) return;
+            submitFeedbackData(pendingDislikeMsgId, 'dislike', reason);
+            closeDislikeModal();
+        }
+
+        async function submitFeedbackData(aiMsgId, rating, reason) {
+            const msgElement = document.getElementById(aiMsgId);
+            if (!msgElement) return;
+
+            // Find question prompt (previous sibling)
+            let userQuery = '';
+            const prevElem = msgElement.previousElementSibling;
+            if (prevElem) {
+                const queryTextElem = prevElem.querySelector('.prose, p, div');
+                if (queryTextElem) {
+                    userQuery = queryTextElem.innerText || queryTextElem.textContent;
+                }
+            }
+
+            const aiResponseElem = msgElement.querySelector('.prose');
+            const aiResponse = aiResponseElem ? (aiResponseElem.innerText || aiResponseElem.textContent) : '';
+
+            const likeBtn = msgElement.querySelector('.feedback-btn-like');
+            const dislikeBtn = msgElement.querySelector('.feedback-btn-dislike');
+            const statusText = msgElement.querySelector('.feedback-status');
+
+            if (rating === 'like') {
+                if (likeBtn) {
+                    likeBtn.className = 'feedback-btn-like flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold transition-colors';
+                    likeBtn.querySelector('i').className = 'fa-solid fa-thumbs-up text-xs';
+                }
+                if (dislikeBtn) {
+                    dislikeBtn.className = 'feedback-btn-dislike flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 opacity-40 cursor-not-allowed';
+                    dislikeBtn.disabled = true;
+                }
+            } else {
+                if (dislikeBtn) {
+                    dislikeBtn.className = 'feedback-btn-dislike flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-600 text-white font-bold transition-colors';
+                    dislikeBtn.querySelector('i').className = 'fa-solid fa-thumbs-down text-xs';
+                }
+                if (likeBtn) {
+                    likeBtn.className = 'feedback-btn-like flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 opacity-40 cursor-not-allowed';
+                    likeBtn.disabled = true;
+                }
+            }
+
+            try {
+                const response = await fetch('{{ route("legal_assistant.feedback") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        rating: rating,
+                        reason: reason,
+                        user_query: userQuery,
+                        ai_response: aiResponse,
+                        conversation_uuid: typeof currentConversationUuid !== 'undefined' ? currentConversationUuid : null
+                    })
+                });
+
+                const res = await response.json();
+                if (statusText) {
+                    statusText.innerText = rating === 'like' ? 'تم تسجيل تقييمك 👍' : 'تم رفع ملاحظتك للأدمن 📝';
+                    statusText.classList.remove('hidden');
+                }
+            } catch (e) {
+                console.error('Feedback submit error:', e);
+            }
+        }
     </script>
 
     <!-- Limit Reached Modal (شاشة حظر تخطي الحد المجاني) -->
@@ -1219,6 +1359,41 @@
             </p>
             <div class="flex flex-col gap-3" id="limit-modal-actions">
                 <!-- Action buttons -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Dislike Feedback Modal Popup (نافذة طلب سبب عدم الإفادة) -->
+    <div id="dislike-feedback-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden" dir="rtl">
+        <div class="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-lg shadow-2xl mx-4 transform transition-all">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-white/5 pb-3">
+                <div class="flex items-center gap-2.5 text-rose-500 font-bold">
+                    <div class="w-8 h-8 rounded-full bg-rose-500/10 flex items-center justify-center">
+                        <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                    </div>
+                    <h3 class="text-base font-black text-slate-800 dark:text-white">سبب عدم الإفادة</h3>
+                </div>
+                <button onclick="closeDislikeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-600 dark:text-slate-300 mb-4 leading-relaxed font-medium">
+                يرجى كتابة ملاحظتك أو سبب عدم دقة الإجابة لمساعدتنا على تحسين جودة المساعد الذكي، وسيقوم فريق المشرفين بمراجعتها:
+            </p>
+
+            <textarea id="dislike-reason-input"
+                rows="4"
+                class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-3.5 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 transition resize-none mb-5"
+                placeholder="اكتب رايك هنا (مثال: الإجابة غير دقيقة، النظام المقتبس قديم، لم يُجب عن السؤال المباشر...)"></textarea>
+
+            <div class="flex items-center justify-end gap-3">
+                <button type="button" onclick="closeDislikeModal()" class="px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 font-bold text-xs transition cursor-pointer">
+                    إلغاء
+                </button>
+                <button type="button" onclick="submitDislikeReason()" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-lg shadow-rose-600/30 transition transform hover:-translate-y-0.5 cursor-pointer">
+                    إرسال الملاحظة
+                </button>
             </div>
         </div>
     </div>

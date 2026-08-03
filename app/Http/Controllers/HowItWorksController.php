@@ -27,11 +27,12 @@ class HowItWorksController extends Controller
     }
 
     /**
-     * Display the Pricing page.
+     * Display the Pricing page with dynamic packages from DB.
      */
     public function pricing()
     {
-        return view('how-it-works.pricing');
+        $packages = \App\Models\AiPackage::where('is_active', true)->orderBy('sort_order')->get();
+        return view('how-it-works.pricing', compact('packages'));
     }
 
     /**

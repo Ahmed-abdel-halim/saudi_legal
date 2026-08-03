@@ -13,74 +13,60 @@
 
 <section class="py-20 bg-dark-navy">
     <div class="container mx-auto max-w-5xl px-4">
-        <div class="flex flex-col lg:flex-row gap-8 justify-center items-stretch">
-            
-            <!-- Basic Plan -->
-            <div class="flex-1 expert-card p-8 hover:-translate-y-1 transition duration-300 flex flex-col">
-                <h3 class="text-2xl font-black text-white mb-2">@lang('pricing.PLAN_BASIC_TITLE')</h3>
-                <p class="text-slate-400 text-sm mb-6 leading-relaxed">@lang('pricing.PLAN_BASIC_DESC')</p>
-                
-                <div class="flex items-baseline mb-6">
-                    <span class="text-5xl font-black text-brand-green {{ app()->getLocale() == 'ar' ? 'order-last' : '' }}">@lang('pricing.PLAN_BASIC_PRICE')</span>
-                    <span class="text-slate-500 text-sm ml-2">@lang('pricing.PLAN_BASIC_PERIOD')</span>
-                </div>
-                
-                <a href="{{ route('register.company') }}" class="block w-full py-3.5 px-6 bg-slate-900/60 hover:bg-slate-900 text-white hover:text-brand-green border border-white/5 hover:border-brand-green text-center font-bold rounded-xl transition duration-300 mb-8">
-                    @lang('pricing.PLAN_BASIC_BTN')
-                </a>
-                
-                <ul class="space-y-4 text-slate-400 text-sm mt-auto">
-                    <li class="flex items-center">
-                        <svg class="w-5 h-5 text-brand-green {{ app()->getLocale() == 'ar' ? 'ml-3' : 'mr-3' }} shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        @lang('pricing.FEATURE_VERIFIED_EXPERTS')
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="w-5 h-5 text-brand-green {{ app()->getLocale() == 'ar' ? 'ml-3' : 'mr-3' }} shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        @lang('pricing.FEATURE_SECURE_PAYMENTS')
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="w-5 h-5 text-brand-green {{ app()->getLocale() == 'ar' ? 'ml-3' : 'mr-3' }} shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        @lang('pricing.FEATURE_CONTRACTS')
-                    </li>
-                </ul>
-            </div>
+        @if(isset($packages) && count($packages) > 0)
+            <div class="grid grid-cols-1 md:grid-cols-{{ count($packages) == 2 ? '2' : (count($packages) >= 3 ? '3' : '1') }} gap-8 justify-center items-stretch">
+                @foreach($packages as $pkg)
+                    <div class="flex-1 expert-card p-8 hover:-translate-y-1 transition duration-300 relative overflow-hidden flex flex-col {{ $pkg->is_popular ? 'ring-2 ring-brand-green/40 shadow-green-glow' : '' }}">
+                        @if($pkg->is_popular && $pkg->badge_text)
+                            <div class="absolute top-0 {{ app()->getLocale() == 'ar' ? 'left-0 rounded-br-lg' : 'right-0 rounded-bl-lg' }} bg-brand-green text-dark-navy text-xs font-black px-3.5 py-1">
+                                {{ $pkg->badge_text }}
+                            </div>
+                        @endif
 
-            <!-- Enterprise Plan -->
-            <div class="flex-1 expert-card p-8 hover:-translate-y-1 transition duration-300 relative overflow-hidden flex flex-col ring-2 ring-brand-green/30 shadow-green-glow">
-                <div class="absolute top-0 {{ app()->getLocale() == 'ar' ? 'left-0 rounded-br-lg' : 'right-0 rounded-bl-lg' }} bg-brand-green text-dark-navy text-xs font-black px-3.5 py-1">VIP</div>
-                <h3 class="text-2xl font-black text-white mb-2">@lang('pricing.PLAN_ENTERPRISE_TITLE')</h3>
-                <p class="text-slate-400 text-sm mb-6 leading-relaxed">@lang('pricing.PLAN_ENTERPRISE_DESC')</p>
-                
-                <div class="flex items-baseline mb-6">
-                    <span class="text-5xl font-black text-white {{ app()->getLocale() == 'ar' ? 'order-last' : '' }}">@lang('pricing.PLAN_ENTERPRISE_PRICE')</span>
-                    <span class="text-slate-400 text-sm ml-2">@lang('pricing.PLAN_ENTERPRISE_PERIOD')</span>
-                </div>
-                
-                <a href="{{ route('contact') }}" class="block w-full py-3.5 px-6 bg-gradient-to-r from-brand-green to-brand-teal text-dark-navy text-center font-black rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 mb-8 shadow-md shadow-brand-green/20">
-                    @lang('pricing.PLAN_ENTERPRISE_BTN')
-                </a>
-                
-                <ul class="space-y-4 text-slate-300 text-sm mt-auto">
-                    <li class="flex items-center">
-                        <svg class="w-5 h-5 text-brand-green {{ app()->getLocale() == 'ar' ? 'ml-3' : 'mr-3' }} shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        @lang('pricing.FEATURE_DEDICATED_SUPPORT')
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="w-5 h-5 text-brand-green {{ app()->getLocale() == 'ar' ? 'ml-3' : 'mr-3' }} shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        @lang('pricing.FEATURE_API_ACCESS')
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="w-5 h-5 text-brand-green {{ app()->getLocale() == 'ar' ? 'ml-3' : 'mr-3' }} shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        @lang('pricing.FEATURE_CUSTOM_ONBOARDING')
-                    </li>
-                     <li class="flex items-center">
-                        <svg class="w-5 h-5 text-brand-green {{ app()->getLocale() == 'ar' ? 'ml-3' : 'mr-3' }} shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        @lang('pricing.NAV_SUPPLIERS')
-                    </li>
-                </ul>
-            </div>
+                        <h3 class="text-2xl font-black text-white mb-2">{{ $pkg->name }}</h3>
+                        @if($pkg->description)
+                            <p class="text-slate-400 text-sm mb-6 leading-relaxed">{{ $pkg->description }}</p>
+                        @endif
 
-        </div>
+                        <div class="flex items-baseline mb-6 gap-2">
+                            <span class="text-5xl font-black text-brand-green">{{ $pkg->is_free ? '0' : number_format($pkg->price, 0) }}</span>
+                            <div class="text-slate-400 text-sm">
+                                <span class="font-bold">ر.س</span>
+                                <span class="block text-xs text-slate-500">{{ $pkg->billing_period_label ?? 'شهرياً' }}</span>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('ai.packages') }}" class="block w-full py-3.5 px-6 {{ $pkg->is_popular ? 'bg-gradient-to-r from-brand-green to-brand-teal text-dark-navy shadow-md shadow-brand-green/20' : 'bg-slate-900/60 hover:bg-slate-900 text-white border border-white/10 hover:border-brand-green' }} text-center font-black rounded-xl transition duration-300 mb-8">
+                            {{ $pkg->is_free ? 'ابدأ مجاناً' : 'اشترك الآن' }}
+                        </a>
+
+                        <ul class="space-y-4 text-slate-300 text-sm mt-auto">
+                            @if(is_array($pkg->features))
+                                @foreach($pkg->features as $feature)
+                                    <li class="flex items-center">
+                                        <svg class="w-5 h-5 text-brand-green {{ app()->getLocale() == 'ar' ? 'ml-3' : 'mr-3' }} shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        {{ $feature }}
+                                    </li>
+                                @endforeach
+                            @else
+                                <li class="flex items-center">
+                                    <svg class="w-5 h-5 text-brand-green {{ app()->getLocale() == 'ar' ? 'ml-3' : 'mr-3' }} shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    {{ $pkg->query_limit_display }}
+                                </li>
+                            @endif
+                        </ul>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="text-center py-12 text-slate-400">
+                <p class="text-lg">لا توجد باقات متاحة حالياً.</p>
+            </div>
+        @endif
     </div>
 </section>
 @endsection

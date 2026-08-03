@@ -1146,7 +1146,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                         <div class="flex items-center justify-between gap-2 mb-3">
                             <h3 class="text-xl font-black text-white">باقة المحامي الاحترافية</h3>
                             <div>
-                                <span class="text-2xl font-black text-emerald-400">149 ر.س</span>
+                                <span class="text-2xl font-black text-emerald-400">49 ر.س</span>
                                 <span class="text-[10px] text-slate-400 block text-left">/ شهرياً</span>
                             </div>
                         </div>
