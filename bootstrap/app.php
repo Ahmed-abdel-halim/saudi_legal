@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\HandleImpersonation::class,
             \App\Http\Middleware\RestrictImpersonation::class,
+            \App\Http\Middleware\CaptureIntendedUrl::class,
         ]);
 
         $middleware->alias([

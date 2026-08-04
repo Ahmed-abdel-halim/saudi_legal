@@ -18,7 +18,7 @@ class RegisterStudentController extends Controller
     {
         // If user is already authenticated, redirect to dashboard
         if (Auth::check()) {
-            return redirect()->route('dashboard.expert');
+            return redirect()->intended(route('dashboard.expert'));
         }
 
         if ($request->has('ref')) {

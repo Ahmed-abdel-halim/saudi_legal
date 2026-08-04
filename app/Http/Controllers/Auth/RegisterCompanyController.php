@@ -18,7 +18,7 @@ class RegisterCompanyController extends Controller
     {
         // If user is already authenticated, redirect to dashboard
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            return redirect()->intended(route('dashboard'));
         }
 
         if ($request->has('ref')) {

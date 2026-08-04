@@ -204,6 +204,27 @@
                 padding-bottom: 1.5rem;
             }
         }
+
+        /* GTranslate Custom Widget Styling */
+        .gtranslate_wrapper select {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            color: #e2e8f0 !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 9999px !important;
+            padding: 8px 14px !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            font-family: 'Tajawal', sans-serif !important;
+            outline: none !important;
+            cursor: pointer !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+            transition: all 0.2s ease !important;
+        }
+        .gtranslate_wrapper select option {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            font-family: 'Tajawal', sans-serif !important;
+        }
     </style>
 </head>
 
@@ -312,11 +333,16 @@
                 <h2 class="text-2xl font-black text-gradient tracking-tight">المستشار القضائي والنظامي الذكي</h2>
             </div>
 
-            <!-- Exit button -->
-            <a href="{{ url('/') }}"
-                class="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition shadow-sm border border-slate-200/50 dark:border-white/10">
-                <i class="fa-solid fa-arrow-left"></i>
-            </a>
+            <!-- Action buttons (GTranslate Multi-Language & Exit) -->
+            <div class="flex items-center gap-2">
+                <div class="gtranslate_wrapper"></div>
+
+                <a href="{{ url('/') }}"
+                    class="w-10 h-10 rounded-full bg-white dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition shadow-sm border border-slate-200/50 dark:border-white/10"
+                    title="رجوع">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+            </div>
         </nav>
 
         <!-- Chat Container -->
@@ -1497,24 +1523,25 @@
                 <div class="h-6 w-[1px] bg-white/10 hidden sm:block"></div>
                 <div id="reader-modal-badges" class="hidden sm:flex items-center gap-2"></div>
             </div>
-
-            <div class="flex items-center gap-2">
-                <button id="btn-copy-citation" onclick="copyCitationText()" type="button" class="flex items-center gap-1.5 px-3.5 py-2 bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 rounded-xl font-bold text-xs transition cursor-pointer">
-                    <i class="fa-regular fa-copy text-xs"></i>
-                    <span>نسخ النص</span>
-                </button>
-                <button onclick="closeCitationReader()" type="button" class="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/5 transition cursor-pointer" title="إغلاق">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
         </div>
 
         <!-- Modal Content Area (عرض مريح في منتصف الشاشة بحجم خط كبير وعالي التباين) -->
         <div class="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
             <div class="max-w-4xl mx-auto bg-slate-900/80 border border-white/10 rounded-3xl p-6 md:p-10 shadow-2xl relative my-4">
-                <div class="mb-6 border-b border-white/10 pb-5">
-                    <div id="reader-modal-system" class="text-xs font-bold text-brand-teal mb-1"></div>
-                    <h2 id="reader-modal-title" class="text-xl md:text-2xl font-black text-white leading-tight"></h2>
+                <div class="mb-6 border-b border-white/10 pb-5 flex items-start justify-between gap-4">
+                    <div>
+                        <div id="reader-modal-system" class="text-xs font-bold text-brand-teal mb-1"></div>
+                        <h2 id="reader-modal-title" class="text-xl md:text-2xl font-black text-white leading-tight"></h2>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button id="btn-copy-citation" onclick="copyCitationText()" type="button" class="flex items-center gap-1.5 px-3.5 py-2 bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 rounded-xl font-bold text-xs transition cursor-pointer">
+                            <i class="fa-regular fa-copy text-xs"></i>
+                            <span>نسخ النص</span>
+                        </button>
+                        <button onclick="closeCitationReader()" type="button" class="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/5 transition cursor-pointer" title="إغلاق">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="relative">
                     <div id="reader-modal-content" class="text-slate-100 text-base md:text-lg leading-loose font-medium whitespace-pre-line text-right selection:bg-brand-green selection:text-white">
@@ -1523,6 +1550,17 @@
             </div>
         </div>
     </div>
+
+    <!-- GTranslate Free Widget Configuration & Script -->
+    <script>
+        window.gtranslateSettings = {
+            "default_language": "ar",
+            "languages": ["ar", "en", "fr", "es", "de", "ur", "hi", "tr", "zh-CN", "ru", "fil", "id", "fa"],
+            "wrapper_selector": ".gtranslate_wrapper",
+            "switcher_horizontal_position": "inline"
+        };
+    </script>
+    <script src="https://cdn.gtranslate.net/widgets/latest/dropdown.js" defer></script>
 
 </body>
 
