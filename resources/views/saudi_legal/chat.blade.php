@@ -1266,6 +1266,26 @@
                             }
                         } catch (e) { }
                     }
+                    if (response.status === 422) {
+                        try {
+                            const errData = await response.json();
+                            let errMsg = 'بيانات السؤال غير صالحة.';
+                            if (errData.errors && errData.errors.question && errData.errors.question[0]) {
+                                errMsg = errData.errors.question[0];
+                            } else if (errData.message) {
+                                errMsg = errData.message;
+                            }
+                            document.getElementById(loadingId)?.remove();
+                            chatMessages.insertAdjacentHTML('beforeend', `
+                                <div class="flex justify-end mb-8">
+                                    <div class="bg-white/95 dark:bg-dark-card/95 backdrop-blur-2xl px-6 py-4 rounded-3xl rounded-tl-none border border-amber-200 dark:border-amber-950/40 shadow-sm">
+                                        <span class="text-amber-600 dark:text-amber-400 font-bold">${errMsg}</span>
+                                    </div>
+                                </div>
+                            `);
+                            return;
+                        } catch (e) { }
+                    }
                     throw new Error("HTTP status " + response.status);
                 }
 

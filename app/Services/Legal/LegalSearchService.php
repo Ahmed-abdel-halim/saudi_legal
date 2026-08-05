@@ -199,6 +199,14 @@ class LegalSearchService
             }
         }
         
-        return array_unique($keywords);
+        $unique = array_unique($keywords);
+
+        // Sort keywords by length descending so most specific terms are prioritized
+        usort($unique, function($a, $b) {
+            return mb_strlen($b) <=> mb_strlen($a);
+        });
+
+        // Cap to top 15 keywords max to avoid SQL query bloat and timeouts on long prompts
+        return array_slice($unique, 0, 15);
     }
 }

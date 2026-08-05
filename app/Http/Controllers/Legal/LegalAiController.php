@@ -209,7 +209,7 @@ class LegalAiController extends Controller
         set_time_limit(180); // منع انتهاء الوقت عند بطء الاتصال بالشبكة
 
         $request->validate([
-            'question'          => 'required|string|max:1000',
+            'question'          => 'required|string|max:10000',
             'conversation_uuid' => 'nullable|string|uuid',
         ]);
 
@@ -726,39 +726,34 @@ class LegalAiController extends Controller
             return "مرحباً! لقد قمت باستخراج السوابق القانونية لك. (يرجى تفعيل GEMINI_API_KEY في ملف .env للحصول على صياغة ذكية).";
         }
 
-        try {
-            $response = Http::withoutVerifying()
-                ->timeout(80)
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . $apiKey, [
-                    'contents' => $contents,
-                ]);
+        $models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash'];
+        $lastStatus = 500;
+        $lastErrorBody = '';
 
-            Log::info("Gemini Flash Response Status: " . $response->status() . " | Body: " . mb_substr($response->body(), 0, 500));
-
-            if ($response->successful()) {
-                return $this->extractGeminiResponseText($response->json());
-            }
-
-            // Fallback to Gemini 3.5 Flash if 2.5 fails
-            if ($response->status() == 404 || $response->status() == 403) {
+        foreach ($models as $model) {
+            try {
                 $response = Http::withoutVerifying()
                     ->timeout(80)
-                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" . $apiKey, [
+                    ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $apiKey, [
                         'contents' => $contents,
                     ]);
+
+                Log::info("Gemini {$model} Response Status: " . $response->status() . " | Body: " . mb_substr($response->body(), 0, 500));
 
                 if ($response->successful()) {
                     return $this->extractGeminiResponseText($response->json());
                 }
+
+                $lastStatus = $response->status();
+                $lastErrorBody = $response->body();
+            } catch (\Exception $e) {
+                Log::warning("Gemini {$model} connection attempt failed: " . $e->getMessage());
+                $lastErrorBody = $e->getMessage();
             }
-
-            $errorBody = $response->body();
-            Log::error("Gemini API Error: " . $response->status() . " - " . $errorBody);
-            return "عذراً، حدث خطأ فني (الرمز: " . $response->status() . "). يرجى المحاولة لاحقاً.";
-
-        } catch (\Exception $e) {
-            return "خطأ في الاتصال بالمحرك: " . $e->getMessage();
         }
+
+        Log::error("Gemini API All Models Failed: Status {$lastStatus} - {$lastErrorBody}");
+        return "عذراً، حدث خطأ فني أثناء الاتصال بالمحرك الذكي (الرمز: {$lastStatus}). يرجى المحاولة لاحقاً.";
     }
 
     /**
