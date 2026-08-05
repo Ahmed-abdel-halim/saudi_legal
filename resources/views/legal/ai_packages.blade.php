@@ -112,10 +112,16 @@
                         </p>
                     </div>
                 </div>
-                <a href="{{ route('legal_assistant.public') }}"
-                   class="px-5 py-2 rounded-xl bg-emerald-500 text-white font-bold text-sm glow-btn">
-                    <i class="fa-solid fa-robot me-1"></i> الذهاب للمساعد
-                </a>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('ai.subscription.dashboard') }}"
+                       class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm border border-white/20 transition">
+                        <i class="fa-solid fa-receipt me-1"></i> إدارة الاشتراك
+                    </a>
+                    <a href="{{ route('legal_assistant.public') }}"
+                       class="px-5 py-2 rounded-xl bg-emerald-500 text-white font-bold text-sm glow-btn">
+                        <i class="fa-solid fa-robot me-1"></i> الذهاب للمساعد
+                    </a>
+                </div>
             </div>
         @endif
 
