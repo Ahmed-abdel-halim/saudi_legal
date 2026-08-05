@@ -403,6 +403,8 @@ Route::get('/ai-assistant/packages', [App\Http\Controllers\Legal\AiSubscriptionP
 Route::middleware('auth')->group(function () {
     Route::get('/ai-assistant/checkout/{package}', [App\Http\Controllers\Legal\AiSubscriptionPaymentController::class, 'checkout'])->name('ai.subscription.checkout');
     Route::get('/ai-assistant/subscription/success', [App\Http\Controllers\Legal\AiSubscriptionPaymentController::class, 'success'])->name('ai.subscription.success');
+    Route::get('/ai-assistant/subscription/manage', [App\Http\Controllers\Legal\AiSubscriptionPaymentController::class, 'subscriptionDashboard'])->name('ai.subscription.dashboard');
+    Route::post('/ai-assistant/subscription/cancel', [App\Http\Controllers\Legal\AiSubscriptionPaymentController::class, 'cancelSubscription'])->name('ai.subscription.cancel');
 });
 
 // AI Subscription Stripe Webhook (no auth, no CSRF)

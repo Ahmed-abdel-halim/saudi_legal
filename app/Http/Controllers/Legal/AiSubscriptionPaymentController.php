@@ -204,6 +204,83 @@ class AiSubscriptionPaymentController extends Controller
         return view('legal.ai_subscription_success', compact('subscription'));
     }
 
+    // ─── Subscription Dashboard ────────────────────────────────────────────────
+
+    public function subscriptionDashboard()
+    {
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        $user = auth()->user();
+
+        // Get all subscriptions for the user ordered by latest
+        $allSubscriptions = AiSubscription::where('user_id', $user->id)
+            ->with('package')
+            ->latest()
+            ->get();
+
+        // Active subscription
+        $currentSubscription = $allSubscriptions->first(function ($s) {
+            return $s->status === 'active' && ($s->ends_at === null || $s->ends_at->isFuture());
+        });
+
+        // Fallback: If still pending, try to verify with Stripe
+        if (!$currentSubscription) {
+            $pendingSub = $allSubscriptions->first(fn ($s) => $s->status === 'pending' && $s->stripe_session_id);
+            if ($pendingSub) {
+                try {
+                    $stripe  = $this->stripe();
+                    $session = $stripe->checkout->sessions->retrieve($pendingSub->stripe_session_id);
+                    if ($session && $session->payment_status === 'paid') {
+                        $this->handleCheckoutCompleted($session);
+                        $pendingSub->refresh();
+                        $currentSubscription = $pendingSub->load('package');
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Subscription Dashboard: Stripe verify failed', ['error' => $e->getMessage()]);
+                }
+            }
+        }
+
+        // Fetch available packages for upgrade
+        $packages = AiPackage::active()->get();
+
+        return view('legal.ai_subscription_dashboard', compact('user', 'currentSubscription', 'allSubscriptions', 'packages'));
+    }
+
+    // ─── Cancel Subscription ───────────────────────────────────────────────────
+
+    public function cancelSubscription(\Illuminate\Http\Request $request)
+    {
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        $user = auth()->user();
+
+        $subscription = AiSubscription::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->latest()
+            ->first();
+
+        if (!$subscription) {
+            return redirect()->route('ai.subscription.dashboard')
+                ->with('error', 'لا يوجد اشتراك نشط للإلغاء.');
+        }
+
+        // Mark as cancelled — keep ends_at so user can finish their period
+        $subscription->update(['status' => 'cancelled']);
+
+        Log::info('AI Subscription cancelled by user', [
+            'user_id'         => $user->id,
+            'subscription_id' => $subscription->id,
+        ]);
+
+        return redirect()->route('ai.subscription.dashboard')
+            ->with('success', 'تم إلغاء تجديد اشتراكك. يمكنك الاستمرار في استخدام الخدمة حتى نهاية الفترة الحالية.');
+    }
+
     // ─── Stripe Webhook ───────────────────────────────────────────────────────
 
     public function webhook(Request $request)

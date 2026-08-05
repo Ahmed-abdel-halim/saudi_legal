@@ -273,33 +273,63 @@
 
         <!-- Sidebar Footer: Logged User info -->
         <div
-            class="p-4 border-t border-slate-200/50 dark:border-white/10 bg-white/20 dark:bg-white/5 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <div
-                    class="w-9 h-9 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center text-sm font-bold shadow-sm">
-                    @auth
-                        {{ mb_substr(auth()->user()->name, 0, 1) }}
-                    @else
-                        ز
-                    @endauth
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-xs font-black text-slate-700 dark:text-slate-300">
+            class="p-4 border-t border-slate-200/50 dark:border-white/10 bg-white/20 dark:bg-white/5">
+            <div class="flex items-center justify-between gap-3 mb-2">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-9 h-9 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center text-sm font-bold shadow-sm">
                         @auth
-                            {{ auth()->user()->name }}
+                            {{ mb_substr(auth()->user()->name, 0, 1) }}
                         @else
-                            زائر الخدمة
+                            ز
                         @endauth
-                    </span>
-                    <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500">الوصول المجاني</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xs font-black text-slate-700 dark:text-slate-300">
+                            @auth
+                                {{ auth()->user()->name }}
+                            @else
+                                زائر الخدمة
+                            @endauth
+                        </span>
+                        @auth
+                        @php
+                            $sidebarSub = \App\Models\AiSubscription::where('user_id', auth()->id())
+                                ->where('status', 'active')
+                                ->where(function($q){ $q->whereNull('ends_at')->orWhere('ends_at', '>', now()); })
+                                ->with('package')
+                                ->latest()
+                                ->first();
+                        @endphp
+                        @if($sidebarSub)
+                            <span class="text-[9px] font-bold text-emerald-500 dark:text-emerald-400 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block"></span>
+                                مشترك — {{ $sidebarSub->package->name ?? 'باقة نشطة' }}
+                            </span>
+                        @else
+                            <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500">الوصول المجاني</span>
+                        @endif
+                        @else
+                            <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500">الوصول المجاني</span>
+                        @endauth
+                    </div>
                 </div>
+                <button onclick="toggleSidebar()"
+                    class="md:hidden w-8 h-8 rounded-lg bg-slate-200/60 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 flex items-center justify-center text-xs hover:bg-slate-200 dark:hover:bg-slate-800">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
             </div>
-            <button onclick="toggleSidebar()"
-                class="md:hidden w-8 h-8 rounded-lg bg-slate-200/60 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 flex items-center justify-center text-xs hover:bg-slate-200 dark:hover:bg-slate-800">
-                <i class="fa-solid fa-chevron-right"></i>
-            </button>
+            <a href="{{ auth()->check() ? route('ai.subscription.dashboard') : route('login') }}"
+               class="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-[11px] font-bold
+                      bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400
+                      border border-indigo-200/60 dark:border-indigo-500/20
+                      hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition">
+                <i class="fa-solid fa-receipt"></i>
+                إدارة الاشتراك والفواتير
+            </a>
         </div>
     </aside>
+
 
     <!-- Backdrop for mobile sidebar -->
     <div id="sidebar-backdrop" onclick="toggleSidebar()"
