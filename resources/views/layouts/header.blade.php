@@ -27,6 +27,9 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $platformName }}@if(isset($title)) - {{ $title }}@endif</title>
 
+    {{-- SEO Meta: hreflang + schema (injected from child views via @push) --}}
+    @stack('seo_head')
+
     {{-- Favicons --}}
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon-32x32.png') }}">
     <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">

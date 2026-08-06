@@ -13,6 +13,7 @@ use App\Http\Controllers\ExpertDashboardController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Auth\SuperAdminLoginController;
+use App\Http\Controllers\PublicAnswerController;
 
 Route::get('/debug-articles', function () {
     return \App\Models\LegalArticle::take(5)->get();
@@ -425,3 +426,24 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
+// ─── SEO Public Legal Q&A Pages (Programmatic SEO - Arabic & English) ────────
+// مسار النسخة العربية: /legal-qa/{slug}
+Route::get('/legal-qa/{slug}', [PublicAnswerController::class, 'showArabic'])->name('public.qa.ar');
+
+// مسار النسخة الإنجليزية: /en/legal-qa/{slug}
+Route::get('/en/legal-qa/{slug}', [PublicAnswerController::class, 'showEnglish'])->name('public.qa.en');
+
+// ─── Admin: نشر محادثة إلى صفحة عامة بضغطة زر (1-Click Publishing) ───────────
+Route::post('/admin/ai-chats/{conversationId}/publish-to-public', [
+    \App\Http\Controllers\Admin\AdminAiChatLogsController::class,
+    'publishToPublic',
+])->middleware(['superadmin'])->name('admin.ai_chats.publish_public');
+
+// ─── Sitemap XML للـ SEO ──────────────────────────────────────────────────────
+Route::get('/sitemap-legal-index.xml', function () {
+    $path = public_path('sitemap-legal-index.xml');
+    if (!file_exists($path)) {
+        abort(404, 'Sitemap not generated yet. Run: php artisan sitemap:legal-qa');
+    }
+    return response()->file($path, ['Content-Type' => 'application/xml']);
+})->name('sitemap.legal.index');

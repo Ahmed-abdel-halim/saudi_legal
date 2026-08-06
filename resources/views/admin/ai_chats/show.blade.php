@@ -74,11 +74,21 @@
                     <div class="whitespace-pre-line text-slate-100 font-medium">{{ $msg->message }}</div>
 
                     {{-- Convert to Expert Task Action --}}
-                    <div class="mt-4 pt-3 border-t border-slate-700/60 flex items-center justify-end">
+                    <div class="mt-4 pt-3 border-t border-slate-700/60 flex items-center justify-end gap-2 flex-wrap">
                         <form method="POST" action="{{ route('admin.ai_chats.convert_task', $msg->id) }}" class="inline">
                             @csrf
                             <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-sm inline-flex items-center gap-1.5" onclick="return confirm('هل تريد تحويل هذا الاستفسار لمهمة مراجعة خبير على الـ Workbench؟')">
                                 <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> تحويل لمهمة تقييم خبير (RLHF Task)
+                            </button>
+                        </form>
+                        {{-- 🌐 1-Click SEO Publish Button --}}
+                        <form method="POST" action="{{ route('admin.ai_chats.publish_public', $conversation->id) }}" class="inline">
+                            @csrf
+                            <input type="hidden" name="message_id" value="{{ $msg->id }}">
+                            <button type="submit"
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-sm inline-flex items-center gap-1.5"
+                                    onclick="return confirm('نشر هذا السؤال والإجابة كصفحة عامة مفهرسة في جوجل؟')">
+                                <i class="fa-solid fa-globe text-sky-300"></i> نشر كصفحة SEO عامة 🌐
                             </button>
                         </form>
                     </div>

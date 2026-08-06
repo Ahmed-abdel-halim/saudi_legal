@@ -7,9 +7,11 @@ use App\Models\AiConversation;
 use App\Models\AiMessage;
 use App\Models\AiTask;
 use App\Models\LegalTask;
+use App\Models\PublicLegalAnswer;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class AdminAiChatLogsController extends Controller
 {
@@ -141,5 +143,75 @@ class AdminAiChatLogsController extends Controller
             DB::rollBack();
             return back()->with('error', 'حدث خطأ أثناء تحويل الاستفسار: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * 1-Click Publishing: تحويل محادثة AI إلى صفحة قانونية عامة صديقة لـ SEO
+     */
+    public function publishToPublic(Request $request, int $conversationId)
+    {
+        $conversation = AiConversation::with('messages')->findOrFail($conversationId);
+
+        $userMessage = null;
+        $assistantMessage = null;
+
+        if ($request->filled('message_id')) {
+            $userMessage = AiMessage::where('ai_conversation_id', $conversationId)
+                ->where('id', $request->message_id)
+                ->first();
+
+            if ($userMessage) {
+                $assistantMessage = AiMessage::where('ai_conversation_id', $conversationId)
+                    ->where('id', '>', $userMessage->id)
+                    ->whereIn('role', ['assistant', 'model'])
+                    ->orderBy('id', 'asc')
+                    ->first();
+            }
+        }
+
+        if (!$userMessage) {
+            $userMessage = $conversation->messages->firstWhere('role', 'user');
+        }
+
+        if (!$assistantMessage && $userMessage) {
+            $assistantMessage = $conversation->messages
+                ->where('id', '>', $userMessage->id)
+                ->first(fn($m) => in_array($m->role, ['assistant', 'model']));
+        }
+
+        if (!$assistantMessage) {
+            $assistantMessage = $conversation->messages->first(fn($m) => in_array($m->role, ['assistant', 'model']));
+        }
+
+        if (!$userMessage || !$assistantMessage) {
+            return redirect()->back()->with('error', 'المحادثة لا تحتوي على سؤال وإجابة كاملَين.');
+        }
+
+        $question  = $userMessage->message;
+        $answer    = $assistantMessage->message;
+        $citations = $assistantMessage->citations ?? null;
+
+        // توليد Slug فريد من السؤال
+        $baseSlug = Str::slug(mb_substr($question, 0, 80)) ?: 'legal-question';
+        $slug     = $baseSlug . '-' . $conversationId . '-' . $userMessage->id;
+
+        // منع التكرار
+        if (PublicLegalAnswer::where('slug', $slug)->exists()) {
+            return redirect()->back()->with('error', 'هذا الاستفسار منشور مسبقاً كصفحة عامة.');
+        }
+
+        PublicLegalAnswer::create([
+            'locale'      => 'ar',
+            'slug'        => $slug,
+            'question'    => $question,
+            'answer'      => $answer,
+            'citations'   => $citations,
+            'source_type' => 'ai_chat',
+            'source_id'   => $conversationId,
+        ]);
+
+        return redirect()->back()->with('success',
+            'تم نشر الإجابة بنجاح! الرابط العام: ' . route('public.qa.ar', $slug)
+        );
     }
 }
