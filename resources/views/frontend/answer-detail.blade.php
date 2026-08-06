@@ -297,6 +297,39 @@
                 </div>
             </div>
         </div>
+
+        {{-- ══ Accredited Lawyer Consultation Section ══ --}}
+        <div class="mt-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-950/40 via-dark-card to-emerald-950/30 border border-emerald-500/30 p-8 shadow-xl">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6 text-center {{ $isArabic ? 'md:text-right' : 'md:text-left' }}">
+                <div class="space-y-2">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        {{ $isArabic ? 'استشارة قانونية مباشرة' : 'Direct Legal Consultation' }}
+                    </div>
+                    <h3 class="text-xl font-bold text-white">
+                        {{ $isArabic ? 'هل تريد استشارة محامي معتمد في هذه الحالة؟' : 'Do you want to consult a certified lawyer for this case?' }}
+                    </h3>
+                    <p class="text-gray-300 text-sm max-w-xl leading-relaxed">
+                        {{ $isArabic
+                            ? 'يمكننا اقتراح قائمة محامين معتمدين لديهم خبرات واسعة في هذا المجال تحديداً.'
+                            : 'We can suggest a list of certified lawyers with extensive expertise specifically in this domain.'
+                        }}
+                    </p>
+                </div>
+                <div class="flex-shrink-0">
+                    <a href="{{ route('public.accredited_offices') }}"
+                       class="inline-flex items-center gap-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-6 py-3.5 rounded-xl shadow-green-glow hover:shadow-lg transition-all duration-200 text-sm">
+                        <svg class="w-5 h-5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0V5"/>
+                        </svg>
+                        {{ $isArabic ? 'قائمة المكاتب الاستشارية المعتمدة' : 'Accredited Consulting Offices List' }}
+                    </a>
+                </div>
+            </div>
+        </div>
     </section>
+
 </div>
 @endsection

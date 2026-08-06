@@ -425,6 +425,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/b2b-portal/hospital/resubmit', [App\Http\Controllers\Workflow\WorkflowController::class, 'resubmitClaim'])->name('workflow.resubmit');
 });
 
+// مسار قائمة المكاتب الاستشارية المعتمدة
+Route::get('/accredited-offices', [App\Http\Controllers\PageController::class, 'accreditedOffices'])->name('public.accredited_offices');
 
 // ─── SEO Public Legal Q&A Pages (Programmatic SEO - Arabic & English) ────────
 // مسار النسخة العربية: /legal-qa/{slug}

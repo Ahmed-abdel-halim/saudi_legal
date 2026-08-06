@@ -45,4 +45,13 @@ class PageController extends Controller
     {
         return view('pages.services.data_infrastructure');
     }
+
+    /**
+     * Display the Accredited Law Offices Directory.
+     */
+    public function accreditedOffices()
+    {
+        return view('pages.accredited_offices');
+    }
 }
+
