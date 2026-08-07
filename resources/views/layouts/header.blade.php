@@ -99,6 +99,26 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 radial-gradient(ellipse at 80% 80%, var(--radial-2) 0%, transparent 55%);
         }
 
+        /* Fix input text color inside white/light containers */
+        input, select, textarea {
+            color: #0f172a;
+        }
+        .dark input:not([class*="text-white"]):not([class*="text-gray"]):not([class*="text-slate"]),
+        .dark select:not([class*="text-white"]):not([class*="text-gray"]):not([class*="text-slate"]),
+        .dark textarea:not([class*="text-white"]):not([class*="text-gray"]):not([class*="text-slate"]) {
+            color: #0f172a;
+        }
+        .bg-white input, .bg-white select, .bg-white textarea,
+        input.bg-white, select.bg-white, textarea.bg-white,
+        input[class*="bg-white"], select[class*="bg-white"], textarea[class*="bg-white"],
+        .bg-slate-50 input, .bg-slate-100 input, .bg-slate-200 input {
+            color: #0f172a !important;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #94a3b8;
+        }
+
         /* Subtle dot-grid overlay on the entire page */
         body::before {
             content: '';

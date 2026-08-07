@@ -237,7 +237,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                             name="email"
                             required
                             value="{{ old('email') }}"
-                            class="form-input-enhanced w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent"
+                            class="form-input-enhanced w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent"
                             placeholder="{{ __('auth.AUTH_EMAIL_PLACEHOLDER', [], $currentLang) }}">
                     </div>
 
@@ -257,7 +257,7 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                                 id="password"
                                 name="password"
                                 required
-                                class="form-input-enhanced w-full px-4 py-3 {{ $direction === 'rtl' ? 'pl-10' : 'pr-10' }} border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent"
+                                class="form-input-enhanced w-full px-4 py-3 {{ $direction === 'rtl' ? 'pl-10' : 'pr-10' }} border border-gray-300 rounded-lg text-slate-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent"
                                 placeholder="••••••••">
                             <button type="button"
                                 class="absolute {{ $direction === 'rtl' ? 'left-3' : 'right-3' }} top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-brand-teal transition-colors"

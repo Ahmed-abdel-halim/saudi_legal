@@ -57,9 +57,10 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                             type="email" 
                             required 
                             value="{{ old('email') }}"
-                            class="block w-full {{ $direction === 'rtl' ? 'pr-10 text-right' : 'pl-10' }} py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                            class="block w-full {{ $direction === 'rtl' ? 'pr-10 text-right' : 'pl-10' }} py-3 border border-slate-300 rounded-lg text-slate-900 bg-white placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition font-medium"
                             placeholder="{{ __('auth.AUTH_EMAIL_PLACEHOLDER', [], $currentLang) }}"
                         >
+
                     </div>
                 </div>
 
