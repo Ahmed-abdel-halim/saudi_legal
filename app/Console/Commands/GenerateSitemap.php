@@ -29,7 +29,7 @@ class GenerateSitemap extends Command
     {
         $this->info('Generating B2B SaaS sitemap...');
 
-        $baseUrl = rtrim(config('app.url', 'https://radiif.com'), '/');
+        $baseUrl = rtrim(config('app.sitemap_domain', env('SITEMAP_BASE_URL', 'https://radiif.com')), '/');
 
         // Create the sitemap with specific pages to present a premium B2B SaaS positioning
         Sitemap::create()

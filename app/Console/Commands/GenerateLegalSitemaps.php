@@ -44,6 +44,7 @@ class GenerateLegalSitemaps extends Command
                 $url = $answer->locale === 'en'
                     ? route('public.qa.en', $answer->slug)
                     : route('public.qa.ar', $answer->slug);
+                $url = $this->formatUrl($url);
 
                 $xml .= '  <url>' . PHP_EOL;
                 $xml .= '    <loc>' . htmlspecialchars($url) . '</loc>' . PHP_EOL;
@@ -57,6 +58,7 @@ class GenerateLegalSitemaps extends Command
                     $altRouteName = $targetLocale === 'en' ? 'public.qa.en' : 'public.qa.ar';
                     try {
                         $altUrl = route($altRouteName, $answer->counterpart_slug);
+                        $altUrl = $this->formatUrl($altUrl);
                         $xml .= '    <xhtml:link rel="alternate" hreflang="' . $answer->locale . '" href="' . htmlspecialchars($url) . '"/>' . PHP_EOL;
                         $xml .= '    <xhtml:link rel="alternate" hreflang="' . $targetLocale . '" href="' . htmlspecialchars($altUrl) . '"/>' . PHP_EOL;
                     } catch (\Exception $e) {
@@ -95,7 +97,11 @@ class GenerateLegalSitemaps extends Command
         $xml .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
 
         foreach ($sitemapFiles as $filename) {
-            $url  = url($filename);
+            $filename = trim((string) $filename);
+            if (empty($filename)) {
+                continue;
+            }
+            $url  = $this->formatUrl($filename);
             $xml .= '  <sitemap>' . PHP_EOL;
             $xml .= '    <loc>' . htmlspecialchars($url) . '</loc>' . PHP_EOL;
             $xml .= '    <lastmod>' . now()->toAtomString() . '</lastmod>' . PHP_EOL;
@@ -106,5 +112,22 @@ class GenerateLegalSitemaps extends Command
 
         File::put(public_path('sitemap-legal-index.xml'), $xml);
         $this->line("  📋 تم إنشاء: sitemap-legal-index.xml (Sitemap Index)");
+    }
+
+    /**
+     * توحيد وتنظيف رابط Sitemap لضمان استخدام النطاق الرئيسي (https://radiif.com) وإزالة أي Subdomain مثل saudilegal.radiif.com
+     */
+    private function formatUrl(string $url): string
+    {
+        $baseUrl = rtrim(config('app.sitemap_domain', env('SITEMAP_BASE_URL', 'https://radiif.com')), '/');
+
+        $parsed = parse_url($url);
+        $path = $parsed['path'] ?? '';
+        if (isset($parsed['query'])) {
+            $path .= '?' . $parsed['query'];
+        }
+
+        $path = '/' . ltrim($path, '/');
+        return $baseUrl . $path;
     }
 }

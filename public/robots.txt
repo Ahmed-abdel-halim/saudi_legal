@@ -1,2 +1,6 @@
 User-agent: *
 Disallow:
+
+Sitemap: https://radiif.com/sitemap.xml
+Sitemap: https://radiif.com/sitemap-legal-index.xml
+
