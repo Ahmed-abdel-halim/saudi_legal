@@ -83,18 +83,18 @@ class WhatsAppController extends Controller
 
         switch ($intent) {
             case 'main_menu':
-                $reply   = "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nكيف يمكننا مساعدتك اليوم؟ اختر من الخيارات التالية:";
+                $reply   = "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nيرجى الاختيار من الخيارات التالية:\n\n1️⃣ الاطلاع على الباقات 💳\n2️⃣ تجربة المساعد القانوني ⚖️\n3️⃣ طلب تنقيح بيانات 📝" . self::DISCLAIMER;
                 $buttons = ['الاطلاع على الباقات 💳', 'تجربة المساعد القانوني ⚖️', 'طلب تنقيح بيانات 📝'];
                 break;
 
             case 'view_plans':
                 $appUrl  = config('app.url', 'https://radiif.com');
-                $reply   = "💳 *باقات منصة رديف للذكاء الاصطناعي:*\n\nيمكنك الاطلاع على كافة الباقات والمميزات والأسعار المتاحة عبر الرابط التالي:\n🔗 {$appUrl}/plans\n\nيسعدنا انضمامك معنا!" . self::DISCLAIMER;
+                $reply   = "💳 *باقات منصة رديف للذكاء الاصطناعي:*\n\nيمكنك الاطلاع على كافة الباقات والمميزات والأسعار المتاحة عبر الرابط التالي:\n🔗 {$appUrl}/plans\n\nيرجى الاختيار من الخيارات التالية:\n1️⃣ تجربة المساعد القانوني ⚖️\n2️⃣ طلب تنقيح بيانات 📝\n3️⃣ القائمة الرئيسية 🏠" . self::DISCLAIMER;
                 $buttons = ['تجربة المساعد القانوني ⚖️', 'طلب تنقيح بيانات 📝', 'القائمة الرئيسية 🏠'];
                 break;
 
             case 'request_refinement':
-                $reply   = "📝 *طلب تنقيح البيانات:*\n\nنرجو تزويدنا بالمتطلبات والبريد الالكتروني وسيتم إفادتكم بالرد خلال يوم عمل." . self::DISCLAIMER;
+                $reply   = "📝 *طلب تنقيح البيانات:*\n\nنرجو تزويدنا بالمتطلبات والبريد الالكتروني وسيتم إفادتكم بالرد خلال يوم عمل.\n\nيرجى الاختيار من الخيارات التالية:\n1️⃣ تجربة المساعد القانوني ⚖️\n2️⃣ الاطلاع على الباقات 💳\n3️⃣ القائمة الرئيسية 🏠" . self::DISCLAIMER;
                 $buttons = ['تجربة المساعد القانوني ⚖️', 'الاطلاع على الباقات 💳', 'القائمة الرئيسية 🏠'];
                 break;
 
@@ -152,22 +152,14 @@ class WhatsAppController extends Controller
     {
         $normalizedBody = mb_strtolower(trim($body));
 
-        // 1. زر الاطلاع على الباقات
-        if (in_array($normalizedBody, [
+        // 1. كشف طلب رقم خيار: 1 (الباقات) ، 2 (المساعد) ، 3 (تنقيح)
+        if ($normalizedBody === '1' || in_array($normalizedBody, [
             'الاطلاع على الباقات', 'الاطلاع على الباقات 💳', 'الباقات', 'باقات', 'الاسعار', 'الأسعار', 'عرض الباقات'
         ], true)) {
             return 'view_plans';
         }
 
-        // 2. زر طلب تنقيح بيانات
-        if (in_array($normalizedBody, [
-            'طلب تنقيح بيانات', 'طلب تنقيح بيانات 📝', 'تنقيح بيانات', 'تنقيح البيانات', 'طلب تنقيح'
-        ], true)) {
-            return 'request_refinement';
-        }
-
-        // 3. زر تجربة المساعد القانوني / تنشيط المحادثة / ابدأ الاستشارة
-        if (in_array($normalizedBody, [
+        if ($normalizedBody === '2' || in_array($normalizedBody, [
             'تجربة المساعد القانوني', 'تجربة المساعد القانوني ⚖️', 'المساعد القانوني', 'مساعد قانوني',
             'تنشيط المحادثة', 'تنشيط المحادثة 🔄', 'ابدأ الاستشارة', 'ابدأ الاستشارة ⚖️',
             'ابدأ', 'ابدا', 'ابدأ الآن', 'ابدأ الان', 'نعم، لدي استفسار ⚖️'
@@ -175,34 +167,45 @@ class WhatsAppController extends Controller
             return 'start_chat';
         }
 
-        // 4. زر القائمة الرئيسية أو العودة
+        if ($normalizedBody === '3' || in_array($normalizedBody, [
+            'طلب تنقيح بيانات', 'طلب تنقيح بيانات 📝', 'تنقيح بيانات', 'تنقيح البيانات', 'طلب تنقيح'
+        ], true)) {
+            return 'request_refinement';
+        }
+
+        // 2. زر القائمة الرئيسية أو العودة
         if (in_array($normalizedBody, [
-            'القائمة الرئيسية', 'القائمة الرئيسية 🏠', 'الرئيسية', 'قائمة'
+            'القائمة الرئيسية', 'القائمة الرئيسية 🏠', 'الرئيسية', 'قائمة', '0', 'رجوع'
         ], true)) {
             return 'main_menu';
         }
 
-        // 5. زر إنهاء المحادثة
+        // 3. زر إنهاء المحادثة
         if (in_array($normalizedBody, [
             'إنهاء المحادثة', 'إنهاء المحادثة 🛑', 'إنهاء الجلسة', 'إنهاء', 'انهاء'
         ], true)) {
             return 'end_chat';
         }
 
-        // 6. كشف الاستفسار عن رقم قضية مباشر (مثل: 4471036594 أو قضية 4471036594 أو حكم 4430630992)
+        // 4. كشف الاستفسار عن رقم قضية مباشر (مثل: 4471036594 أو قضية 4471036594 أو حكم 4430630992)
         if (preg_match('/^(?:عرض\s+|قضية\s+|مرجع\s+|رقم\s+|حكم\s+|قرار\s+|حكم\s+رقم\s+|قضية\s+رقم\s+)?(\d{3,15})$/u', $normalizedBody)) {
             return 'case_lookup';
         }
 
-        // 7. كشف التحية المجردة والمجاملات
-        if ($this->isPureGreeting($body)) {
+        // 5. إذا كانت الجلسة غير نشطة (idle) والرسالة تحية -> نعرض القائمة الرئيسية فوراً
+        if ($sessionState === 'idle' && $this->isPureGreeting($body)) {
+            return 'main_menu';
+        }
+
+        // 6. إذا كانت الجلسة نشطة (in_chat) والرسالة تحية -> نرد تحية بسيطة
+        if ($sessionState === 'in_chat' && $this->isPureGreeting($body)) {
             return 'pure_greeting';
         }
 
-        // 8. إذا كانت الجلسة نشطة بالفعل (in_chat)
+        // 7. إذا كانت الجلسة نشطة بالفعل (in_chat)
         if ($sessionState === 'in_chat') {
             // كشف طلب الخروج Explicit Exit
-            $endExactTriggers = ['0', 'رجوع', 'خروج', 'انهاء', 'إنهاء', 'وداعا', 'وداعاً', 'bye', 'exit', 'quit'];
+            $endExactTriggers = ['خروج', 'انهاء', 'إنهاء', 'وداعا', 'وداعاً', 'bye', 'exit', 'quit'];
             foreach ($endExactTriggers as $trigger) {
                 if ($normalizedBody === $trigger || mb_strpos($normalizedBody, 'خروج') !== false || mb_strpos($normalizedBody, 'إنهاء الجلسة') !== false) {
                     return 'end_chat';
@@ -213,27 +216,8 @@ class WhatsAppController extends Controller
             return 'legal_query';
         }
 
-        // 9. إذا كانت الجلسة غير نشطة (idle)
-        $startPhrases = [
-            'مساعد قانوني', 'مساعد', 'قانوني', 'ابدأ', 'ابدا',
-            'تصفح المساعدة', 'استشارة',
-        ];
-
-        if ($normalizedBody === '1') {
-            return 'start_chat';
-        }
-
-        foreach ($startPhrases as $phrase) {
-            if (mb_strpos($normalizedBody, $phrase) !== false) {
-                return 'start_chat';
-            }
-        }
-
-        if ($normalizedBody === '0' || $normalizedBody === 'رجوع' || $normalizedBody === 'خروج') {
-            return 'end_chat';
-        }
-
-        return 'legal_query';
+        // 8. إذا كانت الجلسة غير نشطة (idle) والرسالة نصية أيا كانت -> نعرض القائمة الرئيسية
+        return 'main_menu';
     }
 
     // ─────────────────────────────────────────────────────────────────────────
