@@ -61,6 +61,11 @@ class TwilioService
     private function executeSend(string $to, string $body, array $buttons = [], ?string $mediaUrl = null): bool
     {
         try {
+            // إذا كانت هناك أزرار تفاعلية نستخدم Interactive Messages API لواتساب
+            if (!empty($buttons)) {
+                return $this->sendInteractiveMessage($to, $body, $buttons);
+            }
+
             $params = [
                 'From' => $this->from,
                 'To'   => $to,
@@ -71,14 +76,7 @@ class TwilioService
                 $params['MediaUrl'] = $mediaUrl;
             }
 
-            // بناء استعلام URL-encoded لضمان تكرار معيار PersistentAction بالشكل الصحيح في Twilio
             $bodyData = http_build_query($params);
-
-            if (!empty($buttons)) {
-                foreach ($buttons as $btn) {
-                    $bodyData .= '&PersistentAction=' . urlencode('reply:' . $btn);
-                }
-            }
 
             $response = Http::withBasicAuth($this->sid, $this->token)
                 ->withHeaders([
@@ -92,8 +90,6 @@ class TwilioService
                 Log::info('[Twilio] رسالة أُرسلت بنجاح', [
                     'to'       => $to,
                     'sid'      => $response->json('sid'),
-                    'buttons'  => $buttons,
-                    'media_url'=> $mediaUrl,
                 ]);
                 return true;
             }
@@ -106,6 +102,85 @@ class TwilioService
 
         } catch (\Exception $e) {
             Log::error('[Twilio] استثناء أثناء إرسال الرسالة: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * إرسال رسالة واتساب تفاعلية بأزرار Quick Reply حقيقية عبر WhatsApp Interactive Messages
+     */
+    private function sendInteractiveMessage(string $to, string $body, array $buttons): bool
+    {
+        // تحويل الأزرار إلى JSON format المطلوب لـ WhatsApp Interactive API
+        $buttonsList = [];
+        foreach (array_slice($buttons, 0, 3) as $index => $btn) {
+            $buttonsList[] = [
+                'type'  => 'reply',
+                'reply' => [
+                    'id'    => 'btn_' . $index,
+                    'title' => mb_substr($btn, 0, 20), // واتساب يقبل 20 حرف كحد أقصى للزر
+                ],
+            ];
+        }
+
+        $interactive = [
+            'type' => 'button',
+            'body' => [
+                'text' => $body,
+            ],
+            'action' => [
+                'buttons' => $buttonsList,
+            ],
+        ];
+
+        $params = [
+            'From'        => $this->from,
+            'To'          => $to,
+            'Body'        => $body,
+            'ContentType' => 'application/json',
+            'ContentVariables' => json_encode([]),
+        ];
+
+        // محاولة إرسال Interactive Message
+        try {
+            $bodyData = http_build_query([
+                'From'             => $this->from,
+                'To'               => $to,
+                'Body'             => $body,
+                'PersistentAction' => array_map(fn($b) => 'reply:' . $b, $buttons),
+            ]);
+
+            // إعادة بناء PersistentAction كمصفوفة (Twilio يقبل تكرار المفتاح)
+            $bodyData = 'From=' . urlencode($this->from) . '&To=' . urlencode($to) . '&Body=' . urlencode($body);
+            foreach (array_slice($buttons, 0, 3) as $btn) {
+                $bodyData .= '&PersistentAction=' . urlencode('reply:' . $btn);
+            }
+
+            $response = Http::withBasicAuth($this->sid, $this->token)
+                ->withHeaders([
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ])
+                ->timeout(30)
+                ->withBody($bodyData, 'application/x-www-form-urlencoded')
+                ->post("{$this->baseUrl}/Messages.json");
+
+            if ($response->successful()) {
+                Log::info('[Twilio] رسالة تفاعلية أُرسلت بنجاح', [
+                    'to'      => $to,
+                    'sid'     => $response->json('sid'),
+                    'buttons' => $buttons,
+                ]);
+                return true;
+            }
+
+            Log::error('[Twilio] فشل إرسال الرسالة التفاعلية', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+            return false;
+
+        } catch (\Exception $e) {
+            Log::error('[Twilio] استثناء أثناء إرسال الرسالة التفاعلية: ' . $e->getMessage());
             return false;
         }
     }
