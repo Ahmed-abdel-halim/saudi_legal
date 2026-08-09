@@ -82,36 +82,52 @@ class WhatsAppController extends Controller
         $mediaUrl = null;
 
         switch ($intent) {
+            case 'main_menu':
+                $reply   = "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nكيف يمكننا مساعدتك اليوم؟ اختر من الخيارات التالية:";
+                $buttons = ['الاطلاع على الباقات 💳', 'تجربة المساعد القانوني ⚖️', 'طلب تنقيح بيانات 📝'];
+                break;
+
+            case 'view_plans':
+                $appUrl  = config('app.url', 'https://radiif.com');
+                $reply   = "💳 *باقات منصة رديف للذكاء الاصطناعي:*\n\nيمكنك الاطلاع على كافة الباقات والمميزات والأسعار المتاحة عبر الرابط التالي:\n🔗 {$appUrl}/plans\n\nيسعدنا انضمامك معنا!" . self::DISCLAIMER;
+                $buttons = ['تجربة المساعد القانوني ⚖️', 'طلب تنقيح بيانات 📝', 'القائمة الرئيسية 🏠'];
+                break;
+
+            case 'request_refinement':
+                $reply   = "📝 *طلب تنقيح البيانات:*\n\nنرجو تزويدنا بالمتطلبات والبريد الالكتروني وسيتم إفادتكم بالرد خلال يوم عمل." . self::DISCLAIMER;
+                $buttons = ['تجربة المساعد القانوني ⚖️', 'الاطلاع على الباقات 💳', 'القائمة الرئيسية 🏠'];
+                break;
+
             case 'start_chat':
                 $reply    = $this->handleStartChat($conversation);
-                $buttons  = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
+                $buttons  = ['إنهاء المحادثة 🛑', 'القائمة الرئيسية 🏠'];
                 $mediaUrl = config('app.url') . '/images/icon.png';
                 break;
 
             case 'end_chat':
                 $reply   = $this->handleEndChat($conversation);
-                $buttons = ['ابدأ الاستشارة ⚖️'];
+                $buttons = ['تنشيط المحادثة 🔄', 'القائمة الرئيسية 🏠'];
                 break;
 
             case 'case_lookup':
                 $reply   = $this->handleCaseLookup($conversation, $body, $botPhone);
-                $buttons = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
+                $buttons = ['إنهاء المحادثة 🛑', 'القائمة الرئيسية 🏠'];
                 break;
 
             case 'pure_greeting':
                 $reply   = $this->handlePureGreeting($conversation, $body);
-                $buttons = ['ابدأ الاستشارة ⚖️', 'إنهاء المحادثة 🛑'];
+                $buttons = ['تجربة المساعد القانوني ⚖️', 'الاطلاع على الباقات 💳', 'طلب تنقيح بيانات 📝'];
                 break;
 
             case 'legal_query':
                 $reply   = $this->handleLegalQuery($conversation, $body, $botPhone);
-                $buttons = ['القائمة الرئيسية 🏠', 'إنهاء المحادثة 🛑'];
+                $buttons = ['إنهاء المحادثة 🛑', 'القائمة الرئيسية 🏠'];
                 break;
 
             case 'idle_prompt':
             default:
                 $reply   = $this->getIdlePrompt();
-                $buttons = ['ابدأ الاستشارة ⚖️'];
+                $buttons = ['الاطلاع على الباقات 💳', 'تجربة المساعد القانوني ⚖️', 'طلب تنقيح بيانات 📝'];
                 break;
         }
 
@@ -136,32 +152,54 @@ class WhatsAppController extends Controller
     {
         $normalizedBody = mb_strtolower(trim($body));
 
-        // 1. كشف الضغط على الأزرار التفاعلية أو الكلمات الرئيسية للصنع الصريح
+        // 1. زر الاطلاع على الباقات
         if (in_array($normalizedBody, [
-            'القائمة الرئيسية', 'القائمة الرئيسية 🏠', 'الرئيسية',
-            'المساعد القانوني', 'المساعد القانوني ⚖️', 'مساعد قانوني',
-            'ابدأ الاستشارة', 'ابدأ الاستشارة ⚖️', 'ابدأ', 'ابدا', 'ابدأ الآن', 'ابدأ الان'
+            'الاطلاع على الباقات', 'الاطلاع على الباقات 💳', 'الباقات', 'باقات', 'الاسعار', 'الأسعار', 'عرض الباقات'
+        ], true)) {
+            return 'view_plans';
+        }
+
+        // 2. زر طلب تنقيح بيانات
+        if (in_array($normalizedBody, [
+            'طلب تنقيح بيانات', 'طلب تنقيح بيانات 📝', 'تنقيح بيانات', 'تنقيح البيانات', 'طلب تنقيح'
+        ], true)) {
+            return 'request_refinement';
+        }
+
+        // 3. زر تجربة المساعد القانوني / تنشيط المحادثة / ابدأ الاستشارة
+        if (in_array($normalizedBody, [
+            'تجربة المساعد القانوني', 'تجربة المساعد القانوني ⚖️', 'المساعد القانوني', 'مساعد قانوني',
+            'تنشيط المحادثة', 'تنشيط المحادثة 🔄', 'ابدأ الاستشارة', 'ابدأ الاستشارة ⚖️',
+            'ابدأ', 'ابدا', 'ابدأ الآن', 'ابدأ الان', 'نعم، لدي استفسار ⚖️'
         ], true)) {
             return 'start_chat';
         }
 
+        // 4. زر القائمة الرئيسية أو العودة
         if (in_array($normalizedBody, [
-            'إنهاء المحادثة', 'إنهاء المحادثة 🛑', 'إنهاء الجلسة', 'إنهاء'
+            'القائمة الرئيسية', 'القائمة الرئيسية 🏠', 'الرئيسية', 'قائمة'
+        ], true)) {
+            return 'main_menu';
+        }
+
+        // 5. زر إنهاء المحادثة
+        if (in_array($normalizedBody, [
+            'إنهاء المحادثة', 'إنهاء المحادثة 🛑', 'إنهاء الجلسة', 'إنهاء', 'انهاء'
         ], true)) {
             return 'end_chat';
         }
 
-        // 2. كشف الاستفسار عن رقم قضية مباشر (مثل: 4471036594 أو قضية 4471036594 أو حكم 4430630992)
+        // 6. كشف الاستفسار عن رقم قضية مباشر (مثل: 4471036594 أو قضية 4471036594 أو حكم 4430630992)
         if (preg_match('/^(?:عرض\s+|قضية\s+|مرجع\s+|رقم\s+|حكم\s+|قرار\s+|حكم\s+رقم\s+|قضية\s+رقم\s+)?(\d{3,15})$/u', $normalizedBody)) {
             return 'case_lookup';
         }
 
-        // 3. كشف التحية المجردة والمجاملات (سواء كانت الجلسة active أم idle)
+        // 7. كشف التحية المجردة والمجاملات
         if ($this->isPureGreeting($body)) {
             return 'pure_greeting';
         }
 
-        // 4. إذا كانت الجلسة نشطة بالفعل (in_chat)
+        // 8. إذا كانت الجلسة نشطة بالفعل (in_chat)
         if ($sessionState === 'in_chat') {
             // كشف طلب الخروج Explicit Exit
             $endExactTriggers = ['0', 'رجوع', 'خروج', 'انهاء', 'إنهاء', 'وداعا', 'وداعاً', 'bye', 'exit', 'quit'];
@@ -171,22 +209,16 @@ class WhatsAppController extends Controller
                 }
             }
 
-            // كشف طلب إعادة البدء الصريح Explicit Restart Menu
-            if ($normalizedBody === '1' || $normalizedBody === 'مساعد قانوني' || $normalizedBody === 'تصفح المساعدة' || $normalizedBody === 'تصفح المساعدة القانونية') {
-                return 'start_chat';
-            }
-
             // أي رسالة أخرى تُمثل سؤالاً قانونياً
             return 'legal_query';
         }
 
-        // 5. إذا كانت الجلسة غير نشطة (idle)
+        // 9. إذا كانت الجلسة غير نشطة (idle)
         $startPhrases = [
             'مساعد قانوني', 'مساعد', 'قانوني', 'ابدأ', 'ابدا',
             'تصفح المساعدة', 'استشارة',
         ];
 
-        // المطابقة الدقيقة للرقم 1 فقط كرمز بدء
         if ($normalizedBody === '1') {
             return 'start_chat';
         }
@@ -197,12 +229,10 @@ class WhatsAppController extends Controller
             }
         }
 
-        // مطابقة كلمة الخروج في وضع البداية
         if ($normalizedBody === '0' || $normalizedBody === 'رجوع' || $normalizedBody === 'خروج') {
             return 'end_chat';
         }
 
-        // تفعيل الجلسة تلقائياً والإجابة المباشرة على أي سؤال يُرسل في أول رسالة دون إجبار المستخدم على كتابة كلمة معينة
         return 'legal_query';
     }
 
@@ -216,8 +246,9 @@ class WhatsAppController extends Controller
     private function handleStartChat(WhatsAppConversation $conversation): string
     {
         $conversation->update([
-            'session_state'  => 'in_chat',
-            'last_active_at' => now(),
+            'session_state'        => 'in_chat',
+            'last_active_at'       => now(),
+            'inactivity_warned_at' => null,
         ]);
 
         $name = $conversation->display_name ? "، {$conversation->display_name}" : '';
@@ -243,12 +274,15 @@ class WhatsAppController extends Controller
      */
     private function handleEndChat(WhatsAppConversation $conversation): string
     {
-        $conversation->update(['session_state' => 'idle']);
+        $conversation->update([
+            'session_state'        => 'idle',
+            'inactivity_warned_at' => null,
+        ]);
 
-        return "👋 *تم إنهاء جلسة الاستشارة بنجاح.*
+        return "👋 *تم إنهاء جلسة المحادثة بنجاح.*
 
 شكراً لاستخدامك المساعد القانوني لمنصة *رديف*.
-يمكنك العودة في أي وقت بالنقر على زر *المساعد القانوني ⚖️* أدناه."
+يمكنك البدء من جديد في أي وقت، فقط اختر تنشيط المحادثة."
         . self::DISCLAIMER;
     }
 
@@ -341,12 +375,15 @@ class WhatsAppController extends Controller
      */
     private function handleLegalQuery(WhatsAppConversation $conversation, string $question, string $botPhone = ''): string
     {
-        // تفعيل الجلسة تلقائياً إذا كانت غير نشطة
+        // تفعيل الجلسة تلقائياً إذا كانت غير نشطة وتحديث وقت النشاط
         if ($conversation->session_state !== 'in_chat') {
             $conversation->update([
-                'session_state'  => 'in_chat',
-                'last_active_at' => now(),
+                'session_state'        => 'in_chat',
+                'last_active_at'       => now(),
+                'inactivity_warned_at' => null,
             ]);
+        } else {
+            $conversation->touchActivity();
         }
 
         // التحقق من حد الرسائل
