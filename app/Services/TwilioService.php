@@ -29,7 +29,17 @@ class TwilioService
      * @param string|null $mediaUrl  رابط صورة مرفقة مع الرسالة (مثل صورة اللوجو)
      * @return bool
      */
-    public function sendMessage(string $to, string $body, array $buttons = [], ?string $mediaUrl = null): bool
+    /**
+     * إرسال رسالة واتساب مع دعم الأزرار التفاعلية الحقيقية عبر Twilio Content Templates
+     *
+     * @param string      $to          رقم المستلم (whatsapp:+966...)
+     * @param string      $body        نص الرسالة
+     * @param array       $buttons     مصفوفة الأزرار — تُستخدم كـ Fallback فقط إذا لم يُضبط templateKey
+     * @param string|null $mediaUrl    رابط صورة مرفقة (يُهمل عند استخدام ContentSid)
+     * @param string|null $templateKey مفتاح التمبلت من config('services.twilio.templates.*')
+     * @return bool
+     */
+    public function sendMessage(string $to, string $body, array $buttons = [], ?string $mediaUrl = null, ?string $templateKey = null): bool
     {
         if (empty($this->sid) || empty($this->token)) {
             Log::warning('[Twilio] TWILIO_SID أو TWILIO_AUTH_TOKEN غير محددان في .env');
@@ -41,29 +51,29 @@ class TwilioService
             $body = mb_substr($body, 0, 1500) . "\n\n⚠️ _(تم اختصار باقي النص لتجاوز الحد الأقصى للرسالة)_";
         }
 
-        $sent = $this->executeSend($to, $body, $buttons, $mediaUrl);
+        $sent = $this->executeSend($to, $body, $buttons, $mediaUrl, $templateKey);
 
         // محاولة إعادة الإرسال بدون أزرار تفاعلية في حال فشلت المحاولة الأولى
         if (!$sent && !empty($buttons)) {
             Log::info('[Twilio] إعادة المحاولة بدون أزرار تفاعلية...');
-            $sent = $this->executeSend($to, $body, [], $mediaUrl);
+            $sent = $this->executeSend($to, $body, [], $mediaUrl, null);
         }
 
         // محاولة إعادة الإرسال بدون وسائط في حال الفشل
         if (!$sent && !empty($mediaUrl)) {
             Log::info('[Twilio] إعادة المحاولة بدون وسائط...');
-            $sent = $this->executeSend($to, $body, [], null);
+            $sent = $this->executeSend($to, $body, [], null, null);
         }
 
         return $sent;
     }
 
-    private function executeSend(string $to, string $body, array $buttons = [], ?string $mediaUrl = null): bool
+    private function executeSend(string $to, string $body, array $buttons = [], ?string $mediaUrl = null, ?string $templateKey = null): bool
     {
         try {
-            // إذا كانت هناك أزرار تفاعلية نستخدم Interactive Messages API لواتساب
+            // إذا كانت هناك أزرار تفاعلية — نجرب ContentSid أولاً ثم PersistentAction كـ Fallback
             if (!empty($buttons)) {
-                return $this->sendInteractiveMessage($to, $body, $buttons);
+                return $this->sendInteractiveMessage($to, $body, $buttons, $templateKey);
             }
 
             $params = [
@@ -107,65 +117,41 @@ class TwilioService
     }
 
     /**
-     * إرسال رسالة واتساب تفاعلية بأزرار Quick Reply حقيقية عبر WhatsApp Interactive Messages
+     * إرسال رسالة واتساب تفاعلية بأزرار Quick Reply حقيقية
+     *
+     * الأولوية:
+     *  1. Twilio Content Template (ContentSid) — يُظهر أزرار WhatsApp الحقيقية
+     *  2. PersistentAction — Fallback قديم في حال عدم وجود تمبلت
      */
-    private function sendInteractiveMessage(string $to, string $body, array $buttons): bool
+    private function sendInteractiveMessage(string $to, string $body, array $buttons, ?string $templateKey = null): bool
     {
-        // تحويل الأزرار إلى JSON format المطلوب لـ WhatsApp Interactive API
-        $buttonsList = [];
-        foreach (array_slice($buttons, 0, 3) as $index => $btn) {
-            $buttonsList[] = [
-                'type'  => 'reply',
-                'reply' => [
-                    'id'    => 'btn_' . $index,
-                    'title' => mb_substr($btn, 0, 20), // واتساب يقبل 20 حرف كحد أقصى للزر
-                ],
-            ];
+        // ── 1. محاولة الإرسال عبر Content Template (الطريقة الصحيحة لأزرار WhatsApp) ──
+        if ($templateKey) {
+            $contentSid = config("services.twilio.templates.{$templateKey}", '');
+            if (!empty($contentSid)) {
+                $sent = $this->sendWithContentSid($to, $body, $contentSid);
+                if ($sent) {
+                    return true;
+                }
+                Log::warning('[Twilio] ContentSid فشل، الرجوع إلى PersistentAction', ['templateKey' => $templateKey]);
+            }
         }
 
-        $interactive = [
-            'type' => 'button',
-            'body' => [
-                'text' => $body,
-            ],
-            'action' => [
-                'buttons' => $buttonsList,
-            ],
-        ];
-
-        $params = [
-            'From'        => $this->from,
-            'To'          => $to,
-            'Body'        => $body,
-            'ContentType' => 'application/json',
-            'ContentVariables' => json_encode([]),
-        ];
-
-        // محاولة إرسال Interactive Message
+        // ── 2. Fallback: PersistentAction (يعمل داخل نافذة 24 ساعة كـ Session Message) ──
         try {
-            $bodyData = http_build_query([
-                'From'             => $this->from,
-                'To'               => $to,
-                'Body'             => $body,
-                'PersistentAction' => array_map(fn($b) => 'reply:' . $b, $buttons),
-            ]);
-
-            // إعادة بناء PersistentAction كمصفوفة (Twilio يقبل تكرار المفتاح)
             $bodyData = 'From=' . urlencode($this->from) . '&To=' . urlencode($to) . '&Body=' . urlencode($body);
             foreach (array_slice($buttons, 0, 3) as $btn) {
                 $bodyData .= '&PersistentAction=' . urlencode('reply:' . $btn);
             }
 
             $response = Http::withBasicAuth($this->sid, $this->token)
-                ->withHeaders([
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                ])
+                ->withHeaders(['Content-Type' => 'application/x-www-form-urlencoded'])
                 ->timeout(30)
                 ->withBody($bodyData, 'application/x-www-form-urlencoded')
                 ->post("{$this->baseUrl}/Messages.json");
 
             if ($response->successful()) {
-                Log::info('[Twilio] رسالة تفاعلية أُرسلت بنجاح', [
+                Log::info('[Twilio] رسالة تفاعلية (PersistentAction) أُرسلت بنجاح', [
                     'to'      => $to,
                     'sid'     => $response->json('sid'),
                     'buttons' => $buttons,
@@ -181,6 +167,47 @@ class TwilioService
 
         } catch (\Exception $e) {
             Log::error('[Twilio] استثناء أثناء إرسال الرسالة التفاعلية: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * إرسال رسالة عبر Twilio Content Template (ContentSid)
+     * هذه هي الطريقة الرسمية لإظهار أزرار WhatsApp التفاعلية الحقيقية
+     * الأزرار معرَّفة داخل التمبلت في Twilio Content API — والنص الديناميكي يُمرَّر عبر ContentVariables
+     */
+    private function sendWithContentSid(string $to, string $body, string $contentSid): bool
+    {
+        try {
+            $bodyData = 'From='             . urlencode($this->from)
+                      . '&To='             . urlencode($to)
+                      . '&ContentSid='     . urlencode($contentSid)
+                      . '&ContentVariables=' . urlencode(json_encode(['1' => $body]));
+
+            $response = Http::withBasicAuth($this->sid, $this->token)
+                ->withHeaders(['Content-Type' => 'application/x-www-form-urlencoded'])
+                ->timeout(30)
+                ->withBody($bodyData, 'application/x-www-form-urlencoded')
+                ->post("{$this->baseUrl}/Messages.json");
+
+            if ($response->successful()) {
+                Log::info('[Twilio] رسالة ContentSid أُرسلت بنجاح', [
+                    'to'         => $to,
+                    'contentSid' => $contentSid,
+                    'sid'        => $response->json('sid'),
+                ]);
+                return true;
+            }
+
+            Log::error('[Twilio] فشل إرسال رسالة ContentSid', [
+                'status'     => $response->status(),
+                'body'       => $response->body(),
+                'contentSid' => $contentSid,
+            ]);
+            return false;
+
+        } catch (\Exception $e) {
+            Log::error('[Twilio] استثناء ContentSid: ' . $e->getMessage());
             return false;
         }
     }

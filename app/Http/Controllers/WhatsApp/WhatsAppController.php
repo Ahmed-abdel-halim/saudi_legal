@@ -77,62 +77,72 @@ class WhatsAppController extends Controller
         $intent = $this->detectIntent($body, $conversation->session_state);
 
         // 5. معالجة الـ Intent وإعداد الرد والأزرار التفاعلية (Quick Reply Buttons) والصورة المرفقة
-        $reply    = '';
-        $buttons  = [];
-        $mediaUrl = null;
+        $reply       = '';
+        $buttons     = [];
+        $mediaUrl    = null;
+        $templateKey = null;
 
         switch ($intent) {
             case 'main_menu':
-                $reply   = "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nاختر من الخيارات التالية 👇";
-                $buttons = ['الاطلاع على الباقات 💳', 'تجربة المساعد القانوني ⚖️', 'طلب تنقيح بيانات 📝'];
+                $reply       = "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nاختر من الخيارات التالية 👇";
+                $buttons     = ['الاطلاع على الباقات', 'المساعد القانوني', 'طلب تنقيح بيانات'];
+                $templateKey = 'main_menu';
                 break;
 
             case 'view_plans':
-                $appUrl  = config('app.url', 'https://radiif.com');
-                $reply   = "💳 *باقات منصة رديف للذكاء الاصطناعي:*\n\nاطلع على كافة الباقات والمميزات عبر الرابط التالي:\n🔗 {$appUrl}/plans" . self::DISCLAIMER;
-                $buttons = ['تجربة المساعد القانوني ⚖️', 'طلب تنقيح بيانات 📝', 'القائمة الرئيسية 🏠'];
+                $appUrl      = config('app.url', 'https://radiif.com');
+                $reply       = "💳 *باقات منصة رديف للذكاء الاصطناعي:*\n\nاطلع على كافة الباقات والمميزات عبر الرابط التالي:\n🔗 {$appUrl}/plans" . self::DISCLAIMER;
+                $buttons     = ['المساعد القانوني', 'طلب تنقيح بيانات', 'القائمة الرئيسية'];
+                $templateKey = 'after_plans';
                 break;
 
             case 'request_refinement':
-                $reply   = "📝 *طلب تنقيح البيانات:*\n\nنرجو تزويدنا بالمتطلبات والبريد الالكتروني وسيتم إفادتكم بالرد خلال يوم عمل." . self::DISCLAIMER;
-                $buttons = ['تجربة المساعد القانوني ⚖️', 'الاطلاع على الباقات 💳', 'القائمة الرئيسية 🏠'];
+                $reply       = "📝 *طلب تنقيح البيانات:*\n\nنرجو تزويدنا بالمتطلبات والبريد الالكتروني وسيتم إفادتكم بالرد خلال يوم عمل." . self::DISCLAIMER;
+                $buttons     = ['المساعد القانوني', 'الاطلاع على الباقات', 'القائمة الرئيسية'];
+                $templateKey = 'after_plans';
                 break;
 
             case 'start_chat':
-                $reply    = $this->handleStartChat($conversation);
-                $buttons  = ['إنهاء المحادثة 🛑', 'القائمة الرئيسية 🏠'];
-                $mediaUrl = config('app.url') . '/images/icon.png';
+                $reply       = $this->handleStartChat($conversation);
+                $buttons     = ['إنهاء المحادثة', 'القائمة الرئيسية'];
+                $templateKey = 'in_chat';
+                $mediaUrl    = config('app.url') . '/images/icon.png';
                 break;
 
             case 'end_chat':
-                $reply   = $this->handleEndChat($conversation);
-                $buttons = ['تنشيط المحادثة 🔄', 'القائمة الرئيسية 🏠'];
+                $reply       = $this->handleEndChat($conversation);
+                $buttons     = ['تنشيط المحادثة', 'القائمة الرئيسية'];
+                $templateKey = 'ended_chat';
                 break;
 
             case 'case_lookup':
-                $reply   = $this->handleCaseLookup($conversation, $body, $botPhone);
-                $buttons = ['إنهاء المحادثة 🛑', 'القائمة الرئيسية 🏠'];
+                $reply       = $this->handleCaseLookup($conversation, $body, $botPhone);
+                $buttons     = ['إنهاء المحادثة', 'القائمة الرئيسية'];
+                $templateKey = 'in_chat';
                 break;
 
             case 'pure_greeting':
-                $reply   = $this->handlePureGreeting($conversation, $body);
-                $buttons = ['تجربة المساعد القانوني ⚖️', 'الاطلاع على الباقات 💳', 'طلب تنقيح بيانات 📝'];
+                $reply       = $this->handlePureGreeting($conversation, $body);
+                $buttons     = ['المساعد القانوني', 'الاطلاع على الباقات', 'طلب تنقيح بيانات'];
+                $templateKey = 'main_menu';
                 break;
 
             case 'legal_query':
-                $reply   = $this->handleLegalQuery($conversation, $body, $botPhone);
-                $buttons = ['إنهاء المحادثة 🛑', 'القائمة الرئيسية 🏠'];
+                $reply       = $this->handleLegalQuery($conversation, $body, $botPhone);
+                $buttons     = ['إنهاء المحادثة', 'القائمة الرئيسية'];
+                $templateKey = 'in_chat';
                 break;
 
             case 'idle_prompt':
             default:
-                $reply   = $this->getIdlePrompt();
-                $buttons = ['الاطلاع على الباقات 💳', 'تجربة المساعد القانوني ⚖️', 'طلب تنقيح بيانات 📝'];
+                $reply       = $this->getIdlePrompt();
+                $buttons     = ['الاطلاع على الباقات', 'المساعد القانوني', 'طلب تنقيح بيانات'];
+                $templateKey = 'main_menu';
                 break;
         }
 
-        // 6. إرسال الرد المنسق مع الأزرار التفاعلية والصورة المرفقة عبر Twilio
-        $this->twilio->sendMessage($from, $reply, $buttons, $mediaUrl);
+        // 6. إرسال الرد المنسق مع الأزرار التفاعلية الحقيقية عبر Content Template
+        $this->twilio->sendMessage($from, $reply, $buttons, $mediaUrl, $templateKey);
 
         // 7. مزامنة الرسالة والرد مع حساب Chatwoot تلقائياً
         try {
@@ -520,7 +530,8 @@ class WhatsAppController extends Controller
             return "العفو! أهلاً وسهلاً بك في أي وقت. ⚖️ هل لديك أي استفسار قانوني آخر؟";
         }
 
-        return "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nيرجى الاختيار من الخيارات التالية:\n\n1️⃣ الاطلاع على الباقات 💳\n2️⃣ تجربة المساعد القانوني ⚖️\n3️⃣ طلب تنقيح بيانات 📝";
+        // ملاحظة: لا نضيف قائمة مرقمة — الأزرار ستظهر كأزرار WhatsApp حقيقية عبر Content Template
+        return "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nاختر من الخيارات التالية 👇";
     }
 
     // ─────────────────────────────────────────────────────────────────────────

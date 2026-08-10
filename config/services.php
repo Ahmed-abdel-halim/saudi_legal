@@ -58,6 +58,13 @@ return [
         'token'         => env('TWILIO_AUTH_TOKEN', ''),
         'whatsapp_from' => env('TWILIO_WHATSAPP_FROM', ''),
         'free_limit'    => env('WHATSAPP_FREE_LIMIT', 10),
+        // Content Template SIDs — يتم ملؤها بعد تشغيل: php artisan whatsapp:create-templates
+        'templates'     => [
+            'main_menu'    => env('TWILIO_TEMPLATE_MAIN_MENU', ''),
+            'in_chat'      => env('TWILIO_TEMPLATE_IN_CHAT', ''),
+            'ended_chat'   => env('TWILIO_TEMPLATE_ENDED_CHAT', ''),
+            'after_plans'  => env('TWILIO_TEMPLATE_AFTER_PLANS', ''),
+        ],
     ],
 
     'chatwoot' => [

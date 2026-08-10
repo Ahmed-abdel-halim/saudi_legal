@@ -27,10 +27,10 @@ class CheckWhatsAppInactivity extends Command
             ->get();
 
         foreach ($conversationsToWarn as $conv) {
-            $msg = "هل تحتاج اي معلومة اخرى بخصوص استفسارك ؟";
-            $buttons = ['إنهاء المحادثة 🛑', 'القائمة الرئيسية 🏠'];
+            $msg     = "هل تحتاج اي معلومة اخرى بخصوص استفسارك ؟";
+            $buttons = ['إنهاء المحادثة', 'القائمة الرئيسية'];
 
-            $sent = $twilio->sendMessage($conv->phone_number, $msg, $buttons);
+            $sent = $twilio->sendMessage($conv->phone_number, $msg, $buttons, null, 'in_chat');
 
             if ($sent) {
                 $conv->update(['inactivity_warned_at' => Carbon::now()]);
@@ -46,10 +46,10 @@ class CheckWhatsAppInactivity extends Command
             ->get();
 
         foreach ($conversationsToEnd as $conv) {
-            $msg = "سيتم انهاء هذه المحادثة الان\nيمكنك البدء من جديد في أي وقت فقط اختر تنشيط المحادثة";
-            $buttons = ['تنشيط المحادثة 🔄', 'القائمة الرئيسية 🏠'];
+            $msg     = "سيتم انهاء هذه المحادثة الان\nيمكنك البدء من جديد في أي وقت فقط اختر تنشيط المحادثة";
+            $buttons = ['تنشيط المحادثة', 'القائمة الرئيسية'];
 
-            $sent = $twilio->sendMessage($conv->phone_number, $msg, $buttons);
+            $sent = $twilio->sendMessage($conv->phone_number, $msg, $buttons, null, 'ended_chat');
 
             $conv->update([
                 'session_state'        => 'idle',
