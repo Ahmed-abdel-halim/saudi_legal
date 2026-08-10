@@ -43,15 +43,29 @@ class WhatsAppController extends Controller
         }
 
         // 2. استخراج بيانات الرسالة الواردة من Twilio
-        $from        = $request->input('From', '');   // مثال: whatsapp:+966500000000
-        $to          = $request->input('To', '');     // رقم البوت المـُستلم: whatsapp:+966570079182
-        $body        = trim($request->input('Body', ''));
-        $profileName = $request->input('ProfileName', '');
+        $from          = $request->input('From', '');   // مثال: whatsapp:+966500000000
+        $to            = $request->input('To', '');     // رقم البوت المـُستلم: whatsapp:+966570079182
+        $body          = trim($request->input('Body', ''));
+        $profileName   = $request->input('ProfileName', '');
+        // حقول خاصة بضغطات أزرار Content Templates
+        $buttonPayload = trim($request->input('ButtonPayload', ''));
+        $buttonText    = trim($request->input('ButtonText', ''));
+
+        // إذا كان Body فارغاً وضغط المستخدم زراراً من Content Template
+        // Twilio يُرسل ButtonPayload (ID الزر) و ButtonText (نص الزر) في هذه الحالة
+        if (empty($body)) {
+            $body = $buttonText ?: $buttonPayload;
+        }
 
         // تنظيف رقم البوت لاستخدامه في روابط wa.me الضغطة الواحدة
-        $botPhone    = preg_replace('/\D/', '', $to ?: config('services.twilio.whatsapp_from', ''));
+        $botPhone = preg_replace('/\D/', '', $to ?: config('services.twilio.whatsapp_from', ''));
 
-        Log::info('[WhatsApp] رسالة واردة', ['from' => $from, 'body' => $body, 'botPhone' => $botPhone]);
+        Log::info('[WhatsApp] رسالة واردة', [
+            'from'          => $from,
+            'body'          => $body,
+            'buttonPayload' => $buttonPayload,
+            'botPhone'      => $botPhone,
+        ]);
 
         if (empty($from) || empty($body)) {
             return response('OK', 200);
@@ -161,6 +175,19 @@ class WhatsAppController extends Controller
     private function detectIntent(string $body, string $sessionState): string
     {
         $normalizedBody = mb_strtolower(trim($body));
+
+        // ── 0. كشف مباشر لـ ButtonPayload (ID الزر من Content Template) ──
+        // عند ضغط زرار Content Template، Twilio قد يُرسل ID الزر مباشرةً في Body أو ButtonPayload
+        $buttonPayloadMap = [
+            'view_plans'          => 'view_plans',
+            'start_chat'          => 'start_chat',
+            'request_refinement'  => 'request_refinement',
+            'end_chat'            => 'end_chat',
+            'main_menu'           => 'main_menu',
+        ];
+        if (isset($buttonPayloadMap[$normalizedBody])) {
+            return $buttonPayloadMap[$normalizedBody];
+        }
 
         // 1. كشف طلب رقم خيار: 1 (الباقات) ، 2 (المساعد) ، 3 (تنقيح)
         if ($normalizedBody === '1' || in_array($normalizedBody, [
