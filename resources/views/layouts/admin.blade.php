@@ -196,12 +196,13 @@
             {{-- Logo Header --}}
             <div class="flex items-center justify-between px-2 mb-8">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-white font-bold text-xl shadow-glow">
-                        <i class="fa-solid fa-scale-balanced"></i>
-                    </div>
+                    <img src="{{ asset('images/icon.png') }}"
+                         onerror="this.src='https://placehold.co/40x40/0d9488/0b1120?text=R'"
+                         alt="رديف"
+                         class="w-10 h-10 rounded-xl shadow-glow object-cover border border-brand-primary/40 p-0.5 bg-dark-navy">
                     <div>
-                        <span class="text-2xl font-black text-white tracking-tight leading-none block">رديف</span>
-                        <span class="text-[10px] text-brand-primary font-bold uppercase tracking-widest">لوحة التحكم العليا</span>
+                        <span class="text-2xl font-black text-white tracking-tight leading-none block">{!! __('admin.radiif_admin') !!}</span>
+                        <span class="text-[10px] text-brand-primary font-bold uppercase tracking-widest">{!! __('admin.system_control') !!}</span>
                     </div>
                 </a>
                 <button @click="sidebarOpen = false" class="lg:hidden text-slate-400 hover:text-white transition">
