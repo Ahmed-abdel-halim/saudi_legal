@@ -15,7 +15,7 @@ class PopulatePublicLegalAnswers extends Command
                             {--source=all : مصدر البيانات (all, tasks, qa_pairs, ai_chats)}
                             {--limit=50000 : أقصى عدد للسجلات المراد تحويلها}';
 
-    protected $description = 'تحويل الاستفسارات والأسئلة القانونية المخزنة إلى صفحات الـ SEO العامة باستخدام Chunking لمنع استهلاك الذاكرة';
+    protected $description = 'تحويل الاستفسارات والأسئلة القانونية المخزنة إلى صفحات الـ SEO العامة باللغتين عربي وإنجليزي باستخدام Chunking لمنع استهلاك الذاكرة';
 
     public function handle(): int
     {
@@ -68,36 +68,60 @@ class PopulatePublicLegalAnswers extends Command
 
                     if (mb_strlen($question) < 5 || mb_strlen($answer) < 10) continue;
 
-                    $slug = Str::slug(mb_substr($question, 0, 80)) . '-task-' . $task->id;
+                    // ────── النسخة العربية ──────
+                    $slugAr = Str::slug(mb_substr($question, 0, 80), '-', 'ar') . '-task-' . $task->id;
+                    // Str::slug للعربية قد يُنتج سلسلة فارغة — نحافظ على الحروف العربية
+                    if (empty(trim($slugAr, '-'))) {
+                        $slugAr = 'legal-ar-task-' . $task->id;
+                    }
 
-                    if (PublicLegalAnswer::where('slug', $slug)->exists()) continue;
+                    // ────── النسخة الإنجليزية ──────
+                    $slugEn = 'legal-en-task-' . $task->id;
 
                     $citations = [];
                     if ($task->law_system_name || $task->law_article_number) {
                         $citations[] = [
-                            'law_system'     => $task->law_system_name ?: ($task->correct_law_system ?: 'النظام السعودي'),
+                            'law_system'     => $task->law_system_name ?: ($task->correct_law_system ?: 'Saudi Law'),
                             'article_number' => $task->law_article_number ?: ($task->correct_law_article ?: ''),
                             'text'           => $task->law_article_text ?: '',
                         ];
                     }
 
-                    PublicLegalAnswer::create([
-                        'locale'      => 'ar',
-                        'slug'        => $slug,
-                        'question'    => $question,
-                        'answer'      => $answer,
-                        'citations'   => count($citations) > 0 ? $citations : null,
-                        'source_type' => 'legal_task',
-                        'source_id'   => $task->id,
-                    ]);
+                    // إدراج النسخة العربية
+                    if (!PublicLegalAnswer::where('slug', $slugAr)->exists()) {
+                        PublicLegalAnswer::create([
+                            'locale'           => 'ar',
+                            'slug'             => $slugAr,
+                            'question'         => $question,
+                            'answer'           => $answer,
+                            'citations'        => count($citations) > 0 ? $citations : null,
+                            'source_type'      => 'legal_task',
+                            'source_id'        => $task->id,
+                            'counterpart_slug' => $slugEn,
+                        ]);
+                        $count++;
+                    }
 
-                    $count++;
+                    // إدراج النسخة الإنجليزية (السؤال والجواب بالعربي مؤقتاً — يُستبدل بالترجمة لاحقاً)
+                    if (!PublicLegalAnswer::where('slug', $slugEn)->exists()) {
+                        PublicLegalAnswer::create([
+                            'locale'           => 'en',
+                            'slug'             => $slugEn,
+                            'question'         => $question,   // الترجمة تُضاف لاحقاً
+                            'answer'           => $answer,
+                            'citations'        => count($citations) > 0 ? $citations : null,
+                            'source_type'      => 'legal_task',
+                            'source_id'        => $task->id,
+                            'counterpart_slug' => $slugAr,
+                        ]);
+                        $count++;
+                    }
                 }
 
                 $this->line("  ... تم معالجة دفعة (الإجمالي الحالي: {$count})");
             });
 
-        $this->line("  ✅ تم استيراد {$count} سؤال من LegalTask.");
+        $this->line("  ✅ تم استيراد {$count} سجل (عربي + إنجليزي) من LegalTask.");
         return $count;
     }
 
@@ -119,36 +143,51 @@ class PopulatePublicLegalAnswers extends Command
 
                     if (mb_strlen($question) < 5 || mb_strlen($answer) < 10) continue;
 
-                    $slug = Str::slug(mb_substr($question, 0, 80)) . '-qa-' . $pair->id;
-
-                    if (PublicLegalAnswer::where('slug', $slug)->exists()) continue;
+                    $slugAr = 'legal-ar-qa-' . $pair->id;
+                    $slugEn = 'legal-en-qa-' . $pair->id;
 
                     $citations = [];
                     foreach ($pair->citations as $cit) {
                         $citations[] = [
-                            'law_system'     => $cit->law_system_name ?? 'النظام السعودي',
+                            'law_system'     => $cit->law_system_name ?? 'Saudi Law',
                             'article_number' => $cit->law_article_number ?? '',
                             'text'           => $cit->law_article_text ?? '',
                         ];
                     }
 
-                    PublicLegalAnswer::create([
-                        'locale'      => 'ar',
-                        'slug'        => $slug,
-                        'question'    => $question,
-                        'answer'      => $answer,
-                        'citations'   => count($citations) > 0 ? $citations : null,
-                        'source_type' => 'legal_qa_pair',
-                        'source_id'   => $pair->id,
-                    ]);
+                    if (!PublicLegalAnswer::where('slug', $slugAr)->exists()) {
+                        PublicLegalAnswer::create([
+                            'locale'           => 'ar',
+                            'slug'             => $slugAr,
+                            'question'         => $question,
+                            'answer'           => $answer,
+                            'citations'        => count($citations) > 0 ? $citations : null,
+                            'source_type'      => 'legal_qa_pair',
+                            'source_id'        => $pair->id,
+                            'counterpart_slug' => $slugEn,
+                        ]);
+                        $count++;
+                    }
 
-                    $count++;
+                    if (!PublicLegalAnswer::where('slug', $slugEn)->exists()) {
+                        PublicLegalAnswer::create([
+                            'locale'           => 'en',
+                            'slug'             => $slugEn,
+                            'question'         => $question,
+                            'answer'           => $answer,
+                            'citations'        => count($citations) > 0 ? $citations : null,
+                            'source_type'      => 'legal_qa_pair',
+                            'source_id'        => $pair->id,
+                            'counterpart_slug' => $slugAr,
+                        ]);
+                        $count++;
+                    }
                 }
 
                 $this->line("  ... تم معالجة دفعة (الإجمالي الحالي: {$count})");
             });
 
-        $this->line("  ✅ تم استيراد {$count} سؤال من LegalQaPair.");
+        $this->line("  ✅ تم استيراد {$count} سجل (عربي + إنجليزي) من LegalQaPair.");
         return $count;
     }
 
@@ -174,25 +213,40 @@ class PopulatePublicLegalAnswers extends Command
 
                     if (mb_strlen($question) < 5 || mb_strlen($answer) < 10) continue;
 
-                    $slug = Str::slug(mb_substr($question, 0, 80)) . '-chat-' . $c->id;
+                    $slugAr = 'legal-ar-chat-' . $c->id;
+                    $slugEn = 'legal-en-chat-' . $c->id;
 
-                    if (PublicLegalAnswer::where('slug', $slug)->exists()) continue;
+                    if (!PublicLegalAnswer::where('slug', $slugAr)->exists()) {
+                        PublicLegalAnswer::create([
+                            'locale'           => 'ar',
+                            'slug'             => $slugAr,
+                            'question'         => $question,
+                            'answer'           => $answer,
+                            'citations'        => $botMsg->citations ?? null,
+                            'source_type'      => 'ai_chat',
+                            'source_id'        => $c->id,
+                            'counterpart_slug' => $slugEn,
+                        ]);
+                        $count++;
+                    }
 
-                    PublicLegalAnswer::create([
-                        'locale'      => 'ar',
-                        'slug'        => $slug,
-                        'question'    => $question,
-                        'answer'      => $answer,
-                        'citations'   => $botMsg->citations ?? null,
-                        'source_type' => 'ai_chat',
-                        'source_id'   => $c->id,
-                    ]);
-
-                    $count++;
+                    if (!PublicLegalAnswer::where('slug', $slugEn)->exists()) {
+                        PublicLegalAnswer::create([
+                            'locale'           => 'en',
+                            'slug'             => $slugEn,
+                            'question'         => $question,
+                            'answer'           => $answer,
+                            'citations'        => $botMsg->citations ?? null,
+                            'source_type'      => 'ai_chat',
+                            'source_id'        => $c->id,
+                            'counterpart_slug' => $slugAr,
+                        ]);
+                        $count++;
+                    }
                 }
             });
 
-        $this->line("  ✅ تم استيراد {$count} سؤال من AiConversation.");
+        $this->line("  ✅ تم استيراد {$count} سجل (عربي + إنجليزي) من AiConversation.");
         return $count;
     }
 }
