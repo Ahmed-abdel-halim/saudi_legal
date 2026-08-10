@@ -21,6 +21,12 @@ return [
     'live_site' => 'الموقع الحي',
     'super_admin' => 'مدير النظام',
     'system_control' => 'التحكم بالنظام',
+    'legal_management' => 'الإدارة القانونية',
+    'ai_bot_chats' => 'محادثات البوت (AI Logs)',
+    'ai_feedback' => 'تقييمات الإجابات (Feedback)',
+    'ai_packages' => 'باقات المساعد الذكي',
+    'azure_integration' => 'تكامل Azure',
+    'activity_ai_subscription' => 'اشتراك باقة ذكاء اصطناعي',
 
     // Dashboard Overview
     'system_overview' => 'نظرة عامة على النظام',

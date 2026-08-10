@@ -21,6 +21,12 @@ return [
     'live_site' => 'Live Site',
     'super_admin' => 'Super Admin',
     'system_control' => 'System Control',
+    'legal_management' => 'Legal Management',
+    'ai_bot_chats' => 'AI Chat Logs',
+    'ai_feedback' => 'Answer Feedback',
+    'ai_packages' => 'AI Packages',
+    'azure_integration' => 'Azure Integration',
+    'activity_ai_subscription' => 'New AI Subscription',
 
     // Dashboard Overview
     'system_overview' => 'System Overview',

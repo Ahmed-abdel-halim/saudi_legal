@@ -137,10 +137,12 @@ class AdminDashboardController extends Controller
             ->get()
             ->map(fn($s) => [
                 'type'        => 'subscription',
-                'title'       => 'اشتراك باقة ذكاء اصطناعي',
-                'description' => ($s->user->name ?? 'عميل') . ' اشترك في باقة (' . ($s->package->name ?? 'رديف AI') . ') بمبلغ ' . number_format($s->amount_paid, 2) . ' ر.س',
+                'title'       => __('admin.activity_ai_subscription') ?? 'New AI Subscription',
+                'description' => app()->getLocale() === 'en'
+                    ? ($s->user->name ?? 'A Client') . ' subscribed to package (' . ($s->package->name ?? 'Radiif AI') . ') for SAR ' . number_format($s->amount_paid, 2)
+                    : ($s->user->name ?? 'عميل') . ' اشترك في باقة (' . ($s->package->name ?? 'رديف AI') . ') بمبلغ ' . number_format($s->amount_paid, 2) . ' ر.س',
                 'time'        => $s->created_at,
-                'time_diff'   => $s->created_at?->diffForHumans() ?? 'الآن',
+                'time_diff'   => $s->created_at?->diffForHumans() ?? 'Just now',
                 'icon'        => 'fa-solid fa-crown',
                 'icon_bg'     => 'bg-amber-50 ring-amber-50',
                 'icon_color'  => 'text-amber-500',

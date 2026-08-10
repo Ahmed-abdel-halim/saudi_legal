@@ -225,27 +225,27 @@
                     
                     <a class="flex items-center px-4 py-2.5 {{ request()->routeIs('admin.legal.*') ? 'text-white bg-brand-primary/20 border border-brand-primary/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }} rounded-xl transition text-xs font-semibold group" href="{{ route('admin.legal.index') }}">
                         <i class="fa-solid fa-file-contract w-5 text-center group-hover:text-brand-primary transition"></i>
-                        <span class="mx-3">الإدارة القانونية</span>
+                        <span class="mx-3">{!! __('admin.legal_management') !!}</span>
                     </a>
 
                     <a class="flex items-center px-4 py-2.5 {{ request()->routeIs('admin.ai_chats.*') ? 'text-white bg-brand-primary/20 border border-brand-primary/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }} rounded-xl transition text-xs font-semibold group" href="{{ route('admin.ai_chats.index') }}">
                         <i class="fa-solid fa-comments w-5 text-center text-sky-400 group-hover:scale-110 transition-transform"></i>
-                        <span class="mx-3">محادثات البوت (AI Logs)</span>
+                        <span class="mx-3">{!! __('admin.ai_bot_chats') !!}</span>
                     </a>
 
                     <a class="flex items-center px-4 py-2.5 {{ request()->routeIs('admin.ai_feedback.*') ? 'text-white bg-brand-primary/20 border border-brand-primary/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }} rounded-xl transition text-xs font-semibold group" href="{{ route('admin.ai_feedback.index') }}">
                         <i class="fa-solid fa-thumbs-up w-5 text-center text-emerald-400 group-hover:scale-110 transition-transform"></i>
-                        <span class="mx-3">تقييمات الإجابات (Feedback)</span>
+                        <span class="mx-3">{!! __('admin.ai_feedback') !!}</span>
                     </a>
 
                     <a class="flex items-center px-4 py-2.5 {{ request()->routeIs('admin.ai_packages.*') ? 'text-white bg-brand-primary/20 border border-brand-primary/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }} rounded-xl transition text-xs font-semibold group" href="{{ route('admin.ai_packages.index') }}">
                         <i class="fa-solid fa-box-open w-5 text-center text-amber-400 group-hover:scale-110 transition-transform"></i>
-                        <span class="mx-3">باقات المساعد الذكي</span>
+                        <span class="mx-3">{!! __('admin.ai_packages') !!}</span>
                     </a>
 
                     <a class="flex items-center px-4 py-2.5 {{ request()->routeIs('admin.azure.*') ? 'text-white bg-brand-primary/20 border border-brand-primary/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }} rounded-xl transition text-xs font-semibold group" href="{{ route('admin.azure.index') }}">
                         <i class="fa-solid fa-cloud w-5 text-center text-blue-400 group-hover:scale-110 transition-transform"></i>
-                        <span class="mx-3">تكامل Azure</span>
+                        <span class="mx-3">{!! __('admin.azure_integration') !!}</span>
                     </a>
 
                     <a class="flex items-center px-4 py-2.5 {{ request()->routeIs('admin.users.*') ? 'text-white bg-brand-primary/20 border border-brand-primary/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }} rounded-xl transition text-xs font-semibold group" href="{{ route('admin.users.index') }}">
