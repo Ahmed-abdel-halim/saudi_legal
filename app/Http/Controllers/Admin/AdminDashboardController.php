@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\ServicePurchase;
 use App\Models\ProjectOffer;
 use App\Models\SiteSetting;
+use App\Models\AiSubscription;
 use Carbon\Carbon;
 
 class AdminDashboardController extends Controller
@@ -38,10 +39,18 @@ class AdminDashboardController extends Controller
         $companiesThisM   = Company::whereYear('created_at', $thisYear)->whereMonth('created_at', $thisMonth)->count();
         $companiesLastM   = Company::whereYear('created_at', $lastMonth->year)->whereMonth('created_at', $lastMonth->month)->count();
 
-        // ── KPI: Revenue ───────────────────────────────────────────────────
-        $totalRevenue   = ServicePurchase::sum('total_price') ?? 0;
-        $revenueThisM   = ServicePurchase::whereYear('created_at', $thisYear)->whereMonth('created_at', $thisMonth)->sum('total_price') ?? 0;
-        $revenueLastM   = ServicePurchase::whereYear('created_at', $lastMonth->year)->whereMonth('created_at', $lastMonth->month)->sum('total_price') ?? 0;
+        // ── KPI: Revenue (Service Purchases + AI Subscriptions) ──────────
+        $serviceTotalRevenue = ServicePurchase::sum('total_price') ?? 0;
+        $aiTotalRevenue      = AiSubscription::where('status', 'active')->sum('amount_paid') ?? 0;
+        $totalRevenue        = $serviceTotalRevenue + $aiTotalRevenue;
+
+        $serviceThisM = ServicePurchase::whereYear('created_at', $thisYear)->whereMonth('created_at', $thisMonth)->sum('total_price') ?? 0;
+        $aiThisM      = AiSubscription::where('status', 'active')->whereYear('created_at', $thisYear)->whereMonth('created_at', $thisMonth)->sum('amount_paid') ?? 0;
+        $revenueThisM = $serviceThisM + $aiThisM;
+
+        $serviceLastM = ServicePurchase::whereYear('created_at', $lastMonth->year)->whereMonth('created_at', $lastMonth->month)->sum('total_price') ?? 0;
+        $aiLastM      = AiSubscription::where('status', 'active')->whereYear('created_at', $lastMonth->year)->whereMonth('created_at', $lastMonth->month)->sum('amount_paid') ?? 0;
+        $revenueLastM = $serviceLastM + $aiLastM;
 
         // ── KPI: Disputes ─────────────────────────────────────────────────
         $activeDisputes   = ProjectOffer::where('service_status', 'disputed')->count()
@@ -70,10 +79,16 @@ class AdminDashboardController extends Controller
 
         // ── Revenue Chart (this year by month) ────────────────────────────
         $purchasesThisYear = ServicePurchase::whereYear('created_at', $thisYear)->get(['created_at', 'total_price']);
+        $aiSubsThisYear    = AiSubscription::where('status', 'active')->whereYear('created_at', $thisYear)->get(['created_at', 'amount_paid']);
+
         $chartDataArray = array_fill(1, 12, 0);
         foreach ($purchasesThisYear as $purchase) {
             $m = (int) $purchase->created_at->format('n');
             $chartDataArray[$m] += $purchase->total_price;
+        }
+        foreach ($aiSubsThisYear as $sub) {
+            $m = (int) $sub->created_at->format('n');
+            $chartDataArray[$m] += $sub->amount_paid;
         }
         $chartData   = array_values($chartDataArray);
         $chartLabels = [];
@@ -115,8 +130,25 @@ class AdminDashboardController extends Controller
             'icon_color'  => 'text-blue-500',
         ]);
 
+        $latestSubscriptions = AiSubscription::where('status', 'active')
+            ->with(['user', 'package'])
+            ->latest()
+            ->take(4)
+            ->get()
+            ->map(fn($s) => [
+                'type'        => 'subscription',
+                'title'       => 'اشتراك باقة ذكاء اصطناعي',
+                'description' => ($s->user->name ?? 'عميل') . ' اشترك في باقة (' . ($s->package->name ?? 'رديف AI') . ') بمبلغ ' . number_format($s->amount_paid, 2) . ' ر.س',
+                'time'        => $s->created_at,
+                'time_diff'   => $s->created_at?->diffForHumans() ?? 'الآن',
+                'icon'        => 'fa-solid fa-crown',
+                'icon_bg'     => 'bg-amber-50 ring-amber-50',
+                'icon_color'  => 'text-amber-500',
+            ]);
+
         $recentActivities = collect()
             ->concat($latestPurchases)
+            ->concat($latestSubscriptions)
             ->concat($latestDisputes)
             ->concat($latestUsers)
             ->sortByDesc('time')
