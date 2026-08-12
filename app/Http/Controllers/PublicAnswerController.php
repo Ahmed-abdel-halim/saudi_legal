@@ -90,6 +90,7 @@ class PublicAnswerController extends Controller
     {
         $apiKey = trim(config('services.gemini.key', env('GEMINI_API_KEY', '')));
         if (empty($apiKey)) {
+            Log::warning('[DynamicTranslate] GEMINI_API_KEY is empty');
             return ['question' => $question, 'answer' => $answer];
         }
 
@@ -102,36 +103,47 @@ Question: {$question}
 Answer: {$answer}
 PROMPT;
 
-        try {
-            $response = Http::withoutVerifying()
-                ->timeout(10)
-                ->post(
-                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}",
-                    [
-                        'contents' => [[
-                            'role' => 'user',
-                            'parts' => [['text' => $prompt]],
-                        ]],
-                        'generationConfig' => [
-                            'temperature' => 0.1,
-                            'responseMimeType' => 'application/json',
-                        ],
-                    ]
-                );
+        $models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
 
-            if ($response->successful()) {
-                $parts = $response->json()['candidates'][0]['content']['parts'] ?? [];
-                $rawText = trim($parts[0]['text'] ?? '');
-                $rawText = preg_replace('/^```json\s*/i', '', $rawText);
-                $rawText = preg_replace('/```\s*$/i', '', $rawText);
+        foreach ($models as $model) {
+            try {
+                $response = Http::withoutVerifying()
+                    ->timeout(12)
+                    ->post(
+                        "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
+                        [
+                            'contents' => [[
+                                'role' => 'user',
+                                'parts' => [['text' => $prompt]],
+                            ]],
+                            'generationConfig' => [
+                                'temperature' => 0.1,
+                                'responseMimeType' => 'application/json',
+                            ],
+                        ]
+                    );
 
-                $decoded = json_decode($rawText, true);
-                if (is_array($decoded) && !empty($decoded['question']) && !empty($decoded['answer'])) {
-                    return $decoded;
+                if ($response->successful()) {
+                    $parts = $response->json()['candidates'][0]['content']['parts'] ?? [];
+                    $textParts = [];
+                    foreach ($parts as $part) {
+                        if (!empty($part['thought'])) continue;
+                        if (isset($part['text'])) $textParts[] = $part['text'];
+                    }
+                    $rawText = trim(implode('', $textParts)) ?: trim($parts[0]['text'] ?? '');
+                    $rawText = preg_replace('/^```json\s*/i', '', $rawText);
+                    $rawText = preg_replace('/```\s*$/i', '', $rawText);
+
+                    $decoded = json_decode($rawText, true);
+                    if (is_array($decoded) && !empty($decoded['question']) && !empty($decoded['answer'])) {
+                        return $decoded;
+                    }
+                } else {
+                    Log::warning("[DynamicTranslate] Gemini {$model} status: " . $response->status() . " | " . $response->body());
                 }
+            } catch (\Exception $e) {
+                Log::error("[DynamicTranslate] Gemini {$model} Exception: " . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            Log::error('[DynamicTranslate] Error: ' . $e->getMessage());
         }
 
         return ['question' => $question, 'answer' => $answer];
