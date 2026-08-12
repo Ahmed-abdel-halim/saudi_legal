@@ -52,26 +52,13 @@ class TranslatePublicAnswersToEnglish extends Command
             $this->warn('🔍 وضع المعاينة (dry-run) — لن يُحفظ شيء');
         }
 
-        // نجلب السجلات الإنجليزية التي سؤالها لا يزال بالعربية
-        // علامة التعرف: وجود حروف عربية في حقل question
+        // نجلب السجلات الإنجليزية التي لم تُترجم بعد
         $query = PublicLegalAnswer::where('locale', 'en')
-            ->where(function ($q) {
-                $q->whereRaw("question REGEXP '[\\\\u0600-\\\\u06FF]'")
-                  ->orWhereRaw("question REGEXP '[\\xD8-\\xDB][\\x80-\\xBF]'");
-            })
+            ->whereNull('translated_at')
             ->orderBy('id')
             ->limit($limit);
 
         $total = $query->count();
-
-        if ($total === 0) {
-            // Fallback: جلب كل السجلات الإنجليزية التي لم تُعلَّم كمترجمة
-            $query = PublicLegalAnswer::where('locale', 'en')
-                ->whereNull('translated_at')
-                ->orderBy('id')
-                ->limit($limit);
-            $total = $query->count();
-        }
 
         $this->info("🌍 إجمالي السجلات المراد ترجمتها: {$total}");
 
