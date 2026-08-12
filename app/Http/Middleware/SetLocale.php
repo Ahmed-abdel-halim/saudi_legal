@@ -20,8 +20,13 @@ class SetLocale
         // Get supported locales
         $supportedLocales = ['ar', 'en'];
 
+        // Check if URL starts with /en or /en/
+        if ($request->is('en') || $request->is('en/*')) {
+            App::setLocale('en');
+            Session::put('locale', 'en');
+        }
         // Check if lang parameter is in the request
-        if ($request->has('lang')) {
+        elseif ($request->has('lang')) {
             $locale = $request->get('lang');
 
             // Validate locale

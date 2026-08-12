@@ -203,12 +203,12 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                     <a href="{{ route('legal_assistant.public') }}"
                         class="text-brand-green font-bold transition whitespace-nowrap bg-brand-green/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-brand-green/25 hover:bg-brand-green hover:text-dark-navy group text-xs">
                         <i class="fa-solid fa-robot group-hover:animate-bounce"></i>
-                        @if($currentLang === 'en') AI Legal Assistant @else المساعد القانوني @endif
+                        {{ __('header.NAV_AI_ASSISTANT', [], $currentLang) }}
                     </a>
                     <a href="{{ route('ai.packages') }}"
                         class="text-emerald-400 font-bold transition-colors duration-200 whitespace-nowrap flex items-center gap-1 hover:text-emerald-300">
                         <i class="fa-solid fa-gem text-xs"></i>
-                        @if($currentLang === 'en') Packages & Pricing @else الباقات والأسعار @endif
+                        {{ __('header.NAV_PACKAGES', [], $currentLang) }}
                     </a>
                     <a href="{{ route('how-it-works') }}"
                         class="text-slate-600 dark:text-slate-300 hover:text-brand-green font-semibold transition-colors duration-200 whitespace-nowrap">
@@ -398,11 +398,11 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 <div class="flex flex-col gap-4">
                     <a href="{{ route('legal_assistant.public') }}"
                         class="text-brand-primary font-bold flex items-center gap-2 bg-brand-primary/10 p-2 rounded-lg border border-brand-primary/20">
-                        <i class="fa-solid fa-robot"></i> {{ $currentLang === 'en' ? 'AI Legal Assistant' : 'المساعد القانوني' }}
+                        <i class="fa-solid fa-robot"></i> {{ __('header.NAV_AI_ASSISTANT', [], $currentLang) }}
                     </a>
                     <a href="{{ route('ai.packages') }}"
                         class="text-emerald-400 font-bold flex items-center gap-2 bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
-                        <i class="fa-solid fa-gem"></i> {{ $currentLang === 'en' ? 'Packages & Pricing' : 'الباقات والأسعار' }}
+                        <i class="fa-solid fa-gem"></i> {{ __('header.NAV_PACKAGES', [], $currentLang) }}
                     </a>
                     <a href="{{ route('how-it-works') }}"
                         class="text-gray-600 font-bold">

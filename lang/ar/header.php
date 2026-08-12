@@ -9,6 +9,8 @@ return [
     'NAV_SERVICES' => 'تصفح الخدمات',
     'NAV_REQUESTS' => 'تصفح الطلبات',
     'NAV_SUPPLIERS' => 'الشركات الموردة',
+    'NAV_AI_ASSISTANT' => 'المساعد القانوني',
+    'NAV_PACKAGES' => 'الباقات والأسعار',
     'NAV_MESSAGES' => 'الرسائل',
     
     // Buttons

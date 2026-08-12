@@ -9,6 +9,8 @@ return [
     'NAV_SERVICES' => 'Browse Services',
     'NAV_REQUESTS' => 'Browse Requests',
     'NAV_SUPPLIERS' => 'Suppliers',
+    'NAV_AI_ASSISTANT' => 'AI Legal Assistant',
+    'NAV_PACKAGES' => 'Packages & Pricing',
     'NAV_MESSAGES' => 'Messages',
     
     // Buttons
