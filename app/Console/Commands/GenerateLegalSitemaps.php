@@ -73,11 +73,8 @@ class GenerateLegalSitemaps extends Command
         $altRouteName = $locale === 'en' ? 'public.qa.ar' : 'public.qa.en';
         $hreflangAlt  = $locale === 'en' ? 'ar' : 'en';
 
-        // للإنجليزي: فقط السجلات المترجمة فعلاً (translated_at IS NOT NULL)
-        $query = PublicLegalAnswer::where('locale', $locale);
-        if ($locale === 'en') {
-            $query->whereNotNull('translated_at');
-        }
+        // كل السجلات موجوة في الجدول الأساسي (سواء locale=ar أو بدون تصفية)
+        $query = PublicLegalAnswer::query();
 
         $totalRecords = $query->count();
         $this->info("📊 [{$langLabel}] السجلات: {$totalRecords}");
@@ -113,16 +110,14 @@ class GenerateLegalSitemaps extends Command
                 $xml .= '    <changefreq>weekly</changefreq>' . PHP_EOL;
                 $xml .= '    <priority>' . $priority . '</priority>' . PHP_EOL;
 
-                // hreflang للنسخة المقابلة
-                if ($answer->counterpart_slug) {
-                    try {
-                        $altUrl = $this->formatUrl(route($altRouteName, $answer->counterpart_slug));
-                        $xml .= '    <xhtml:link rel="alternate" hreflang="' . $locale . '" href="' . htmlspecialchars($url) . '"/>' . PHP_EOL;
-                        $xml .= '    <xhtml:link rel="alternate" hreflang="' . $hreflangAlt . '" href="' . htmlspecialchars($altUrl) . '"/>' . PHP_EOL;
-                        $xml .= '    <xhtml:link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($url) . '"/>' . PHP_EOL;
-                    } catch (\Exception $e) {
-                        // تجاهل أخطاء توليد الروابط البديلة
-                    }
+                // hreflang للنسخة المقابلة (تستخدم نفس الـ slug)
+                try {
+                    $altUrl = $this->formatUrl(route($altRouteName, $answer->slug));
+                    $xml .= '    <xhtml:link rel="alternate" hreflang="' . $locale . '" href="' . htmlspecialchars($url) . '"/>' . PHP_EOL;
+                    $xml .= '    <xhtml:link rel="alternate" hreflang="' . $hreflangAlt . '" href="' . htmlspecialchars($altUrl) . '"/>' . PHP_EOL;
+                    $xml .= '    <xhtml:link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($url) . '"/>' . PHP_EOL;
+                } catch (\Exception $e) {
+                    // تجاهل أخطاء توليد الروابط البديلة
                 }
 
                 $xml .= '  </url>' . PHP_EOL;

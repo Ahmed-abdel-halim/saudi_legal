@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
-    <loc>https://radiif.com/sitemap-legal-ar-1.xml</loc>
-    <lastmod>2026-08-12T04:29:20+00:00</lastmod>
-  </sitemap>
-  <sitemap>
     <loc>https://radiif.com/sitemap-legal-en-1.xml</loc>
     <lastmod>2026-08-12T04:29:20+00:00</lastmod>
   </sitemap>
