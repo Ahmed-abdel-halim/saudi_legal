@@ -21,12 +21,22 @@ class PublicLegalAnswer extends Model
         'source_type',
         'source_id',
         'counterpart_slug',
+        'translated_at',
     ];
 
     protected $casts = [
-        'citations'    => 'array',
-        'views_count'  => 'integer',
+        'citations'     => 'array',
+        'views_count'   => 'integer',
+        'translated_at' => 'datetime',
     ];
+
+    /**
+     * Scope: السجلات الإنجليزية التي لم تُترجَم بعد
+     */
+    public function scopeUntranslated($query)
+    {
+        return $query->where('locale', 'en')->whereNull('translated_at');
+    }
 
     /**
      * Scope: تصفية بالغة

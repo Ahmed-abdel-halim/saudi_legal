@@ -442,6 +442,8 @@ Route::post('/admin/ai-chats/{conversationId}/publish-to-public', [
 ])->middleware(['superadmin'])->name('admin.ai_chats.publish_public');
 
 // ─── Sitemap XML للـ SEO ──────────────────────────────────────────────────────
+
+// الفهرس الموحّد (backward compatibility)
 Route::get('/sitemap-legal-index.xml', function () {
     $path = public_path('sitemap-legal-index.xml');
     if (!file_exists($path)) {
@@ -449,3 +451,22 @@ Route::get('/sitemap-legal-index.xml', function () {
     }
     return response()->file($path, ['Content-Type' => 'application/xml']);
 })->name('sitemap.legal.index');
+
+// فهرس الصفحات العربية (للتسجيل في Google Search Console باللغة العربية)
+Route::get('/sitemap-legal-ar-index.xml', function () {
+    $path = public_path('sitemap-legal-ar-index.xml');
+    if (!file_exists($path)) {
+        abort(404, 'Arabic sitemap not generated yet. Run: php artisan sitemap:legal-qa --locale=ar');
+    }
+    return response()->file($path, ['Content-Type' => 'application/xml']);
+})->name('sitemap.legal.ar');
+
+// فهرس الصفحات الإنجليزية (للتسجيل في Google Search Console للإنجليزية)
+Route::get('/sitemap-legal-en-index.xml', function () {
+    $path = public_path('sitemap-legal-en-index.xml');
+    if (!file_exists($path)) {
+        abort(404, 'English sitemap not generated yet. Run: php artisan sitemap:legal-qa --locale=en');
+    }
+    return response()->file($path, ['Content-Type' => 'application/xml']);
+})->name('sitemap.legal.en');
+

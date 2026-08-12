@@ -29,11 +29,11 @@ class LegalSitemapTest extends TestCase
         $this->assertFileExists($indexPath);
 
         $indexContent = File::get($indexPath);
-        $this->assertStringContainsString('https://radiif.com/sitemap-legal-qa-1.xml', $indexContent);
+        $this->assertStringContainsString('https://radiif.com/sitemap-legal-ar-1.xml', $indexContent);
         $this->assertStringNotContainsString('saudilegal.radiif.com', $indexContent);
         $this->assertStringNotContainsString('<loc></loc>', $indexContent);
 
-        $subSitemapPath = public_path('sitemap-legal-qa-1.xml');
+        $subSitemapPath = public_path('sitemap-legal-ar-1.xml');
         $this->assertFileExists($subSitemapPath);
 
         $subContent = File::get($subSitemapPath);

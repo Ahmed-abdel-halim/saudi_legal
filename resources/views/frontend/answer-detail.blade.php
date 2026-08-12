@@ -14,49 +14,141 @@
 @endphp
 
 @php
-    // بناء JSON-LD Schema في PHP لتجنب تعارض @context مع Blade
+    // بناء JSON-LD Schema محسّن لـ AI SEO في PHP لتجنب تعارض @context مع Blade
+    $pageUrl       = request()->url();
+    $publishedDate = $answer->created_at->toAtomString();
+    $modifiedDate  = $answer->updated_at->toAtomString();
+    $plainAnswer   = strip_tags($answer->answer);
+    // مقتطف الـ Quick Answer: أول 50 كلمة — هذا ما تقتبسه AI Overviews
+    $words         = array_filter(explode(' ', preg_replace('/\s+/', ' ', trim($plainAnswer))));
+    $quickAnswer   = implode(' ', array_slice($words, 0, 50)) . (count($words) > 50 ? '...' : '');
+
+    // ── 1. FAQPage (يجعل جوجل يعرض الإجابة كـ Rich Snippet) ──
     $faqSchema = json_encode([
-        '@context' => 'https://schema.org',
-        '@type'    => 'FAQPage',
+        '@context'   => 'https://schema.org',
+        '@type'      => 'FAQPage',
+        'inLanguage' => $answer->locale,
         'mainEntity' => [[
             '@type' => 'Question',
             'name'  => $answer->question,
             'acceptedAnswer' => [
-                '@type'  => 'Answer',
-                'text'   => strip_tags($answer->answer),
-                'author' => [
+                '@type'       => 'Answer',
+                'text'        => $plainAnswer,
+                'dateCreated' => $publishedDate,
+                'author'      => [
                     '@type' => 'Organization',
-                    'name'  => $isArabic ? 'رديف (Radiif)' : 'Radiif (رديف)',
-                    'url'   => url('/'),
+                    'name'  => 'Radiif رديف',
+                    'url'   => 'https://radiif.com',
+                    'logo'  => [
+                        '@type' => 'ImageObject',
+                        'url'   => asset('images/favicon-32x32.png'),
+                    ],
                 ],
             ],
         ]],
     ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
+    // ── 2. QAPage (نوع محدد يفهمه الذكاء الاصطناعي لصفحات Q&A) ──
+    $qaPageSchema = json_encode([
+        '@context'      => 'https://schema.org',
+        '@type'         => 'QAPage',
+        'inLanguage'    => $answer->locale,
+        'url'           => $pageUrl,
+        'datePublished' => $publishedDate,
+        'dateModified'  => $modifiedDate,
+        'name'          => $answer->question,
+        'description'   => $quickAnswer,
+        'publisher'     => [
+            '@type' => 'Organization',
+            'name'  => $isArabic ? 'رديف - المساعد القانوني الذكي' : 'Radiif - AI Legal Assistant',
+            'url'   => 'https://radiif.com',
+            'sameAs' => [
+                'https://radiif.com',
+                'https://twitter.com/radiifcom',
+            ],
+        ],
+        'mainEntity' => [
+            '@type'          => 'Question',
+            'name'           => $answer->question,
+            'dateCreated'    => $publishedDate,
+            'answerCount'    => 1,
+            'acceptedAnswer' => [
+                '@type'       => 'Answer',
+                'text'        => $plainAnswer,
+                'dateCreated' => $publishedDate,
+                'upvoteCount' => max(1, (int)($answer->views_count / 10)),
+                'url'         => $pageUrl,
+                'author'      => [
+                    '@type' => 'Organization',
+                    'name'  => 'Radiif رديف',
+                    'url'   => 'https://radiif.com',
+                ],
+            ],
+        ],
+    ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+    // ── 3. LegalService (لربط المحتوى بخدمات رديف القانونية) ──
     $legalSchema = json_encode([
         '@context'          => 'https://schema.org',
         '@type'             => 'LegalService',
         'name'              => $isArabic ? 'رديف - المساعد القانوني الذكي' : 'Radiif - AI Legal Assistant',
-        'url'               => url('/'),
+        'url'               => 'https://radiif.com',
         'areaServed'        => 'SA',
         'availableLanguage' => ['Arabic', 'English'],
+        'description'       => $isArabic
+            ? 'منصة رديف متخصصة في الأنظمة السعودية، تقدم إجابات موثقة بالمواد والمراجع النظامية.'
+            : 'Radiif is an AI legal platform specialized in Saudi Arabian law, providing verified answers with legal references.',
+    ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+    // ── 4. Speakable Schema (لمساعدات الصوت و Google Assistant) ──
+    $speakableSchema = json_encode([
+        '@context' => 'https://schema.org',
+        '@type'    => 'WebPage',
+        'url'      => $pageUrl,
+        'speakable' => [
+            '@type'       => 'SpeakableSpecification',
+            'cssSelector' => ['#qa-quick-answer', 'h1'],
+        ],
     ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 @endphp
 
 @push('seo_head')
+    {{-- Meta Author + Brand Entity Optimization --}}
+    <meta name="author" content="Radiif - رديف">
     <meta name="description" content="{{ $metaDesc }}">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 
+    {{-- Open Graph (لمشاركة أفضل وثقة أعلى للذكاء الاصطناعي) --}}
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ $answer->question }}">
+    <meta property="og:description" content="{{ $metaDesc }}">
+    <meta property="og:url" content="{{ $pageUrl }}">
+    <meta property="og:site_name" content="Radiif (رديف) - Saudi Legal AI">
+    <meta property="og:locale" content="{{ $answer->locale === 'ar' ? 'ar_SA' : 'en_US' }}">
+    <meta property="article:published_time" content="{{ $answer->created_at->toAtomString() }}">
+    <meta property="article:modified_time" content="{{ $answer->updated_at->toAtomString() }}">
+
+    {{-- Twitter Card --}}
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@radiifcom">
+    <meta name="twitter:title" content="{{ $answer->question }}">
+    <meta name="twitter:description" content="{{ $metaDesc }}">
+
+    {{-- hreflang --}}
     @if(isset($arabicCounterpart) && $arabicCounterpart && $arabicCounterpart->slug)
         <link rel="alternate" hreflang="ar" href="{{ route('public.qa.ar', $arabicCounterpart->slug) }}" />
     @endif
     @if(isset($englishCounterpart) && $englishCounterpart && $englishCounterpart->slug)
         <link rel="alternate" hreflang="en" href="{{ route('public.qa.en', $englishCounterpart->slug) }}" />
     @endif
-    <link rel="alternate" hreflang="x-default" href="{{ request()->url() }}" />
-    <link rel="canonical" href="{{ request()->url() }}" />
+    <link rel="alternate" hreflang="x-default" href="{{ $pageUrl }}" />
+    <link rel="canonical" href="{{ $pageUrl }}" />
 
+    {{-- JSON-LD Schemas (4 types for maximum AI coverage) --}}
     <script type="application/ld+json">{!! $faqSchema !!}</script>
+    <script type="application/ld+json">{!! $qaPageSchema !!}</script>
     <script type="application/ld+json">{!! $legalSchema !!}</script>
+    <script type="application/ld+json">{!! $speakableSchema !!}</script>
 @endpush
 
 @section('content')
@@ -151,8 +243,35 @@
                         </div>
                     </div>
                     <div class="px-6 py-6">
+
+                        {{-- ══ Quick Answer Block (هذا ما يقتبسه الذكاء الاصطناعي في AI Overviews) ══ --}}
+                        <div id="qa-quick-answer"
+                             class="mb-5 p-4 rounded-xl bg-brand-primary/10 border border-brand-primary/30">
+                            <p class="text-xs font-bold text-brand-primary uppercase tracking-wider mb-2">
+                                {{ $isArabic ? '⚡ الإجابة المختصرة:' : '⚡ Quick Answer:' }}
+                            </p>
+                            <p class="text-gray-200 text-sm leading-relaxed font-medium">
+                                {{ $quickAnswer }}
+                            </p>
+                        </div>
+
+                        {{-- النص الكامل --}}
                         <div class="text-gray-300 leading-relaxed text-sm space-y-3">
                             {!! nl2br(e($answer->answer)) !!}
+                        </div>
+
+                        {{-- Brand Attribution (يساعد الذكاء الاصطناعي على ربط المعلومة بـ Radiif) --}}
+                        <div class="mt-5 pt-4 border-t border-dark-border flex items-center gap-2">
+                            <span class="text-xs text-gray-500">
+                                {{ $isArabic ? 'المصدر:' : 'Source:' }}
+                            </span>
+                            <a href="https://radiif.com" class="text-xs text-brand-primary hover:underline font-semibold">
+                                Radiif.com (رديف)
+                            </a>
+                            <span class="text-gray-600 text-xs">·</span>
+                            <span class="text-xs text-gray-500">
+                                {{ $isArabic ? 'منصة قانونية سعودية' : 'Saudi Legal AI Platform' }}
+                            </span>
                         </div>
                     </div>
                 </div>

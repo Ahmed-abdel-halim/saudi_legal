@@ -13,9 +13,9 @@ class GenerateLegalSitemaps extends Command
      */
     protected $signature = 'sitemap:legal-qa
                             {--chunk=5000 : عدد الروابط في كل ملف sitemap}
-                            {--locale= : تصفية بلغة معينة (ar, en, أو فارغ للكل)}';
+                            {--locale=    : تصفية بلغة معينة (ar, en، أو فارغ للكل)}';
 
-    protected $description = 'توليد ملفات XML Sitemaps للأسئلة القانونية العامة (50,000 سؤال) مع دعم اللغتين';
+    protected $description = 'توليد ملفات XML Sitemaps للأسئلة القانونية العامة مع ملفات منفصلة للعربي والإنجليزي';
 
     public function handle(): int
     {
@@ -24,45 +24,104 @@ class GenerateLegalSitemaps extends Command
 
         $this->info("⚙️  بدء توليد ملفات Sitemap (chunk: {$chunkSize}) ...");
 
-        $query = PublicLegalAnswer::query();
-        if ($locale) {
-            $query->where('locale', $locale);
+        $allIndexFiles = [];
+
+        // توليد سيتماب العربي
+        if (!$locale || $locale === 'ar') {
+            $arFiles = $this->generateForLocale('ar', $chunkSize);
+            $allIndexFiles = array_merge($allIndexFiles, $arFiles);
+
+            if (!empty($arFiles)) {
+                $this->generateSitemapIndex($arFiles, 'sitemap-legal-ar-index.xml');
+                $this->line("  📋 تم إنشاء: sitemap-legal-ar-index.xml ({$this->countUrls($arFiles)} رابط عربي)");
+            }
+        }
+
+        // توليد سيتماب الإنجليزي
+        if (!$locale || $locale === 'en') {
+            $enFiles = $this->generateForLocale('en', $chunkSize);
+            $allIndexFiles = array_merge($allIndexFiles, $enFiles);
+
+            if (!empty($enFiles)) {
+                $this->generateSitemapIndex($enFiles, 'sitemap-legal-en-index.xml');
+                $this->line("  📋 تم إنشاء: sitemap-legal-en-index.xml ({$this->countUrls($enFiles)} رابط إنجليزي)");
+            }
+        }
+
+        // سيتماب موحّد يجمع الكل (للتوافق مع الإعداد السابق في Google Search Console)
+        if (!$locale && !empty($allIndexFiles)) {
+            $this->generateSitemapIndex($allIndexFiles, 'sitemap-legal-index.xml');
+            $this->line("  📋 تم تحديث: sitemap-legal-index.xml (فهرس موحّد)");
+        }
+
+        $this->info("🎉 تم الانتهاء! أرفع الملفات إلى Google Search Console:");
+        $this->line("   • sitemap-legal-ar-index.xml  ← للصفحات العربية");
+        $this->line("   • sitemap-legal-en-index.xml  ← للصفحات الإنجليزية");
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * توليد ملفات Sitemap للغة محددة
+     * يُرجع قائمة أسماء الملفات المُنشأة
+     */
+    private function generateForLocale(string $locale, int $chunkSize): array
+    {
+        $langLabel    = $locale === 'ar' ? 'عربي' : 'إنجليزي';
+        $filePrefix   = "sitemap-legal-{$locale}";
+        $routeName    = $locale === 'en' ? 'public.qa.en' : 'public.qa.ar';
+        $altRouteName = $locale === 'en' ? 'public.qa.ar' : 'public.qa.en';
+        $hreflangAlt  = $locale === 'en' ? 'ar' : 'en';
+
+        // للإنجليزي: فقط السجلات المترجمة فعلاً (translated_at IS NOT NULL)
+        $query = PublicLegalAnswer::where('locale', $locale);
+        if ($locale === 'en') {
+            $query->whereNotNull('translated_at');
         }
 
         $totalRecords = $query->count();
-        $this->info("📊 إجمالي السجلات: {$totalRecords}");
+        $this->info("📊 [{$langLabel}] السجلات: {$totalRecords}");
 
-        $fileIndex   = 1;
-        $sitemapIndex = [];
+        if ($totalRecords === 0) {
+            $this->warn("  ⚠️  لا توجد سجلات {$langLabel} — تأكد من تشغيل: php artisan seo:translate-en");
+            return [];
+        }
 
-        $query->chunk($chunkSize, function ($answers) use (&$fileIndex, &$sitemapIndex) {
+        $fileIndex    = 1;
+        $createdFiles = [];
+
+        $query->orderBy('id')->chunk($chunkSize, function ($answers) use (
+            &$fileIndex, &$createdFiles, $filePrefix, $routeName, $altRouteName, $locale, $hreflangAlt, $langLabel
+        ) {
             $xml  = '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
             $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . PHP_EOL;
             $xml .= '        xmlns:xhtml="http://www.w3.org/1999/xhtml">' . PHP_EOL;
 
             foreach ($answers as $answer) {
-                $url = $answer->locale === 'en'
-                    ? route('public.qa.en', $answer->slug)
-                    : route('public.qa.ar', $answer->slug);
-                $url = $this->formatUrl($url);
+                try {
+                    $url = $this->formatUrl(route($routeName, $answer->slug));
+                } catch (\Exception $e) {
+                    continue;
+                }
+
+                // أولوية أعلى للإنجليزي (أقل تنافسية = فرصة ظهور أكبر في AI)
+                $priority = $locale === 'en' ? '0.9' : '0.8';
 
                 $xml .= '  <url>' . PHP_EOL;
                 $xml .= '    <loc>' . htmlspecialchars($url) . '</loc>' . PHP_EOL;
                 $xml .= '    <lastmod>' . $answer->updated_at->toAtomString() . '</lastmod>' . PHP_EOL;
                 $xml .= '    <changefreq>weekly</changefreq>' . PHP_EOL;
-                $xml .= '    <priority>0.8</priority>' . PHP_EOL;
+                $xml .= '    <priority>' . $priority . '</priority>' . PHP_EOL;
 
-                // إضافة hreflang إذا كانت هناك نسخة مقابلة
+                // hreflang للنسخة المقابلة
                 if ($answer->counterpart_slug) {
-                    $targetLocale = $answer->locale === 'ar' ? 'en' : 'ar';
-                    $altRouteName = $targetLocale === 'en' ? 'public.qa.en' : 'public.qa.ar';
                     try {
-                        $altUrl = route($altRouteName, $answer->counterpart_slug);
-                        $altUrl = $this->formatUrl($altUrl);
-                        $xml .= '    <xhtml:link rel="alternate" hreflang="' . $answer->locale . '" href="' . htmlspecialchars($url) . '"/>' . PHP_EOL;
-                        $xml .= '    <xhtml:link rel="alternate" hreflang="' . $targetLocale . '" href="' . htmlspecialchars($altUrl) . '"/>' . PHP_EOL;
+                        $altUrl = $this->formatUrl(route($altRouteName, $answer->counterpart_slug));
+                        $xml .= '    <xhtml:link rel="alternate" hreflang="' . $locale . '" href="' . htmlspecialchars($url) . '"/>' . PHP_EOL;
+                        $xml .= '    <xhtml:link rel="alternate" hreflang="' . $hreflangAlt . '" href="' . htmlspecialchars($altUrl) . '"/>' . PHP_EOL;
+                        $xml .= '    <xhtml:link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($url) . '"/>' . PHP_EOL;
                     } catch (\Exception $e) {
-                        // تجاهل الأخطاء في توليد الروابط
+                        // تجاهل أخطاء توليد الروابط البديلة
                     }
                 }
 
@@ -71,36 +130,29 @@ class GenerateLegalSitemaps extends Command
 
             $xml .= '</urlset>';
 
-            $filename = "sitemap-legal-qa-{$fileIndex}.xml";
+            $filename = "{$filePrefix}-{$fileIndex}.xml";
             File::put(public_path($filename), $xml);
-            $sitemapIndex[] = $filename;
+            $createdFiles[] = $filename;
 
-            $this->line("  ✅ تم إنشاء: {$filename} ({$answers->count()} رابط)");
+            $this->line("  ✅ [{$langLabel}] تم إنشاء: {$filename} ({$answers->count()} رابط)");
             $fileIndex++;
         });
 
-        // إنشاء Sitemap Index يجمع كل الملفات
-        $this->generateSitemapIndex($sitemapIndex);
-
-        $this->info("🎉 تم الانتهاء! تم إنشاء " . count($sitemapIndex) . " ملف sitemap.");
-        $this->line("   أرفع الملف sitemap-legal-index.xml إلى Google Search Console.");
-
-        return self::SUCCESS;
+        return $createdFiles;
     }
 
     /**
-     * إنشاء ملف Sitemap Index يجمع كل الملفات الفرعية
+     * إنشاء ملف Sitemap Index يجمع مجموعة ملفات
      */
-    private function generateSitemapIndex(array $sitemapFiles): void
+    private function generateSitemapIndex(array $sitemapFiles, string $indexFilename): void
     {
         $xml  = '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
         $xml .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
 
         foreach ($sitemapFiles as $filename) {
             $filename = trim((string) $filename);
-            if (empty($filename)) {
-                continue;
-            }
+            if (empty($filename)) continue;
+
             $url  = $this->formatUrl($filename);
             $xml .= '  <sitemap>' . PHP_EOL;
             $xml .= '    <loc>' . htmlspecialchars($url) . '</loc>' . PHP_EOL;
@@ -110,19 +162,33 @@ class GenerateLegalSitemaps extends Command
 
         $xml .= '</sitemapindex>';
 
-        File::put(public_path('sitemap-legal-index.xml'), $xml);
-        $this->line("  📋 تم إنشاء: sitemap-legal-index.xml (Sitemap Index)");
+        File::put(public_path($indexFilename), $xml);
     }
 
     /**
-     * توحيد وتنظيف رابط Sitemap لضمان استخدام النطاق الرئيسي (https://radiif.com) وإزالة أي Subdomain مثل saudilegal.radiif.com
+     * عدّ إجمالي الروابط في قائمة ملفات Sitemap
+     */
+    private function countUrls(array $files): int
+    {
+        $total = 0;
+        foreach ($files as $file) {
+            $path = public_path($file);
+            if (File::exists($path)) {
+                $total += substr_count(File::get($path), '<loc>');
+            }
+        }
+        return $total;
+    }
+
+    /**
+     * توحيد رابط Sitemap لضمان استخدام النطاق الرئيسي (https://radiif.com)
      */
     private function formatUrl(string $url): string
     {
         $baseUrl = rtrim(config('app.sitemap_domain', env('SITEMAP_BASE_URL', 'https://radiif.com')), '/');
 
         $parsed = parse_url($url);
-        $path = $parsed['path'] ?? '';
+        $path   = $parsed['path'] ?? '';
         if (isset($parsed['query'])) {
             $path .= '?' . $parsed['query'];
         }
