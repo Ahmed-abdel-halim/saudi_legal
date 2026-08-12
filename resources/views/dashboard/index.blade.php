@@ -106,7 +106,7 @@
                 <div class="flex flex-wrap justify-center gap-4">
                     <a href="{{ route('client.governance.dashboard') }}" class="px-8 py-4 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-2xl font-black transition-all flex items-center gap-3 backdrop-blur-md">
                         <svg class="w-6 h-6 fill-currentColor" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"></path></svg>
-                        {{ app()->getLocale() == 'ar' ? 'تنقيح البيانات' : 'Data Annotation' }}
+                        {{ __('dashboard.data_annotation') }}
                     </a>
                     <a href="{{ route('requests.browse') }}" class="px-8 py-4 bg-white text-indigo-900 hover:bg-indigo-50 rounded-2xl font-black transition-all flex items-center gap-3 shadow-xl">
                         <svg class="w-6 h-6 fill-none stroke-current stroke-2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"></path></svg>
@@ -190,7 +190,7 @@
                 <h3 class="text-xl font-black text-slate-800 mb-2">{{ __('dashboard.projects_contracts') }}</h3>
                 <p class="text-slate-500 font-medium leading-relaxed mb-6">{{ __('dashboard.projects_contracts_desc') }}</p>
                 <div class="flex items-center gap-2 text-emerald-600 font-black text-sm uppercase tracking-widest">
-                    {{ app()->getLocale() == 'ar' ? 'عرض المشاريع' : 'View Projects' }}
+                    {{ __('dashboard.view_projects') }}
                     <svg class="w-5 h-5 rtl:rotate-180 group-hover:translate-x-2 transition-transform" viewBox="0 0 24 24"><path fill="currentColor" d="M16.01 11H4v2h12.01v3L20 12l-3.99-4z"/></svg>
                 </div>
             </a>
@@ -202,13 +202,13 @@
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 </div>
                 <h3 class="text-xl font-black text-slate-800 mb-2">
-                    {{ app()->getLocale() == 'ar' ? 'مطالبات التأمين' : 'Insurance Claims' }}
+                    {{ __('dashboard.insurance_claims') }}
                 </h3>
                 <p class="text-slate-500 font-medium leading-relaxed mb-6">
-                    {{ app()->getLocale() == 'ar' ? 'إدارة مطالبات التأمين الطبية والتحقق السريري التلقائي بالذكاء الاصطناعي.' : 'Manage medical claims, auto-routing, and clinical AI audit reviews.' }}
+                    {{ __('dashboard.insurance_claims_desc') }}
                 </p>
                 <div class="flex items-center gap-2 text-indigo-600 font-black text-sm uppercase tracking-widest">
-                    {{ app()->getLocale() == 'ar' ? 'الذهاب للمطالبات' : 'Go to Claims' }}
+                    {{ __('dashboard.go_to_claims') }}
                     <svg class="w-5 h-5 rtl:rotate-180 group-hover:translate-x-2 transition-transform" viewBox="0 0 24 24"><path fill="currentColor" d="M16.01 11H4v2h12.01v3L20 12l-3.99-4z"/></svg>
                 </div>
             </a>
@@ -222,7 +222,7 @@
                 <h3 class="text-xl font-black text-slate-800 mb-2">{{ __('dashboard.company_settings') }}</h3>
                 <p class="text-slate-500 font-medium leading-relaxed mb-6">{{ __('dashboard.company_settings_desc') }}</p>
                 <div class="flex items-center gap-2 text-slate-600 font-black text-sm uppercase tracking-widest">
-                    {{ app()->getLocale() == 'ar' ? 'تحديث الإعدادات' : 'Update Settings' }}
+                    {{ __('dashboard.update_settings') }}
                     <svg class="w-5 h-5 rtl:rotate-180 group-hover:translate-x-2 transition-transform" viewBox="0 0 24 24"><path fill="currentColor" d="M16.01 11H4v2h12.01v3L20 12l-3.99-4z"/></svg>
                 </div>
             </a>

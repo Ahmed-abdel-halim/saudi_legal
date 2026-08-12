@@ -132,4 +132,10 @@ return [
     'modal_phone' => 'Phone Number (Optional)',
     'modal_send' => 'Send Invitation',
     'invite_sent_success' => 'Invitation sent successfully.',
+    'view_projects' => 'View Projects',
+    'insurance_claims' => 'Insurance Claims',
+    'insurance_claims_desc' => 'Manage medical claims, auto-routing, and clinical AI audit reviews.',
+    'go_to_claims' => 'Go to Claims',
+    'update_settings' => 'Update Settings',
+    'data_annotation' => 'Data Annotation',
 ];

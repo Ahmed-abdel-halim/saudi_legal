@@ -132,4 +132,10 @@ return [
     'modal_phone' => 'رقم الهاتف (اختياري)',
     'modal_send' => 'إرسال الدعوة',
     'invite_sent_success' => 'تم إرسال الدعوة بنجاح.',
+    'view_projects' => 'عرض المشاريع',
+    'insurance_claims' => 'مطالبات التأمين',
+    'insurance_claims_desc' => 'إدارة مطالبات التأمين الطبية والتحقق السريري التلقائي بالذكاء الاصطناعي.',
+    'go_to_claims' => 'الذهاب للمطالبات',
+    'update_settings' => 'تحديث الإعدادات',
+    'data_annotation' => 'تنقيح البيانات',
 ];
