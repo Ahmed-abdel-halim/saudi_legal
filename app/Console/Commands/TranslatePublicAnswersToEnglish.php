@@ -22,10 +22,10 @@ use Illuminate\Support\Facades\Log;
 class TranslatePublicAnswersToEnglish extends Command
 {
     protected $signature = 'seo:translate-en
-                            {--limit=500  : أقصى عدد سجلات تُترجَم في التشغيل الواحد}
-                            {--delay=2    : ثواني انتظار بين كل batch}
-                            {--batch=10   : عدد السجلات في كل استدعاء Gemini}
-                            {--dry-run    : معاينة بدون حفظ فعلي}';
+                            {--limit=75000 : أقصى عدد سجلات تُترجَم في التشغيل الواحد}
+                            {--delay=0     : ثواني انتظار بين كل batch}
+                            {--batch=50    : عدد السجلات في كل استدعاء Gemini}
+                            {--dry-run     : معاينة بدون حفظ فعلي}';
 
     protected $description = 'ترجمة الأسئلة والإجابات القانونية من العربية إلى الإنجليزية باستخدام Gemini AI';
 
