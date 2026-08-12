@@ -15,6 +15,7 @@ class PublicAnswerController extends Controller
      */
     public function showArabic(string $slug)
     {
+        app()->setLocale('ar');
         $answer = PublicLegalAnswer::where('slug', $slug)->first();
 
         if (!$answer) {
@@ -47,6 +48,7 @@ class PublicAnswerController extends Controller
      */
     public function showEnglish(string $slug)
     {
+        app()->setLocale('en');
         // 1. بحث عن السجل الأساسي بالـ slug المباشر، أو البحث بـ counterpart_slug أو بالـ ID إذا كان الـ slug يتضمن رقم السجل
         $arAnswer = PublicLegalAnswer::where('slug', $slug)->first();
 
