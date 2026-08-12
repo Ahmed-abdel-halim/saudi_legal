@@ -15,7 +15,19 @@ class PublicAnswerController extends Controller
      */
     public function showArabic(string $slug)
     {
-        $answer = PublicLegalAnswer::where('slug', $slug)->firstOrFail();
+        $answer = PublicLegalAnswer::where('slug', $slug)->first();
+
+        if (!$answer) {
+            $answer = PublicLegalAnswer::where('counterpart_slug', $slug)->first();
+        }
+
+        if (!$answer && preg_match('/(\d+)$/', $slug, $matches)) {
+            $answer = PublicLegalAnswer::find($matches[1]);
+        }
+
+        if (!$answer) {
+            abort(404);
+        }
 
         // زيادة عداد المشاهدات لكل زيارة
         $answer->increment('views_count');
@@ -35,8 +47,20 @@ class PublicAnswerController extends Controller
      */
     public function showEnglish(string $slug)
     {
-        // 1. بحث عن السجل الأساسي (العربي أو الإنجليزي)
-        $arAnswer = PublicLegalAnswer::where('slug', $slug)->firstOrFail();
+        // 1. بحث عن السجل الأساسي بالـ slug المباشر، أو البحث بـ counterpart_slug أو بالـ ID إذا كان الـ slug يتضمن رقم السجل
+        $arAnswer = PublicLegalAnswer::where('slug', $slug)->first();
+
+        if (!$arAnswer) {
+            $arAnswer = PublicLegalAnswer::where('counterpart_slug', $slug)->first();
+        }
+
+        if (!$arAnswer && preg_match('/(\d+)$/', $slug, $matches)) {
+            $arAnswer = PublicLegalAnswer::find($matches[1]);
+        }
+
+        if (!$arAnswer) {
+            abort(404);
+        }
 
         // زيادة عداد المشاهدات
         $arAnswer->increment('views_count');
