@@ -18,6 +18,7 @@ class WhatsAppCaseLookupTest extends TestCase
 
         $twilioMock = \Mockery::mock(TwilioService::class);
         $twilioMock->shouldReceive('sendMessage')->byDefault()->andReturnTrue();
+        $twilioMock->shouldReceive('sendTypingIndicator')->byDefault()->andReturnTrue();
         $this->app->instance(TwilioService::class, $twilioMock);
     }
 

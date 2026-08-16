@@ -232,6 +232,45 @@ class TwilioService
     }
 
     /**
+     * إرسال مؤشر "يكتب الآن..." (Typing Indicator) للمستخدم في الواتساب عبر Twilio API
+     *
+     * @param string $messageId الـ MessageSid الخاص بالرسالة الواردة (SM...)
+     * @return bool
+     */
+    public function sendTypingIndicator(string $messageId): bool
+    {
+        if (empty($this->sid) || empty($this->token) || empty($messageId)) {
+            return false;
+        }
+
+        try {
+            $response = Http::withBasicAuth($this->sid, $this->token)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                ])
+                ->timeout(5)
+                ->post('https://messaging.twilio.com/v3/Indicators/Typing.json', [
+                    'channel'   => 'WHATSAPP',
+                    'messageId' => $messageId,
+                ]);
+
+            if ($response->successful()) {
+                Log::info('[Twilio] تم إرسال مؤشر يكتب الآن (Typing Indicator) بنجاح', ['messageId' => $messageId]);
+                return true;
+            }
+
+            Log::warning('[Twilio] فشل إرسال مؤشر Typing Indicator', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+            return false;
+        } catch (\Exception $e) {
+            Log::error('[Twilio] استثناء أثناء إرسال Typing Indicator: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * التحقق من إعداد الخدمة
      */
     public function isConfigured(): bool

@@ -47,6 +47,7 @@ class WhatsAppController extends Controller
         $to            = $request->input('To', '');     // رقم البوت المـُستلم: whatsapp:+966570079182
         $body          = trim($request->input('Body', ''));
         $profileName   = $request->input('ProfileName', '');
+        $messageSid    = $request->input('MessageSid', ''); // معرف الرسالة الواردة (SM...)
         // حقول خاصة بضغطات أزرار Content Templates
         $buttonPayload = trim($request->input('ButtonPayload', ''));
         $buttonText    = trim($request->input('ButtonText', ''));
@@ -65,10 +66,16 @@ class WhatsAppController extends Controller
             'body'          => $body,
             'buttonPayload' => $buttonPayload,
             'botPhone'      => $botPhone,
+            'messageSid'    => $messageSid,
         ]);
 
         if (empty($from) || empty($body)) {
             return response('OK', 200);
+        }
+
+        // إرسال مؤشر "يكتب الآن..." في شات الواتساب فور استلام الرسالة
+        if (!empty($messageSid)) {
+            $this->twilio->sendTypingIndicator($messageSid);
         }
 
         // 3. إيجاد أو إنشاء جلسة المحادثة لهذا الرقم

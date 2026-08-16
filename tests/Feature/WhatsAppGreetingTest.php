@@ -18,6 +18,7 @@ class WhatsAppGreetingTest extends TestCase
         // Mock TwilioService
         $twilioMock = \Mockery::mock(TwilioService::class);
         $twilioMock->shouldReceive('sendMessage')->byDefault()->andReturnTrue();
+        $twilioMock->shouldReceive('sendTypingIndicator')->byDefault()->andReturnTrue();
         $this->app->instance(TwilioService::class, $twilioMock);
     }
 
@@ -26,7 +27,7 @@ class WhatsAppGreetingTest extends TestCase
     {
         $response = $this->postJson('/api/whatsapp/webhook', [
             'From' => 'whatsapp:+966500000000',
-            'Body' => 'السلام عليكم',
+            'Body' => 'المساعد القانوني',
         ]);
 
         $response->assertStatus(200);

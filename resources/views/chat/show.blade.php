@@ -158,6 +158,28 @@
     scrollToBottom();
     window.onload = scrollToBottom;
 
+    function showTypingIndicator() {
+        if (document.getElementById('typing-indicator')) return;
+        const typingHtml = `
+            <div id="typing-indicator" class="flex w-full justify-start animate-fade-in-up my-3">
+                <div class="flex items-center gap-3">
+                    <div class="px-5 py-3.5 bg-white border border-slate-200 shadow-sm rounded-[1.2rem] rounded-bl-sm flex items-center gap-1.5">
+                        <span class="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style="animation-delay: 0s"></span>
+                        <span class="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style="animation-delay: 0.15s"></span>
+                        <span class="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style="animation-delay: 0.3s"></span>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', typingHtml);
+        scrollToBottom();
+    }
+
+    function hideTypingIndicator() {
+        const el = document.getElementById('typing-indicator');
+        if (el) el.remove();
+    }
+
     if (chatForm) {
         chatForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -169,6 +191,9 @@
             btn.disabled = true;
             const originalHtml = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
+
+            // Show typing indicator bubble in chat container
+            showTypingIndicator();
 
             // Use FormData so the @csrf _token field is sent automatically
             const formData = new FormData();
@@ -192,16 +217,18 @@
                 return data;
             })
             .then(data => {
+                hideTypingIndicator();
                 textarea.value = '';
                 textarea.style.height = '';
                 btn.innerHTML = originalHtml;
                 btn.disabled = false;
-
+                
                 if (data && data.message) {
                     appendOutgoingMessage(data.message);
                 }
             })
             .catch(error => {
+                hideTypingIndicator();
                 console.error('Send message error:', error);
                 btn.innerHTML = originalHtml;
                 btn.disabled = false;
