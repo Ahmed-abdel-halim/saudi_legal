@@ -24,20 +24,30 @@
     $quickAnswer   = implode(' ', array_slice($words, 0, 50)) . (count($words) > 50 ? '...' : '');
 
     // ── 1. FAQPage (يجعل جوجل يعرض الإجابة كـ Rich Snippet) ──
+    $questionAuthorName = (!empty($answer->user) && !empty($answer->user->name)) 
+        ? $answer->user->name 
+        : ($isArabic ? 'رديف (Radiif)' : 'Radiif (رديف)');
+
     $faqSchema = json_encode([
         '@context'   => 'https://schema.org',
         '@type'      => 'FAQPage',
         'inLanguage' => $answer->locale,
         'mainEntity' => [[
-            '@type' => 'Question',
-            'name'  => $answer->question,
+            '@type'  => 'Question',
+            'name'   => $answer->question,
+            'text'   => strip_tags($answer->question),
+            'author' => [
+                '@type' => (!empty($answer->user) && !empty($answer->user->name)) ? 'Person' : 'Organization',
+                'name'  => $questionAuthorName,
+                'url'   => 'https://radiif.com',
+            ],
             'acceptedAnswer' => [
                 '@type'       => 'Answer',
                 'text'        => $plainAnswer,
                 'dateCreated' => $publishedDate,
                 'author'      => [
                     '@type' => 'Organization',
-                    'name'  => 'Radiif رديف',
+                    'name'  => $isArabic ? 'رديف (Radiif)' : 'Radiif (رديف)',
                     'url'   => 'https://radiif.com',
                     'logo'  => [
                         '@type' => 'ImageObject',
@@ -70,7 +80,13 @@
         'mainEntity' => [
             '@type'          => 'Question',
             'name'           => $answer->question,
+            'text'           => strip_tags($answer->question),
             'dateCreated'    => $publishedDate,
+            'author'         => [
+                '@type' => (!empty($answer->user) && !empty($answer->user->name)) ? 'Person' : 'Organization',
+                'name'  => $questionAuthorName,
+                'url'   => 'https://radiif.com',
+            ],
             'answerCount'    => 1,
             'acceptedAnswer' => [
                 '@type'       => 'Answer',
@@ -80,8 +96,12 @@
                 'url'         => $pageUrl,
                 'author'      => [
                     '@type' => 'Organization',
-                    'name'  => 'Radiif رديف',
+                    'name'  => $isArabic ? 'رديف (Radiif)' : 'Radiif (رديف)',
                     'url'   => 'https://radiif.com',
+                    'logo'  => [
+                        '@type' => 'ImageObject',
+                        'url'   => asset('images/favicon-32x32.png'),
+                    ],
                 ],
             ],
         ],
