@@ -126,14 +126,15 @@ class TwilioService
     private function sendInteractiveMessage(string $to, string $body, array $buttons, ?string $templateKey = null): bool
     {
         // ── 1. محاولة الإرسال عبر Content Template (الطريقة الصحيحة لأزرار WhatsApp) ──
-        if ($templateKey) {
+        // تنبيه: متغير التمبلت {{1}} في Twilio له حد أقصى 1024 حرفاً، لذا يجب استخدامه فقط للرسائل التي يقل طولها عن 900 حرف
+        if ($templateKey && mb_strlen($body) <= 900) {
             $contentSid = config("services.twilio.templates.{$templateKey}", '');
             if (!empty($contentSid)) {
                 $sent = $this->sendWithContentSid($to, $body, $contentSid);
                 if ($sent) {
                     return true;
                 }
-                Log::warning('[Twilio] ContentSid فشل، الرجوع إلى PersistentAction', ['templateKey' => $templateKey]);
+                Log::warning('[Twilio] ContentSid فشل، الرجوع إلى الإرسال المباشر', ['templateKey' => $templateKey]);
             }
         }
 

@@ -269,8 +269,8 @@ class WhatsAppRagService
         $prompt = "بناءً على المحادثة السابقة:\n{$conversationText}\nالسؤال الجديد: '{$question}'\nأعد صياغة السؤال كعبارة بحث قانونية دقيقة ومستقلة تبحث في الأنظمة والأحكام السعودية. أرجع عبارة البحث فقط بدون أي مقدمات أو شرح.";
 
         try {
-            $response = Http::withoutVerifying()->timeout(12)->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$geminiKey}",
+            $response = Http::withoutVerifying()->timeout(8)->post(
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$geminiKey}",
                 [
                     'contents' => [['parts' => [['text' => $prompt]]]],
                     'generationConfig' => [
@@ -295,35 +295,41 @@ class WhatsAppRagService
         $apiKey = trim(config('services.gemini.key'));
         if (empty($apiKey)) return 'مرحباً، يرجى تفعيل GEMINI_API_KEY.';
 
-        try {
-            $response = Http::withoutVerifying()->timeout(80)->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}",
-                [
-                    'contents' => $contents,
-                    'generationConfig' => [
-                        'temperature' => 0.2,
-                        'topP'        => 0.9,
+        $models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash'];
+
+        foreach ($models as $model) {
+            try {
+                $response = Http::withoutVerifying()->timeout(15)->post(
+                    "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
+                    [
+                        'contents' => $contents,
+                        'generationConfig' => [
+                            'temperature' => 0.2,
+                            'topP'        => 0.9,
+                        ]
                     ]
-                ]
-            );
+                );
 
-            if ($response->successful()) {
-                $parts    = $response->json()['candidates'][0]['content']['parts'] ?? [];
-                $textParts = [];
-                foreach ($parts as $part) {
-                    if (!empty($part['thought'])) continue;
-                    if (isset($part['text'])) $textParts[] = $part['text'];
+                if ($response->successful()) {
+                    $parts     = $response->json()['candidates'][0]['content']['parts'] ?? [];
+                    $textParts = [];
+                    foreach ($parts as $part) {
+                        if (!empty($part['thought'])) continue;
+                        if (isset($part['text'])) $textParts[] = $part['text'];
+                    }
+                    $resultText = trim(implode('', $textParts)) ?: trim($parts[0]['text'] ?? '');
+                    if (!empty($resultText)) {
+                        return $resultText;
+                    }
                 }
-                return trim(implode('', $textParts)) ?: trim($parts[0]['text'] ?? '');
+
+                Log::warning("[WhatsAppRag] Gemini model {$model} returned status " . $response->status());
+            } catch (\Exception $e) {
+                Log::warning("[WhatsAppRag] Exception calling Gemini model {$model}: " . $e->getMessage());
             }
-
-            Log::error('[WhatsAppRag] Gemini error: ' . $response->status());
-            return 'عذراً، حدث خطأ فني. يرجى المحاولة لاحقاً.';
-
-        } catch (\Exception $e) {
-            Log::error('[WhatsAppRag] Exception: ' . $e->getMessage());
-            return 'خطأ في الاتصال بالمحرك الذكي.';
         }
+
+        return 'عذراً، حدث خطأ فني أثناء الاتصال بالمحرك الذكي. يرجى المحاولة لاحقاً.';
     }
 
     private function cleanResponse(string $answer): string
