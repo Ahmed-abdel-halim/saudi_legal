@@ -613,8 +613,26 @@ class LegalAiController extends Controller
             $searchMethod .= '_gemini';
         }
 
-        // 6.2. تنقية الرد من أي نصوص تفكير داخلية (Chain of Thought / THOUGHT: / <thought>)
-        $answer = $this->cleanModelResponse($answer);
+        if (empty($answer)) {
+            if (!empty($citations)) {
+                $topCitation = $citations[0];
+                $title = $topCitation['title'] ?? 'مرجع قضائي';
+                $textSnippet = mb_substr(trim($topCitation['text']), 0, 500);
+                if (mb_strlen(trim($topCitation['text'])) > 500) {
+                    $textSnippet .= '...';
+                }
+
+                $answer = "⚖️ **نتيجة البحث في الأنظمة والأحكام القضائية المتاحة:**\n\n" .
+                          "بناءً على السجلات المتاحة في قاعدة البيانات القضائية لرديف حول موضوع استفسارك:\n\n" .
+                          "📌 **المرجع:** {$title}\n" .
+                          "📜 **النص المقتبس:** {$textSnippet}";
+            } else {
+                $answer = "عذراً، المحرك الذكي يواجه ضغطاً مؤقتاً ولم نتمكن من استخراج صياغة تفصيلية حالياً. يرجى كتابة السؤال بصيغة أخرى أو المحاولة لاحقاً.";
+            }
+        } else {
+            // 6.2. تنقية الرد من أي نصوص تفكير داخلية (Chain of Thought / THOUGHT: / <thought>)
+            $answer = $this->cleanModelResponse($answer);
+        }
 
         // 6.5. فحص الإجابة واستخراج المواد التي تمت الإشارة إليها فعلياً وإضافتها للـ citations
         $answerArticles = $this->referenceService->getMentionedArticles($answer);
@@ -726,7 +744,7 @@ class LegalAiController extends Controller
             return "مرحباً! لقد قمت باستخراج السوابق القانونية لك. (يرجى تفعيل GEMINI_API_KEY في ملف .env للحصول على صياغة ذكية).";
         }
 
-        $models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash'];
+        $models = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-3.6-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
         $lastStatus = 500;
         $lastErrorBody = '';
 
@@ -753,7 +771,7 @@ class LegalAiController extends Controller
         }
 
         Log::error("Gemini API All Models Failed: Status {$lastStatus} - {$lastErrorBody}");
-        return "عذراً، حدث خطأ فني أثناء الاتصال بالمحرك الذكي (الرمز: {$lastStatus}). يرجى المحاولة لاحقاً.";
+        return null;
     }
 
     /**

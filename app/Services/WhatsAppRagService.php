@@ -240,9 +240,34 @@ class WhatsAppRagService
         }
         $contents[] = ['role' => 'user', 'parts' => [['text' => $prompt]]];
 
-        // 11. استدعاء الذكاء الاصطناعي
-        $answer = $this->callGemini($contents);
-        $answer = $this->cleanResponse($answer);
+        // 11. استدعاء الذكاء الاصطناعي مع التراجع الذكي للمراجع عند تعذر المحرك
+        $rawAnswer = $this->callGemini($contents);
+
+        if (empty($rawAnswer) || $rawAnswer === 'FAIL') {
+            if (!empty($citations)) {
+                $topCitation = $citations[0];
+                $title = $topCitation['title'] ?? 'مرجع قضائي';
+                $rawText = $topCitation['text'] ?? '';
+                $cleanText = preg_replace('/^---.*?---\s*/u', '', $rawText);
+                $cleanText = preg_replace('/الحمد لله والصلاة والسلام على رسول ﷲ أما بعد:?\s*/u', '', $cleanText);
+                $cleanText = preg_replace('/فلدى الدائرة.*?\((الوقائع|الأسباب)\)\s*/u', '', $cleanText);
+                $cleanText = trim($cleanText);
+
+                $textSnippet = mb_substr($cleanText, 0, 450);
+                if (mb_strlen($cleanText) > 450) {
+                    $textSnippet .= '...';
+                }
+
+                $answer = "⚖️ *نتيجة المستندات والأحكام القضائية المستخرجة:*\n\n" .
+                          "بناءً على السجلات المتاحة في قاعدة البيانات القضائية لرديف حول موضوع استفسارك:\n\n" .
+                          "📌 *المرجع:* {$title}\n" .
+                          "📜 *النص المقتبس:* {$textSnippet}";
+            } else {
+                $answer = "عذراً، المحرك الذكي يواجه ضغطاً مؤقتاً ولم نتمكن من استخراج صياغة تفصيلية حالياً. يرجى كتابة السؤال بصيغة أخرى أو المحاولة لاحقاً.";
+            }
+        } else {
+            $answer = $this->cleanResponse($rawAnswer);
+        }
 
         // 12. تنقية المراجع من التكرار
         $uniqueCitations = collect($citations)->unique(fn($c) => md5($c['title'] . $c['system']))->values()->toArray();
@@ -268,34 +293,37 @@ class WhatsAppRagService
 
         $prompt = "بناءً على المحادثة السابقة:\n{$conversationText}\nالسؤال الجديد: '{$question}'\nأعد صياغة السؤال كعبارة بحث قانونية دقيقة ومستقلة تبحث في الأنظمة والأحكام السعودية. أرجع عبارة البحث فقط بدون أي مقدمات أو شرح.";
 
-        try {
-            $response = Http::withoutVerifying()->timeout(8)->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$geminiKey}",
-                [
-                    'contents' => [['parts' => [['text' => $prompt]]]],
-                    'generationConfig' => [
-                        'temperature' => 0.1,
+        $models = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-3.6-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+        foreach ($models as $model) {
+            try {
+                $response = Http::withoutVerifying()->timeout(8)->post(
+                    "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$geminiKey}",
+                    [
+                        'contents' => [['parts' => [['text' => $prompt]]]],
+                        'generationConfig' => [
+                            'temperature' => 0.1,
+                        ]
                     ]
-                ]
-            );
+                );
 
-            if ($response->successful()) {
-                $rewritten = trim($response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '');
-                if (!empty($rewritten)) return $rewritten;
+                if ($response->successful()) {
+                    $rewritten = trim($response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '');
+                    if (!empty($rewritten)) return $rewritten;
+                }
+            } catch (\Exception $e) {
+                Log::warning("[WhatsAppRag] Query rewrite failed for {$model}: " . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            Log::warning('[WhatsAppRag] Query rewrite failed: ' . $e->getMessage());
         }
 
         return $question;
     }
 
-    private function callGemini(array $contents): string
+    private function callGemini(array $contents): ?string
     {
         $apiKey = trim(config('services.gemini.key'));
-        if (empty($apiKey)) return 'مرحباً، يرجى تفعيل GEMINI_API_KEY.';
+        if (empty($apiKey)) return null;
 
-        $models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash'];
+        $models = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-3.6-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
 
         foreach ($models as $model) {
             try {
@@ -323,13 +351,13 @@ class WhatsAppRagService
                     }
                 }
 
-                Log::warning("[WhatsAppRag] Gemini model {$model} returned status " . $response->status());
+                Log::warning("[WhatsAppRag] Gemini model {$model} returned status " . $response->status() . ' | Body: ' . mb_substr($response->body(), 0, 300));
             } catch (\Exception $e) {
                 Log::warning("[WhatsAppRag] Exception calling Gemini model {$model}: " . $e->getMessage());
             }
         }
 
-        return 'عذراً، حدث خطأ فني أثناء الاتصال بالمحرك الذكي. يرجى المحاولة لاحقاً.';
+        return null;
     }
 
     private function cleanResponse(string $answer): string
