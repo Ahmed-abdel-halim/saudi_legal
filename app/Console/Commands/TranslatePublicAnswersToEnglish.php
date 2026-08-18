@@ -139,28 +139,38 @@ Input:
 {$inputJson}
 PROMPT;
 
-        try {
-            $response = Http::withoutVerifying()
-                ->timeout(120)
-                ->post(
-                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$this->apiKey}",
-                    [
-                        'contents' => [[
-                            'role'  => 'user',
-                            'parts' => [['text' => $prompt]],
-                        ]],
-                        'generationConfig' => [
-                            'temperature'     => 0.1,
-                            'topP'            => 0.9,
-                            'responseMimeType' => 'application/json',
-                        ],
-                    ]
-                );
+        $models = ['gemini-flash-lite-latest', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.5-flash'];
+        foreach ($models as $model) {
+            try {
+                $response = Http::withoutVerifying()
+                    ->timeout(60)
+                    ->post(
+                        "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$this->apiKey}",
+                        [
+                            'contents' => [[
+                                'role'  => 'user',
+                                'parts' => [['text' => $prompt]],
+                            ]],
+                            'generationConfig' => [
+                                'temperature'     => 0.1,
+                                'topP'            => 0.9,
+                                'responseMimeType' => 'application/json',
+                            ],
+                        ]
+                    );
 
-            if (!$response->successful()) {
-                Log::error('[TranslateEN] Gemini HTTP error: ' . $response->status() . ' ' . $response->body());
-                return [];
+                if ($response->successful()) {
+                    break;
+                }
+            } catch (\Exception $e) {
+                Log::warning("[TranslateEN] Gemini model {$model} failed: " . $e->getMessage());
             }
+        }
+
+        if (empty($response) || !$response->successful()) {
+            Log::error('[TranslateEN] Gemini HTTP error: ' . ($response ? $response->status() . ' ' . $response->body() : 'No response'));
+            return [];
+        }
 
             // استخراج النص من استجابة Gemini
             $parts     = $response->json()['candidates'][0]['content']['parts'] ?? [];

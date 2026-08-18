@@ -744,14 +744,14 @@ class LegalAiController extends Controller
             return "مرحباً! لقد قمت باستخراج السوابق القانونية لك. (يرجى تفعيل GEMINI_API_KEY في ملف .env للحصول على صياغة ذكية).";
         }
 
-        $models = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-3.6-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+        $models = ['gemini-flash-lite-latest', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.5-flash', 'gemini-3.6-flash'];
         $lastStatus = 500;
         $lastErrorBody = '';
 
         foreach ($models as $model) {
             try {
                 $response = Http::withoutVerifying()
-                    ->timeout(80)
+                    ->timeout(15)
                     ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $apiKey, [
                         'contents' => $contents,
                     ]);
@@ -889,22 +889,25 @@ class LegalAiController extends Controller
                 Log::warning('[LegalAi] Query rewriting via Azure failed: ' . $e->getMessage());
             }
         } else {
-            try {
-                $response = Http::withoutVerifying()
-                    ->timeout(15)
-                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . $geminiKey, [
-                        'contents' => [['parts' => [['text' => $prompt]]]],
-                    ]);
+            $models = ['gemini-flash-lite-latest', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.5-flash'];
+            foreach ($models as $model) {
+                try {
+                    $response = Http::withoutVerifying()
+                        ->timeout(8)
+                        ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $geminiKey, [
+                            'contents' => [['parts' => [['text' => $prompt]]]],
+                        ]);
 
-                if ($response->successful()) {
-                    $rewritten = trim($response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '');
-                    if (! empty($rewritten)) {
-                        Log::info('[LegalAi] Query rewritten: ' . $rewritten);
-                        return $rewritten;
+                    if ($response->successful()) {
+                        $rewritten = trim($response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '');
+                        if (! empty($rewritten)) {
+                            Log::info('[LegalAi] Query rewritten: ' . $rewritten);
+                            return $rewritten;
+                        }
                     }
+                } catch (\Exception $e) {
+                    Log::warning("[LegalAi] Query rewriting failed for {$model}: " . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                Log::warning('[LegalAi] Query rewriting failed: ' . $e->getMessage());
             }
         }
 
@@ -1149,21 +1152,25 @@ Output a JSON object with key 'items':
 
         // استخدام Gemini كـ Fallback في حال عدم توفر Azure
         if (empty($translatedJson) && !empty($geminiKey)) {
-            try {
-                $res = Http::withoutVerifying()
-                    ->timeout(35)
-                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . $geminiKey, [
-                        'contents' => [['parts' => [['text' => $prompt]]]],
-                        'generationConfig' => [
-                            'response_mime_type' => 'application/json',
-                        ],
-                    ]);
+            $models = ['gemini-flash-lite-latest', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.5-flash'];
+            foreach ($models as $model) {
+                try {
+                    $res = Http::withoutVerifying()
+                        ->timeout(15)
+                        ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $geminiKey, [
+                            'contents' => [['parts' => [['text' => $prompt]]]],
+                            'generationConfig' => [
+                                'response_mime_type' => 'application/json',
+                            ],
+                        ]);
 
-                if ($res->successful()) {
-                    $translatedJson = $this->extractGeminiResponseText($res->json());
+                    if ($res->successful()) {
+                        $translatedJson = $this->extractGeminiResponseText($res->json());
+                        if (!empty($translatedJson)) break;
+                    }
+                } catch (\Exception $e) {
+                    Log::warning("[LegalAi] Gemini citation translation failed for {$model}: " . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                Log::warning('[LegalAi] Gemini citation translation failed: ' . $e->getMessage());
             }
         }
 

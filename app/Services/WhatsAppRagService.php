@@ -293,7 +293,7 @@ class WhatsAppRagService
 
         $prompt = "بناءً على المحادثة السابقة:\n{$conversationText}\nالسؤال الجديد: '{$question}'\nأعد صياغة السؤال كعبارة بحث قانونية دقيقة ومستقلة تبحث في الأنظمة والأحكام السعودية. أرجع عبارة البحث فقط بدون أي مقدمات أو شرح.";
 
-        $models = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-3.6-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+        $models = ['gemini-flash-lite-latest', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.5-flash', 'gemini-3.6-flash'];
         foreach ($models as $model) {
             try {
                 $response = Http::withoutVerifying()->timeout(8)->post(
@@ -323,7 +323,7 @@ class WhatsAppRagService
         $apiKey = trim(config('services.gemini.key'));
         if (empty($apiKey)) return null;
 
-        $models = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-3.6-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+        $models = ['gemini-flash-lite-latest', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.5-flash', 'gemini-3.6-flash'];
 
         foreach ($models as $model) {
             try {
