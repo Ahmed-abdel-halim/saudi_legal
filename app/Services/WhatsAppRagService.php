@@ -300,7 +300,6 @@ class WhatsAppRagService
     {
         return $this->geminiService->generateContent($contents, ['timeout' => 15, 'temperature' => 0.2, 'topP' => 0.9]);
     }
-    }
 
     private function cleanResponse(string $answer): string
     {
