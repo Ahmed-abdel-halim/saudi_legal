@@ -21,7 +21,8 @@ class WhatsAppRagService
         protected LegalSearchService    $searchService,
         protected AzureSearchService    $azureService,
         protected QdrantSearchService   $qdrantService,
-        protected LegalReferenceService $referenceService
+        protected LegalReferenceService $referenceService,
+        protected GeminiApiService      $geminiService
     ) {}
 
     /**
@@ -282,9 +283,6 @@ class WhatsAppRagService
 
     private function rewriteQuery(string $question, array $history): string
     {
-        $geminiKey = trim(config('services.gemini.key'));
-        if (empty($geminiKey)) return $question;
-
         $conversationText = '';
         foreach (array_slice($history, -6) as $msg) {
             $role = $msg['role'] === 'user' ? 'العميل' : 'المساعد';
@@ -293,71 +291,15 @@ class WhatsAppRagService
 
         $prompt = "بناءً على المحادثة السابقة:\n{$conversationText}\nالسؤال الجديد: '{$question}'\nأعد صياغة السؤال كعبارة بحث قانونية دقيقة ومستقلة تبحث في الأنظمة والأحكام السعودية. أرجع عبارة البحث فقط بدون أي مقدمات أو شرح.";
 
-        $models = ['gemini-flash-lite-latest', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.5-flash', 'gemini-3.6-flash'];
-        foreach ($models as $model) {
-            try {
-                $response = Http::withoutVerifying()->timeout(8)->post(
-                    "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$geminiKey}",
-                    [
-                        'contents' => [['parts' => [['text' => $prompt]]]],
-                        'generationConfig' => [
-                            'temperature' => 0.1,
-                        ]
-                    ]
-                );
+        $rewritten = $this->geminiService->generateContent([['parts' => [['text' => $prompt]]]], ['timeout' => 8, 'temperature' => 0.1]);
 
-                if ($response->successful()) {
-                    $rewritten = trim($response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '');
-                    if (!empty($rewritten)) return $rewritten;
-                }
-            } catch (\Exception $e) {
-                Log::warning("[WhatsAppRag] Query rewrite failed for {$model}: " . $e->getMessage());
-            }
-        }
-
-        return $question;
+        return !empty($rewritten) ? trim($rewritten) : $question;
     }
 
     private function callGemini(array $contents): ?string
     {
-        $apiKey = trim(config('services.gemini.key'));
-        if (empty($apiKey)) return null;
-
-        $models = ['gemini-flash-lite-latest', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.5-flash', 'gemini-3.6-flash'];
-
-        foreach ($models as $model) {
-            try {
-                $response = Http::withoutVerifying()->timeout(15)->post(
-                    "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
-                    [
-                        'contents' => $contents,
-                        'generationConfig' => [
-                            'temperature' => 0.2,
-                            'topP'        => 0.9,
-                        ]
-                    ]
-                );
-
-                if ($response->successful()) {
-                    $parts     = $response->json()['candidates'][0]['content']['parts'] ?? [];
-                    $textParts = [];
-                    foreach ($parts as $part) {
-                        if (!empty($part['thought'])) continue;
-                        if (isset($part['text'])) $textParts[] = $part['text'];
-                    }
-                    $resultText = trim(implode('', $textParts)) ?: trim($parts[0]['text'] ?? '');
-                    if (!empty($resultText)) {
-                        return $resultText;
-                    }
-                }
-
-                Log::warning("[WhatsAppRag] Gemini model {$model} returned status " . $response->status() . ' | Body: ' . mb_substr($response->body(), 0, 300));
-            } catch (\Exception $e) {
-                Log::warning("[WhatsAppRag] Exception calling Gemini model {$model}: " . $e->getMessage());
-            }
-        }
-
-        return null;
+        return $this->geminiService->generateContent($contents, ['timeout' => 15, 'temperature' => 0.2, 'topP' => 0.9]);
+    }
     }
 
     private function cleanResponse(string $answer): string

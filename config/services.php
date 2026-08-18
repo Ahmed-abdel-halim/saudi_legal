@@ -43,7 +43,8 @@ return [
     ],
 
     'gemini' => [
-        'key' => env('GEMINI_API_KEY'),
+        'key'    => env('GEMINI_API_KEY'),
+        'models' => env('GEMINI_MODELS', ''),
     ],
 
     'qdrant' => [
