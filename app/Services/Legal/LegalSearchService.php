@@ -90,24 +90,36 @@ class LegalSearchService
                 $score += 10; // مقترحة من AI — أولوية أقل لكن مقبولة
             }
             
-            // Domain Mismatch Penalty: If the query has family words, but the task has labor words
-            $familyKeywords = ['نفقة', 'زوجة', 'طلاق', 'حضانة', 'مهر', 'خلع', 'أسرة'];
-            $laborKeywords = ['عامل', 'صاحب العمل', 'مكافأة نهاية الخدمة', 'أجر', 'إجازة', 'عمالية'];
-            
-            $isFamilyQuery = false;
-            foreach($familyKeywords as $fk) { if (mb_stripos($fullPhrase, $fk) !== false) $isFamilyQuery = true; }
-            
-            $isLaborTask = false;
-            foreach($laborKeywords as $lk) { 
-                if (($task->case_text && mb_stripos($task->case_text, $lk) !== false) || 
-                    ($task->question && mb_stripos($task->question, $lk) !== false)) {
-                    $isLaborTask = true;
-                }
-            }
-            
-            if ($isFamilyQuery && $isLaborTask) {
-                $score -= 200; // Heavy penalty for domain mismatch
-            }
+            // Domain Mismatch Penalties & Noise Reduction
+            $familyKeywords     = ['نفقة', 'زوجة', 'طلاق', 'حضانة', 'مهر', 'خلع', 'أسرة', 'بنوة', 'إرث'];
+            $laborKeywords      = ['عامل', 'صاحب العمل', 'مكافأة نهاية الخدمة', 'أجر', 'إجازة', 'عمالية', 'فصل تعسفي', 'مكتب العمل'];
+            $commercialKeywords = ['تجاري', 'تجارية', 'شركات', 'شريك', 'توريد', 'مقاولات', 'تحكيم', 'إفلاس', 'سجل تجاري', 'سمسرة', 'فسخ عقد'];
+            $penalKeywords      = ['جزائي', 'عقوبة', 'جريمة', 'سرقة', 'مخدرات', 'قتل', 'احتيال جنائي', 'تزوير جنائي', 'نيابة عامة', 'حد'];
+
+            $isFamilyQuery     = false;
+            $isLaborQuery      = false;
+            $isCommercialQuery = false;
+            $isPenalQuery      = false;
+
+            foreach ($familyKeywords as $fk)     { if (mb_stripos($fullPhrase, $fk) !== false) $isFamilyQuery = true; }
+            foreach ($laborKeywords as $lk)      { if (mb_stripos($fullPhrase, $lk) !== false) $isLaborQuery = true; }
+            foreach ($commercialKeywords as $ck) { if (mb_stripos($fullPhrase, $ck) !== false) $isCommercialQuery = true; }
+            foreach ($penalKeywords as $pk)      { if (mb_stripos($fullPhrase, $pk) !== false) $isPenalQuery = true; }
+
+            $taskText = ($task->case_text ?? '') . ' ' . ($task->question ?? '');
+
+            $isLaborTask      = false;
+            $isPenalTask      = false;
+            $isCommercialTask = false;
+
+            foreach ($laborKeywords as $lk)      { if (mb_stripos($taskText, $lk) !== false) $isLaborTask = true; }
+            foreach ($penalKeywords as $pk)      { if (mb_stripos($taskText, $pk) !== false) $isPenalTask = true; }
+            foreach ($commercialKeywords as $ck) { if (mb_stripos($taskText, $ck) !== false) $isCommercialTask = true; }
+
+            if ($isFamilyQuery && $isLaborTask)       $score -= 200;
+            if ($isCommercialQuery && $isPenalTask)   $score -= 250; // منع التلوث الجزائي في القضايا التجارية
+            if ($isCommercialQuery && $isLaborTask)   $score -= 150;
+            if ($isPenalQuery && $isCommercialTask)   $score -= 200;
 
             $task->relevance_score = $score;
             return $task;
@@ -117,7 +129,7 @@ class LegalSearchService
 
         $topTasks = $tasks->take($limit);
 
-        // 5. Direct Article Search (Always include some law articles for legal context)
+        // 5. Direct Article Search (Always include relevant law articles for legal context)
         $articleLimit = 10;
         $articleQuery = LegalArticle::query();
         $articleQuery->where(function($q) use ($keywords, $fullPhrase) {
@@ -133,15 +145,27 @@ class LegalSearchService
             $score = 0;
             if ($fullPhrase && mb_stripos($art->content, $fullPhrase) !== false) $score += 150;
             
-            // Prioritize Personal Status Law for family keywords
-            $familyKeywords = ['نفقة', 'زوجة', 'طلاق', 'حضانة', 'مهر', 'خلع', 'أسرة', 'بنوة', 'إرث'];
-            $isFamilyQuery = false;
-            foreach($familyKeywords as $fk) {
-                if (mb_stripos($fullPhrase, $fk) !== false) $isFamilyQuery = true;
-            }
+            // Prioritize Specific Laws based on Query Domain
+            $familyKeywords     = ['نفقة', 'زوجة', 'طلاق', 'حضانة', 'مهر', 'خلع', 'أسرة', 'بنوة', 'إرث'];
+            $commercialKeywords = ['تجاري', 'تجارية', 'شركات', 'شريك', 'توريد', 'مقاولات', 'تحكيم', 'إفلاس', 'فسخ عقد', 'اختصاص تجاري'];
+            $laborKeywords      = ['عامل', 'صاحب العمل', 'مكافأة نهاية الخدمة', 'أجر', 'إجازة', 'عمالية'];
+
+            $isFamilyQuery     = false;
+            $isCommercialQuery = false;
+            $isLaborQuery      = false;
+
+            foreach ($familyKeywords as $fk)     { if (mb_stripos($fullPhrase, $fk) !== false) $isFamilyQuery = true; }
+            foreach ($commercialKeywords as $ck) { if (mb_stripos($fullPhrase, $ck) !== false) $isCommercialQuery = true; }
+            foreach ($laborKeywords as $lk)      { if (mb_stripos($fullPhrase, $lk) !== false) $isLaborQuery = true; }
             
             if ($isFamilyQuery && mb_stripos($art->legislation_title, 'الأحوال الشخصية') !== false) {
-                $score += 500; // Extreme boost to ensure it comes first
+                $score += 500;
+            }
+            if ($isCommercialQuery && (mb_stripos($art->legislation_title, 'المحاكم التجارية') !== false || mb_stripos($art->legislation_title, 'الشركات') !== false || mb_stripos($art->legislation_title, 'المعاملات المدنية') !== false)) {
+                $score += 500;
+            }
+            if ($isLaborQuery && mb_stripos($art->legislation_title, 'العمل') !== false) {
+                $score += 500;
             }
 
             foreach ($keywords as $keyword) {
