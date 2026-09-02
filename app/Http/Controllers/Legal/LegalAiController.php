@@ -268,6 +268,49 @@ class LegalAiController extends Controller
         // 2. جلب تاريخ الرسائل السابقة
         $history = $conversation->messages()->orderBy('created_at', 'asc')->get();
 
+        // 2.5. التحقق مما إذا كانت الرسالة تحية مجردة أو مجاملة بدون سؤال قانوني
+        if ($this->isPureGreeting($question)) {
+            $answer = $this->getGreetingReply($question);
+            $citationsPayload = [
+                'confidence_score' => 0,
+                'items'            => [],
+            ];
+
+            AiMessage::create([
+                'ai_conversation_id' => $conversation->id,
+                'role'               => 'user',
+                'message'            => $question,
+            ]);
+
+            AiMessage::create([
+                'ai_conversation_id' => $conversation->id,
+                'role'               => 'model',
+                'message'            => $answer,
+                'citations'          => $citationsPayload,
+            ]);
+
+            $conversation->touch();
+
+            $messageCount = 0;
+            $limit = 10;
+            $this->checkMessageLimit($request, $messageCount, $limit);
+            $referralLink = auth()->check() ? route('register.company', ['ref' => auth()->id()]) : null;
+
+            return response()->json([
+                'answer'            => $answer,
+                'citations'         => $citationsPayload,
+                'conversation_uuid' => $conversation->uuid,
+                'search_method'     => 'greeting',
+                'usage'             => [
+                    'count'        => $messageCount,
+                    'limit'        => $limit,
+                    'remaining'    => max(0, $limit - $messageCount),
+                    'is_logged_in' => auth()->check(),
+                    'referral_link'=> $referralLink,
+                ]
+            ]);
+        }
+
         // 3. صياغة استعلام البحث دلالياً (Query Rewriting) لربط الأسئلة المتابعة والأسئلة غير العربية
         $searchQuery = $question;
         if ($history->isNotEmpty() || preg_match('/[a-zA-Z]/', $question)) {
@@ -715,6 +758,7 @@ class LegalAiController extends Controller
         // التحقق مما إذا كانت الإجابة خارج النطاق (أسئلة عامة غير قانونية)
         $isOutOfScope = (
             str_contains($answer, 'متخصص فقط في الأنظمة') ||
+            str_contains($answer, 'متخصص حصراً في الأنظمة') ||
             str_contains(strtolower($answer), 'only specialized in saudi') ||
             (
                 !str_contains($answer, 'الرأي القانوني') &&
@@ -727,7 +771,7 @@ class LegalAiController extends Controller
             )
         );
 
-        if ($isOutOfScope && $contextTasks->isEmpty()) {
+        if ($isOutOfScope) {
             $citations = [];
             $confidenceScore = 0;
         }
@@ -1199,5 +1243,81 @@ Output a JSON object with key 'items':
         }
 
         return $citations;
+    }
+
+    /**
+     * التحقق مما إذا كانت الرسالة تحية مجردة أو مجاملة بدون سؤال قانوني
+     */
+    private function isPureGreeting(string $text): bool
+    {
+        $raw = trim($text);
+
+        // إذا كانت الرسالة عبارة عن رموز، نقطة (.)، أو علامات ترقيم فقط، أو نص قصير جداً بدون أحرف قانونية
+        $clean = mb_strtolower($raw);
+        $cleanAlpha = preg_replace('/[^\p{L}\p{N}\s]/u', '', $clean);
+        $cleanAlpha = preg_replace('/\s+/', ' ', trim($cleanAlpha));
+
+        if (empty($cleanAlpha) || mb_strlen($raw) <= 2) {
+            return true;
+        }
+
+        $greetingWords = [
+            'السلام', 'عليكم', 'ورحمة', 'الله', 'وبركاته', 'سلام', 'سلامات',
+            'مرحبا', 'مرحباً', 'مرحبتين', 'مراحيب',
+            'اهلا', 'أهلا', 'اهلاً', 'أهلاً', 'اهلين', 'أهلين', 'اهدا', 'وسهلاً', 'وسهلا',
+            'صباح', 'مساء', 'الخير', 'النور', 'الورد', 'السرور',
+            'كيف', 'حالك', 'الحال', 'الحالية', 'كيفك', 'اخبارك', 'شخبارك', 'علومك', 'شلونك',
+            'يعطيك', 'العافية', 'يعطيكوا', 'عافية', 'الله', 'يعافيك',
+            'شكرا', 'شكراً', 'مشكور', 'مشكورة', 'تسلم', 'تسلمي', 'جزاك', 'خير', 'خيور', 'جزيل', 'الشكر',
+            'يا', 'هلا', 'غالي', 'حياك', 'حياكم',
+            'hi', 'hello', 'hey', 'good', 'morning', 'evening', 'afternoon', 'how', 'are', 'you', 'thanks', 'thank'
+        ];
+
+        $words = explode(' ', $cleanAlpha);
+
+        $nonGreetingWords = array_values(array_filter($words, function ($w) use ($greetingWords) {
+            return !in_array($w, $greetingWords, true);
+        }));
+
+        if (empty($nonGreetingWords)) {
+            return true;
+        }
+
+        if (count($nonGreetingWords) <= 2) {
+            $legalKeywords = [
+                'مادة', 'نظام', 'قضية', 'حكم', 'عقد', 'عمل', 'استئناف', 'محكمة', 'عقوبة',
+                'تعويض', 'حق', 'تركة', 'طلاق', 'تزوير', 'شركة', 'شركات', 'عقار', 'إثبات',
+                'اثبات', 'سؤال', 'استفسار', 'طلب', 'مساعدة', 'نص', 'شرط', 'شروط', 'لوائح',
+                'لائحة', 'تنفيذية', 'مبلغ', 'حقوق', 'راتب', 'فصل', 'إنهاء', 'انهاء'
+            ];
+
+            $questionMarkers = [
+                'ما', 'ماذا', 'هل', 'كيف', 'متى', 'اين', 'أين', 'كم', 'ليه', 'لماذا', 'مين', 'من'
+            ];
+
+            foreach ($nonGreetingWords as $w) {
+                if (in_array($w, $legalKeywords, true) || in_array($w, $questionMarkers, true)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * صياغة رد التحية للمستشار القانوني الذكي في الواجهة الرئيسية
+     */
+    private function getGreetingReply(string $body): string
+    {
+        $clean = mb_strtolower(trim($body));
+
+        if (mb_strpos($clean, 'شكرا') !== false || mb_strpos($clean, 'شكراً') !== false || mb_strpos($clean, 'مشكور') !== false || mb_strpos($clean, 'يعطيك') !== false || mb_strpos($clean, 'جزاك') !== false) {
+            return "العفو! أهلاً وسهلاً بك في أي وقت. ⚖️ كيف يمكنني مساعدتك اليوم في أي استفسار قانوني؟";
+        }
+
+        return "أهلاً بك! أنا المستشار القضائي والنظامي الذكي لمنصة رديف ✨\n\nكيف يمكنني مساعدتك اليوم؟ يمكنك طرح أي استفسار يتعلق بالأنظمة والقضايا السعودية.";
     }
 }
