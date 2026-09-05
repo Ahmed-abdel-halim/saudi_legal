@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    @include('partials.google-analytics')
     <meta charset="UTF-8">
     <title>إعدادات التوفر | Radiif</title>
 

@@ -2,6 +2,7 @@
 <html lang="en" dir="ltr">
 
 <head>
+    @include('partials.google-analytics')
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Insurance Payer | اختيار شركة التأمين</title>

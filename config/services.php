@@ -83,4 +83,8 @@ return [
         'inbox_id'   => env('CHATWOOT_INBOX_ID', '124151'),
     ],
 
+    'google' => [
+        'analytics_id' => env('GOOGLE_ANALYTICS_ID', 'G-LSP0883M01'),
+    ],
+
 ];
