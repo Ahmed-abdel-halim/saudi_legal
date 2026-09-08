@@ -1174,10 +1174,358 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
                 <i class="fa-solid fa-robot"></i>
                 <span>{{ $currentLang === 'en' ? 'Try AI Assistant Free' : 'تجربة المساعد القانوني مجاناً' }}</span>
             </a>
-            <a href="{{ route('developers.index') }}" class="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition-all flex items-center gap-2">
+            <a href="#developer-portal" class="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition-all flex items-center gap-2">
                 <i class="fa-solid fa-terminal text-cyan-400"></i>
-                <span>{{ $currentLang === 'en' ? 'View Developer API' : 'توثيق واجهة المطورين (API)' }}</span>
+                <span>{{ $currentLang === 'en' ? 'Developer API & Beta Key' : 'بوابة المطورين ومفتاح التجربة (API)' }}</span>
             </a>
+        </div>
+
+    </div>
+</section>
+
+{{-- ── DEVELOPER PORTAL & API BETA WIDGET SECTION ─────────── --}}
+<section id="developer-portal" class="py-24 relative overflow-hidden transition-colors duration-300" style="background: #060b16; border-top: 1px solid rgba(6, 182, 212, 0.15);" dir="{{ $direction }}">
+    {{-- Ambient Glow Behind Widget --}}
+    <div class="absolute top-1/4 -right-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 -left-40 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1350px] relative z-10">
+
+        {{-- Section Header --}}
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-black uppercase tracking-wider mb-4 shadow-sm">
+                <i class="fa-solid fa-code text-xs text-cyan-400"></i>
+                <span>{{ $currentLang === 'en' ? 'Developer Portal & API Widget' : 'بوابة المطورين والـ API | ودجت التسجيل' }}</span>
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+            </div>
+            
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight mb-5">
+                {{ $currentLang === 'en' 
+                    ? 'Integrate Saudi Legal Intelligence Directly Into Your Apps' 
+                    : 'اربط تطبيقاتك القانونية بمحرك رديف الذكي عبر الـ API' }}
+            </h2>
+            
+            <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
+                {{ $currentLang === 'en'
+                    ? 'Seamless RESTful endpoints for legal question answering, citations extraction, and statutory search. Request instant sandbox access below to start testing within seconds.'
+                    : 'واجهات برمجية RESTful متقدمة للاستعلام القانوني، واستخراج أرقام المواد، والمطابقة الدلالية للأحكام. اطلب وصولاً تجريبياً فورياً للـ Sandbox وابدأ التجربة في ثوانٍ.' }}
+            </p>
+        </div>
+
+        {{-- 2-Column Interactive Developer Widget Grid --}}
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mb-14"
+             x-data="{
+                lang: 'curl',
+                copied: false,
+                form: {
+                    name: '',
+                    email: '',
+                    company: '',
+                    organization_type: 'law_firm',
+                    use_case: '',
+                    expected_volume: '10k_to_100k'
+                },
+                isSubmitting: false,
+                isSubmitted: false,
+                sandboxKey: '',
+                errorMessage: '',
+                copyKey() {
+                    navigator.clipboard.writeText(this.sandboxKey);
+                    this.copied = true;
+                    setTimeout(() => { this.copied = false }, 2500);
+                },
+                submitApplication() {
+                    this.isSubmitting = true;
+                    this.errorMessage = '';
+                    fetch('{{ route('developers.beta.submit') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify(this.form)
+                    })
+                    .then(res => res.json().then(data => ({ status: res.status, body: data })))
+                    .then(({ status, body }) => {
+                        this.isSubmitting = false;
+                        if (status === 200 && body.success) {
+                            this.isSubmitted = true;
+                            this.sandboxKey = body.sandbox_key;
+                        } else {
+                            this.errorMessage = body.message || (body.errors ? Object.values(body.errors).flat().join(' - ') : 'حدث خطأ أثناء إرسال الطلب، يرجى المحاولة ثانية.');
+                        }
+                    })
+                    .catch(err => {
+                        this.isSubmitting = false;
+                        this.errorMessage = 'تعذر الاتصال بالخادم، يرجى التحقق من الشبكة.';
+                    });
+                }
+             }">
+
+            {{-- Column 1: Live Interactive Code Explorer & API Schema (7 Cols) --}}
+            <div class="lg:col-span-7 flex flex-col rounded-3xl bg-slate-900/90 border border-slate-700/60 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden backdrop-blur-xl">
+                {{-- Code Header / Topbar --}}
+                <div class="flex flex-wrap items-center justify-between px-6 py-4 bg-slate-950 border-b border-slate-800 gap-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
+                        <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
+                        <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+                        <span class="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-500/20 px-2 py-0.5 rounded ml-2 mr-2">POST</span>
+                        <span class="text-xs font-mono text-slate-300">/api/v1/legal/ask</span>
+                    </div>
+
+                    {{-- Language Selector Tabs --}}
+                    <div class="flex items-center gap-1 text-xs">
+                        <button type="button" @click="lang = 'curl'" :class="lang === 'curl' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'text-slate-400 hover:text-white border-transparent'" class="px-2.5 py-1 rounded-md border font-mono font-bold transition">cURL</button>
+                        <button type="button" @click="lang = 'python'" :class="lang === 'python' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'text-slate-400 hover:text-white border-transparent'" class="px-2.5 py-1 rounded-md border font-mono font-bold transition">Python</button>
+                        <button type="button" @click="lang = 'nodejs'" :class="lang === 'nodejs' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'text-slate-400 hover:text-white border-transparent'" class="px-2.5 py-1 rounded-md border font-mono font-bold transition">Node.js</button>
+                        <button type="button" @click="lang = 'php'" :class="lang === 'php' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'text-slate-400 hover:text-white border-transparent'" class="px-2.5 py-1 rounded-md border font-mono font-bold transition">PHP</button>
+                    </div>
+                </div>
+
+                {{-- Code Box Display --}}
+                <div class="p-6 bg-slate-950 font-mono text-xs text-slate-200 overflow-x-auto flex-1 leading-relaxed" dir="ltr">
+                    {{-- cURL --}}
+                    <pre x-show="lang === 'curl'" class="text-slate-300"><span class="text-cyan-400">curl</span> -X POST https://api.radiif.com/v1/legal/ask \
+  -H <span class="text-amber-300">"Authorization: Bearer <span class="text-emerald-400" x-text="sandboxKey || 'radif_test_YOUR_SANDBOX_KEY'"></span>"</span> \
+  -H <span class="text-amber-300">"Content-Type: application/json"</span> \
+  -d <span class="text-teal-300">'{
+    "question": "ما هي شروط إنهاء العقد في فترة التجربة وفق نظام العمل؟",
+    "mode": "simplified",
+    "include_citations": true
+  }'</span></pre>
+
+                    {{-- Python --}}
+                    <pre x-show="lang === 'python'" class="text-slate-300" style="display: none;"><span class="text-indigo-400">import</span> requests
+
+url = <span class="text-amber-300">"https://api.radiif.com/v1/legal/ask"</span>
+headers = {
+    <span class="text-amber-300">"Authorization"</span>: f<span class="text-amber-300">"Bearer {<span class="text-emerald-400" x-text="sandboxKey ? `'` + sandboxKey + `'` : `'radif_test_YOUR_SANDBOX_KEY'`"></span>}"</span>,
+    <span class="text-amber-300">"Content-Type"</span>: <span class="text-amber-300">"application/json"</span>
+}
+payload = {
+    <span class="text-amber-300">"question"</span>: <span class="text-amber-300">"ما هي شروط إنهاء العقد في فترة التجربة وفق نظام العمل؟"</span>,
+    <span class="text-amber-300">"mode"</span>: <span class="text-amber-300">"simplified"</span>,
+    <span class="text-amber-300">"include_citations"</span>: <span class="text-cyan-400">True</span>
+}
+
+response = requests.post(url, json=payload, headers=headers)
+data = response.json()
+print(data[<span class="text-amber-300">"answer"</span>])</pre>
+
+                    {{-- Node.js --}}
+                    <pre x-show="lang === 'nodejs'" class="text-slate-300" style="display: none;"><span class="text-indigo-400">const</span> response = <span class="text-indigo-400">await</span> fetch(<span class="text-amber-300">'https://api.radiif.com/v1/legal/ask'</span>, {
+  method: <span class="text-amber-300">'POST'</span>,
+  headers: {
+    <span class="text-amber-300">'Authorization'</span>: <span class="text-amber-300">`Bearer ${<span class="text-emerald-400" x-text="sandboxKey ? `'` + sandboxKey + `'` : `'radif_test_YOUR_SANDBOX_KEY'`"></span>}`</span>,
+    <span class="text-amber-300">'Content-Type'</span>: <span class="text-amber-300">'application/json'</span>
+  },
+  body: JSON.stringify({
+    question: <span class="text-amber-300">'ما هي شروط إنهاء العقد في فترة التجربة وفق نظام العمل؟'</span>,
+    mode: <span class="text-amber-300">'simplified'</span>,
+    include_citations: <span class="text-cyan-400">true</span>
+  })
+});
+<span class="text-indigo-400">const</span> data = <span class="text-indigo-400">await</span> response.json();
+console.log(data);</pre>
+
+                    {{-- PHP --}}
+                    <pre x-show="lang === 'php'" class="text-slate-300" style="display: none;"><span class="text-cyan-400">$response</span> = Http::withToken(<span class="text-emerald-400" x-text="sandboxKey ? `'` + sandboxKey + `'` : `'radif_test_YOUR_SANDBOX_KEY'`"></span>)
+    ->post(<span class="text-amber-300">'https://api.radiif.com/v1/legal/ask'</span>, [
+        <span class="text-amber-300">'question'</span> => <span class="text-amber-300">'ما هي شروط إنهاء العقد في فترة التجربة وفق نظام العمل؟'</span>,
+        <span class="text-amber-300">'mode'</span> => <span class="text-amber-300">'simplified'</span>,
+        <span class="text-amber-300">'include_citations'</span> => <span class="text-cyan-400">true</span>,
+    ]);
+
+<span class="text-indigo-400">echo</span> <span class="text-cyan-400">$response</span>->json(<span class="text-amber-300">'answer'</span>);</pre>
+                </div>
+
+                {{-- Live Response JSON Simulation Box --}}
+                <div class="p-4 bg-slate-950/90 border-t border-slate-800 text-xs font-mono" dir="ltr">
+                    <div class="flex items-center justify-between text-slate-500 mb-2">
+                        <span class="text-emerald-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> 200 OK — Response Payload (520ms)</span>
+                        <span>JSON</span>
+                    </div>
+                    <div class="text-slate-400 overflow-x-auto text-[11px] leading-relaxed max-h-36 custom-scrollbar">
+                        <span class="text-slate-300">{</span><br>
+                        &nbsp;&nbsp;<span class="text-indigo-400">"status"</span>: <span class="text-emerald-400">"success"</span>,<br>
+                        &nbsp;&nbsp;<span class="text-indigo-400">"mode"</span>: <span class="text-amber-300">"simplified"</span>,<br>
+                        &nbsp;&nbsp;<span class="text-indigo-400">"citations"</span>: [<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;{<span class="text-indigo-400">"statute"</span>: <span class="text-emerald-400">"نظام العمل السعودي"</span>, <span class="text-indigo-400">"article"</span>: <span class="text-cyan-400">53</span>, <span class="text-indigo-400">"confidence"</span>: <span class="text-cyan-400">0.992</span>}<br>
+                        &nbsp;&nbsp;],<br>
+                        &nbsp;&nbsp;<span class="text-indigo-400">"answer"</span>: <span class="text-slate-300">"وفقاً للمادة 53 من نظام العمل، يجوز لأي من الطرفين إنهاء العقد خلال فترة التجربة ما لم يتضمن العقد نصاً يعطي الحق لأحدهما فقط..."</span><br>
+                        <span class="text-slate-300">}</span>
+                    </div>
+                </div>
+
+                {{-- Footer Link to Full Documentation --}}
+                <div class="px-6 py-3.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-xs text-slate-400">{{ $currentLang === 'en' ? 'Explore all endpoints & SDKs:' : 'استكشف كافة نقاط النهاية والمكتبات:' }}</span>
+                    <a href="{{ route('developers.index') }}" class="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 group">
+                        <span>{{ $currentLang === 'en' ? 'Open API Documentation' : 'فتح التوثيق الكامل للـ API' }}</span>
+                        <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition rtl:rotate-0 rotate-180"></i>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Column 2: Interactive Request Beta Access Widget (5 Cols) --}}
+            <div class="lg:col-span-5 flex flex-col rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-cyan-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-6 sm:p-8 relative">
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+                    <div>
+                        <span class="text-xs font-black text-cyan-400 uppercase tracking-wider block mb-1">
+                            {{ $currentLang === 'en' ? 'Instant Sandbox Access' : 'التسجيل والوصول الفوري' }}
+                        </span>
+                        <h3 class="text-lg sm:text-xl font-black text-white">
+                            {{ $currentLang === 'en' ? 'Request Beta API Key' : 'طلب مفتاح API تجريبي (Beta)' }}
+                        </h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-lg shrink-0">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                </div>
+
+                {{-- State 1: Form (Before submission) --}}
+                <form x-show="!isSubmitted" @submit.prevent="submitApplication" class="space-y-4 flex-1 flex flex-col justify-between">
+                    <div>
+                        <div x-show="errorMessage" class="p-3 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2" style="display: none;">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
+                            <span x-text="errorMessage"></span>
+                        </div>
+
+                        <div class="space-y-3.5">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1">
+                                    {{ $currentLang === 'en' ? 'Full Name' : 'الاسم الكامل' }} *
+                                </label>
+                                <input type="text" x-model="form.name" required placeholder="{{ $currentLang === 'en' ? 'e.g. Abdullah Al-Harbi' : 'مثال: عبدالله الحربي' }}" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:border-cyan-500 focus:outline-none transition">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1">
+                                    {{ $currentLang === 'en' ? 'Work Email' : 'البريد الإلكتروني المهني' }} *
+                                </label>
+                                <input type="email" x-model="form.email" required placeholder="name@company.com" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:border-cyan-500 focus:outline-none transition" dir="ltr">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-300 mb-1">
+                                        {{ $currentLang === 'en' ? 'Organization Type' : 'نوع الجهة' }} *
+                                    </label>
+                                    <select x-model="form.organization_type" required class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs focus:border-cyan-500 focus:outline-none transition">
+                                        <option value="law_firm">مكتب محاماة</option>
+                                        <option value="legaltech">شركة LegalTech</option>
+                                        <option value="enterprise">شركة / قطاع أعمال</option>
+                                        <option value="developer">مطور مستقل</option>
+                                        <option value="individual">باحث قانوني</option>
+                                        <option value="other">جهة أخرى</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-300 mb-1">
+                                        {{ $currentLang === 'en' ? 'Expected Queries' : 'حجم الاستعلام' }} *
+                                    </label>
+                                    <select x-model="form.expected_volume" required class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs focus:border-cyan-500 focus:outline-none transition">
+                                        <option value="under_10k">&lt; 10,000 / شهر</option>
+                                        <option value="10k_to_100k">10K - 100K / شهر</option>
+                                        <option value="over_100k">&gt; 100,000 / شهر</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1">
+                                    {{ $currentLang === 'en' ? 'Company Name (Optional)' : 'اسم الشركة / المكتب (اختياري)' }}
+                                </label>
+                                <input type="text" x-model="form.company" placeholder="{{ $currentLang === 'en' ? 'Company or Firm' : 'مثال: شركة الحلول الرقمية' }}" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:border-cyan-500 focus:outline-none transition">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1">
+                                    {{ $currentLang === 'en' ? 'Use Case Description' : 'نبذة عن فكرة المشروع أو التكامل' }} *
+                                </label>
+                                <textarea x-model="form.use_case" required rows="2" placeholder="{{ $currentLang === 'en' ? 'How do you plan to use Radiif API?' : 'مثال: نود ربط نظام إدارة القضايا للبحث في المواد والأنظمة آلياً' }}" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:border-cyan-500 focus:outline-none transition"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" :disabled="isSubmitting" class="w-full py-3.5 px-4 bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-dark-navy font-black rounded-xl shadow-lg shadow-cyan-500/20 active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer text-sm">
+                            <span x-show="!isSubmitting"><i class="fa-solid fa-bolt text-xs"></i> {{ $currentLang === 'en' ? 'Generate Instant Sandbox Key' : 'توليد مفتاح تجريبي فوري' }}</span>
+                            <span x-show="isSubmitting" style="display: none;"><i class="fa-solid fa-spinner fa-spin"></i> جاري الإنشاء...</span>
+                        </button>
+                        <p class="text-[11px] text-center text-slate-500 mt-2">
+                            🔒 وصول فوري لبيئة الاختبار التجريبية (Sandbox) بدون رسوم أو بطاقة بنكية
+                        </p>
+                    </div>
+                </form>
+
+                {{-- State 2: Success & Generated Key Box --}}
+                <div x-show="isSubmitted" style="display: none;" class="flex-1 flex flex-col justify-between text-center py-4">
+                    <div>
+                        <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-2xl mx-auto mb-4 animate-bounce">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <h4 class="text-xl font-black text-white mb-2">تم إصدار مفتاح الـ API بنجاح!</h4>
+                        <p class="text-xs text-slate-400 mb-6">
+                            مفتاح الاختبار التجريبي جاهز للاستخدام المباشر في بيئة Sandbox. تم حفظ طلبك وسيتواصل معك فريقنا لترقية الحساب.
+                        </p>
+
+                        {{-- Key Display Container --}}
+                        <div class="p-4 rounded-2xl bg-slate-950 border border-cyan-500/40 text-left mb-4 shadow-inner" dir="ltr">
+                            <div class="flex items-center justify-between text-[11px] text-slate-400 mb-2 font-mono">
+                                <span>API_SANDBOX_KEY</span>
+                                <span class="text-emerald-400">● ACTIVE</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-2">
+                                <code class="font-mono text-xs text-teal-300 font-bold truncate select-all" x-text="sandboxKey"></code>
+                                <button type="button" @click="copyKey" class="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-bold text-xs flex items-center gap-1.5 shrink-0 transition">
+                                    <i class="fa-regular fa-copy" x-show="!copied"></i>
+                                    <i class="fa-solid fa-check text-emerald-400" x-show="copied" style="display: none;"></i>
+                                    <span x-text="copied ? 'تم النسخ!' : 'نسخ'"></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-right text-[11px] text-slate-400 space-y-1">
+                            <div class="text-slate-300 font-bold">💡 كيف تبدأ؟</div>
+                            <div>انسخ المفتاح واستخدمه في ترويسة الطلب: <code class="text-cyan-400" dir="ltr">Authorization: Bearer [KEY]</code></div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 space-y-2">
+                        <a href="{{ route('developers.index') }}" class="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 text-xs">
+                            <i class="fa-solid fa-book-open text-cyan-400"></i>
+                            <span>تصفح وثائق الـ API ونماذج الاستجابة الكاملة</span>
+                        </a>
+                        <button type="button" @click="isSubmitted = false; form.name = ''; form.email = ''; form.use_case = '';" class="text-xs text-slate-500 hover:text-slate-400 underline">
+                            تقديم طلب جهة أخرى
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- Enterprise & Developer Highlights Row --}}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 pt-4 border-t border-slate-800/80">
+            <div class="text-center p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
+                <div class="text-2xl font-black text-cyan-400 mb-1">&lt; 800ms</div>
+                <div class="text-xs text-slate-400 font-medium">زمن استجابة فائق السرعة</div>
+            </div>
+            <div class="text-center p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
+                <div class="text-2xl font-black text-emerald-400 mb-1">99.9%</div>
+                <div class="text-xs text-slate-400 font-medium">جاهزية تشغيل مستقرة (SLA)</div>
+            </div>
+            <div class="text-center p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
+                <div class="text-2xl font-black text-indigo-400 mb-1">100%</div>
+                <div class="text-xs text-slate-400 font-medium">توثيق بمواد الأنظمة والسوابق</div>
+            </div>
+            <div class="text-center p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
+                <div class="text-2xl font-black text-amber-400 mb-1">PDPL</div>
+                <div class="text-xs text-slate-400 font-medium">توافق مع حماية البيانات السعودية</div>
+            </div>
         </div>
 
     </div>
