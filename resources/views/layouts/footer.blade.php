@@ -63,6 +63,7 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 <div>
                     <h4 class="text-lg font-bold mb-6 text-white">{{ __('footer.NAV_TECHNICAL_SERVICES', [], $currentLang) }}</h4>
                     <ul class="space-y-3 text-sm">
+                        <li><a href="{{ route('home') }}#product" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_PRODUCT', [], $currentLang) }}</a></li>
                         <li><a href="{{ route('pages.services.rlhf') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_RLHF', [], $currentLang) }}</a></li>
                         <li><a href="{{ route('pages.services.hitl') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_HITL', [], $currentLang) }}</a></li>
                         <li><a href="{{ route('pages.services.data_infrastructure') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_INFRASTRUCTURE', [], $currentLang) }}</a></li>
@@ -73,7 +74,8 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 <div>
                     <h4 class="text-lg font-bold mb-6 text-white">{{ __('footer.NAV_DEVELOPERS_SECURITY', [], $currentLang) }}</h4>
                     <ul class="space-y-3 text-sm">
-                        <li><a href="{{ route('pages.api_docs') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_API_DOCS', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('developers.index') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_API_DOCS', [], $currentLang) }}</a></li>
+                        <li><a href="{{ route('developers.beta') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_BETA_ACCESS', [], $currentLang) }}</a></li>
                         <li><a href="{{ route('pages.security_compliance') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_SECURITY_COMPLIANCE', [], $currentLang) }}</a></li>
                         <li><a href="{{ route('legal.terms') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_TERMS', [], $currentLang) }} (B2B)</a></li>
                         <li><a href="{{ route('legal.privacy') }}" class="text-slate-400 hover:text-brand-green transition-all duration-200 block">{{ __('footer.NAV_MENU_PRIVACY', [], $currentLang) }}</a></li>

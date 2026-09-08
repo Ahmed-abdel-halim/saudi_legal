@@ -226,6 +226,40 @@
             color: #f8fafc !important;
             font-family: 'Tajawal', sans-serif !important;
         }
+
+        /* ─── Custom Dual-Mode Toggle Switch (Matches Provided Design) ─── */
+        .mode-toggle-track {
+            width: 58px;
+            height: 30px;
+            border-radius: 9999px;
+            background: linear-gradient(90deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(6, 182, 212, 0.35);
+            flex-shrink: 0;
+        }
+        .mode-toggle-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ffffff;
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        }
+        html[dir="rtl"] .mode-toggle-thumb.is-professional {
+            transform: translateX(-28px);
+        }
+        html[dir="ltr"] .mode-toggle-thumb.is-professional {
+            transform: translateX(28px);
+        }
+        .mode-toggle-track.is-professional {
+            background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+        }
     </style>
 </head>
 
@@ -387,13 +421,74 @@
                         onerror="this.src='https://placehold.co/80x80/0d9488/0b1120?text=R'" alt="Radiif Logo"
                         class="w-20 h-20 rounded-full shadow-xl object-cover ring-4 ring-brand-green/30 mb-6">
                     <div
-                        class="glass-bubble p-8 max-w-2xl text-center relative border border-slate-200/50 dark:border-white/10">
-                        <h2 class="text-xl font-black text-slate-800 dark:text-slate-100 mb-3">رديف | المساعد الذكي القضائي</h2>
-                        <p class="text-sm text-slate-650 dark:text-slate-300 leading-relaxed font-medium mb-4">
-                            متخصص في الأنظمة والتشريعات السعودية , متميز في القضايا التجارية والعمالية
+                        class="glass-bubble p-6 sm:p-8 max-w-3xl text-center relative border border-slate-200/50 dark:border-white/10 w-full">
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">رديف | المساعد القانوني والعدلي الذكي</h2>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium mb-6">
+                            مستشارك الذكي للأنظمة واللوائح السعودية، يقدم استشارات موثقة بنصوص المواد والسوابق القضائية بصيغتين: مبسطة للمستفيدين أو احترافية للمحامين.
                         </p>
-                        <div class="text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-200/30 dark:border-white/10 font-medium">
-                            ⚠️ <strong>إخلاء المسئولية :</strong> أقدم معلومات استرشادية وليست استشارة قانونية رسمية
+
+                        <!-- 3 Core Non-Lawyer Focus Domains -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-right pt-2 border-t border-slate-200/30 dark:border-white/10">
+                            {{-- Domain 1: Labor Law --}}
+                            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/5 hover:border-brand-green/30 transition">
+                                <div class="flex items-center gap-2 mb-2 text-brand-green font-bold text-xs">
+                                    <i class="fa-solid fa-briefcase"></i>
+                                    <span>نظام العمل والعمال</span>
+                                </div>
+                                <div class="space-y-1.5 text-[11px]">
+                                    <button onclick="setQuery('كيف أحسب مكافأة نهاية الخدمة عند الاستقالة وفق نظام العمل؟')" class="w-full text-right p-1.5 rounded-lg hover:bg-brand-green/10 text-slate-700 dark:text-slate-300 transition">
+                                        • حساب مكافأة نهاية الخدمة عند الاستقالة
+                                    </button>
+                                    <button onclick="setQuery('ما هي حقوق العامل في حال إنهاء العقد خلال فترة التجربة؟')" class="w-full text-right p-1.5 rounded-lg hover:bg-brand-green/10 text-slate-700 dark:text-slate-300 transition">
+                                        • إنهاء العقد خلال فترة التجربة
+                                    </button>
+                                    <button onclick="setQuery('هل يحق للموظف الامتناع عن العمل عند تأخر صرف الرواتب؟')" class="w-full text-right p-1.5 rounded-lg hover:bg-brand-green/10 text-slate-700 dark:text-slate-300 transition">
+                                        • حقوق الموظف عند تأخر الرواتب
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- Domain 2: Residency & Expatriates --}}
+                            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/5 hover:border-indigo-500/30 transition">
+                                <div class="flex items-center gap-2 mb-2 text-indigo-400 font-bold text-xs">
+                                    <i class="fa-solid fa-passport"></i>
+                                    <span>الإقامة والجوازات</span>
+                                </div>
+                                <div class="space-y-1.5 text-[11px]">
+                                    <button onclick="setQuery('ما هي شروط نقل الكفالة بدون موافقة صاحب العمل؟')" class="w-full text-right p-1.5 rounded-lg hover:bg-indigo-500/10 text-slate-700 dark:text-slate-300 transition">
+                                        • نقل الكفالة بدون موافقة الكفيل
+                                    </button>
+                                    <button onclick="setQuery('كيف يتم إسقاط بلاغ الهروب أو التغيب عن العمل كيدياً؟')" class="w-full text-right p-1.5 rounded-lg hover:bg-indigo-500/10 text-slate-700 dark:text-slate-300 transition">
+                                        • إسقاط بلاغ التغيب عن العمل
+                                    </button>
+                                    <button onclick="setQuery('ما هو التصرف القانوني عند انتهاء تأشيرة الخروج والعودة خارج المملكة؟')" class="w-full text-right p-1.5 rounded-lg hover:bg-indigo-500/10 text-slate-700 dark:text-slate-300 transition">
+                                        • انتهاء تأشيرة الخروج والعودة
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- Domain 3: Commercial & Business Disputes --}}
+                            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-white/5 hover:border-cyan-500/30 transition">
+                                <div class="flex items-center gap-2 mb-2 text-cyan-400 font-bold text-xs">
+                                    <i class="fa-solid fa-scale-balanced"></i>
+                                    <span>النزاعات التجارية</span>
+                                </div>
+                                <div class="space-y-1.5 text-[11px]">
+                                    <button onclick="setQuery('ما هي إجراءات تنفيذ السند لأمر ومطالبة المدين قضائياً؟')" class="w-full text-right p-1.5 rounded-lg hover:bg-cyan-500/10 text-slate-700 dark:text-slate-300 transition">
+                                        • إجراءات تنفيذ سند لأمر ومطالبة المدين
+                                    </button>
+                                    <button onclick="setQuery('كيف تحل النزاعات بين الشركاء في الشركات ذات المسؤولية المحدودة؟')" class="w-full text-right p-1.5 rounded-lg hover:bg-cyan-500/10 text-slate-700 dark:text-slate-300 transition">
+                                        • فض النزاع بين الشركاء في السجل
+                                    </button>
+                                    <button onclick="setQuery('ما هو التعويض المستحق عند إخلال المورد بشروط عقد التوريد والمقاولات؟')" class="w-full text-right p-1.5 rounded-lg hover:bg-cyan-500/10 text-slate-700 dark:text-slate-300 transition">
+                                        • إخلال الطرف الآخر بعقد التوريد
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-xs text-slate-500 dark:text-slate-400 pt-3 mt-4 border-t border-slate-200/30 dark:border-white/10 font-medium">
+                            ⚠️ <strong>إخلاء المسئولية :</strong> أقدم معلومات استرشادية مبنية على الأنظمة السعودية المعتمدة وليست استشارة رسمية
                         </div>
                     </div>
                 </div>
@@ -406,12 +501,36 @@
 
             <!-- Chat input area -->
             <div class="w-full relative z-20 chat-input-bar">
+                <!-- Floating Mode Switcher above text bar -->
+                <div class="max-w-4xl mx-auto px-4 mb-2.5">
+                    <div class="flex items-center justify-between bg-white/80 dark:bg-dark-card/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">صيغة الإجابة:</span>
+                            <div class="flex items-center gap-2 select-none">
+                                <button type="button" onclick="setLegalMode('simplified')" id="label-simplified" class="text-xs font-black text-brand-teal transition cursor-pointer">
+                                    🟢 إجابة مبسطة (للأفراد)
+                                </button>
+                                <div id="mode-switch-track" class="mode-toggle-track" onclick="toggleLegalMode()" title="انقر للتبديل بين إجابة مبسطة واحترافية">
+                                    <div id="mode-switch-thumb" class="mode-toggle-thumb"></div>
+                                </div>
+                                <button type="button" onclick="setLegalMode('professional')" id="label-professional" class="text-xs font-bold text-slate-400 dark:text-slate-500 transition cursor-pointer">
+                                    ⚖️ إجابة احترافية (للمحامين)
+                                </button>
+                            </div>
+                        </div>
+                        <div class="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                            <i class="fa-solid fa-circle-info text-brand-teal"></i>
+                            <span id="mode-hint-text">شرح ميسر وخطوات عملية مع توثيق كامل بالأنظمة</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="max-w-4xl mx-auto px-4">
                     <div
                         class="relative w-full input-glow transition-all duration-300 rounded-full bg-white dark:bg-dark-card border border-slate-200/50 dark:border-white/10 shadow-xl shadow-black/5">
                         <input type="text" id="question-input"
                             class="w-full bg-transparent border-none focus:ring-0 px-6 md:px-8 py-4 md:py-5 text-sm md:text-base text-slate-800 dark:text-slate-100 font-medium placeholder-slate-400 dark:placeholder-slate-500 outline-none pr-16 md:pr-20 text-right"
-                            placeholder="مثال :على من يقع عبئ اثبات التزوير؟"
+                            placeholder="مثال : ما هي حقوقي في حال تم فصلي تعسفياً من العمل؟"
                             onkeypress="if(event.key === 'Enter') submitQuestion()">
 
                         <button onclick="submitQuestion()" id="btn-send"
@@ -430,6 +549,43 @@
         let currentConversationUuid = null;
         const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
         let remainingMessagesCount = 10;
+        let currentLegalMode = localStorage.getItem('radiif_legal_mode') || 'simplified';
+
+        function updateModeUi() {
+            const track = document.getElementById('mode-switch-track');
+            const thumb = document.getElementById('mode-switch-thumb');
+            const labelSimp = document.getElementById('label-simplified');
+            const labelProf = document.getElementById('label-professional');
+            const hintText = document.getElementById('mode-hint-text');
+
+            if (currentLegalMode === 'professional') {
+                track?.classList.add('is-professional');
+                thumb?.classList.add('is-professional');
+
+                if (labelSimp) labelSimp.className = 'text-xs font-bold text-slate-400 dark:text-slate-500 transition cursor-pointer';
+                if (labelProf) labelProf.className = 'text-xs font-black text-indigo-400 transition cursor-pointer';
+                if (hintText) hintText.innerText = 'تحليل قضائي وتكييف نظامي للمحامين والمستشارين';
+            } else {
+                track?.classList.remove('is-professional');
+                thumb?.classList.remove('is-professional');
+
+                if (labelSimp) labelSimp.className = 'text-xs font-black text-brand-teal transition cursor-pointer';
+                if (labelProf) labelProf.className = 'text-xs font-bold text-slate-400 dark:text-slate-500 transition cursor-pointer';
+                if (hintText) hintText.innerText = 'شرح ميسر وخطوات عملية مع توثيق كامل بالأنظمة';
+            }
+        }
+
+        function toggleLegalMode() {
+            currentLegalMode = currentLegalMode === 'simplified' ? 'professional' : 'simplified';
+            localStorage.setItem('radiif_legal_mode', currentLegalMode);
+            updateModeUi();
+        }
+
+        function setLegalMode(mode) {
+            currentLegalMode = mode;
+            localStorage.setItem('radiif_legal_mode', currentLegalMode);
+            updateModeUi();
+        }
 
         // ─── Citation Data Store & Full Screen Reader Modal Handlers ────────────
         window.citationDataStore = window.citationDataStore || {};
@@ -902,6 +1058,7 @@
 
         // عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', () => {
+            updateModeUi();
             const urlParams = new URLSearchParams(window.location.search);
             const initialUuid = urlParams.get('c');
 
@@ -1119,6 +1276,11 @@
                             ? renderConfidenceBadge(confidenceScore)
                             : '';
 
+                        const isSimpHist = m.message && (m.message.includes('خلاصة الموقف') || m.message.includes('الخطوات العملية') || m.message.includes('حقك النظامي'));
+                        const modeBadgeHist = isSimpHist
+                            ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/40 flex items-center gap-1 shrink-0"><i class="fa-solid fa-user-check text-[9px]"></i> إجابة مبسطة للأفراد</span>`
+                            : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/40 flex items-center gap-1 shrink-0"><i class="fa-solid fa-scale-balanced text-[9px]"></i> استشارة احترافية</span>`;
+
                         const aiMsgId = 'ai-msg-hist-' + m.id;
                         const aiHtml = `
                             <div id="${aiMsgId}" class="flex justify-end mb-8">
@@ -1126,12 +1288,13 @@
                                     <div class="absolute -top-10 -left-10 w-40 h-40 bg-brand-green/10 rounded-full blur-3xl"></div>
                                     
                                     <div class="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-white/5 pb-4 relative z-10">
-                                        <div class="flex items-center gap-3">
+                                        <div class="flex items-center gap-2.5">
                                             <img src="{{ asset('images/icon.png') }}"
                                                 onerror="this.src='https://placehold.co/40x40/0d9488/0b1120?text=R'"
                                                 alt="Radiif Logo"
                                                 class="w-10 h-10 rounded-full shadow-sm object-cover">
                                             <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-green to-brand-primary dark:to-brand-secondary">المستشار الذكي</span>
+                                            ${modeBadgeHist}
                                         </div>
                                         ${confidenceHtml}
                                     </div>
@@ -1243,7 +1406,8 @@
                     },
                     body: JSON.stringify({
                         question: question,
-                        conversation_uuid: currentConversationUuid
+                        conversation_uuid: currentConversationUuid,
+                        mode: currentLegalMode
                     })
                 });
 
@@ -1325,6 +1489,11 @@
                     }
                 }
 
+                const isProfMode = (data.mode === 'professional') || (!data.mode && currentLegalMode === 'professional');
+                const modeBadgeHtml = isProfMode
+                    ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/40 flex items-center gap-1 shrink-0"><i class="fa-solid fa-scale-balanced text-[9px]"></i> استشارة احترافية</span>`
+                    : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/40 flex items-center gap-1 shrink-0"><i class="fa-solid fa-user-check text-[9px]"></i> إجابة مبسطة للأفراد</span>`;
+
                 const formattedAnswer = data.answer ? data.answer.replace(/\n/g, '<br>') : '';
                 const confidenceHtml = (Array.isArray(citations) && citations.length > 0)
                     ? renderConfidenceBadge(confidenceScore)
@@ -1337,12 +1506,13 @@
                             <div class="absolute -top-10 -left-10 w-40 h-40 bg-brand-green/10 rounded-full blur-3xl"></div>
                             
                             <div class="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-white/5 pb-4 relative z-10">
-                                <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-2.5">
                                     <img src="{{ asset('images/icon.png') }}"
                                         onerror="this.src='https://placehold.co/40x40/0d9488/0b1120?text=R'"
                                         alt="Radiif Logo"
                                         class="w-10 h-10 rounded-full shadow-sm object-cover">
                                     <span class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-green to-brand-primary dark:to-brand-secondary">المستشار الذكي</span>
+                                    ${modeBadgeHtml}
                                 </div>
                                 ${confidenceHtml}
                             </div>

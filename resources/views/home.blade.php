@@ -995,6 +995,194 @@ $direction = $currentLang === 'ar' ? 'rtl' : 'ltr';
     </div>
 </section>
 
+{{-- ── PRODUCT SECTION ───────────────────────────────────── --}}
+<section id="product" class="py-20 relative overflow-hidden transition-colors duration-300" style="background: radial-gradient(ellipse at 50% 10%, rgba(13, 148, 136, 0.12) 0%, #0b1120 70%);" dir="{{ $direction }}">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-[1350px] relative z-10">
+
+        {{-- Section Header --}}
+        <div class="text-center max-w-3xl mx-auto mb-14">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-green/10 border border-brand-green/30 text-brand-green text-xs font-black uppercase tracking-wider mb-4">
+                <i class="fa-solid fa-layer-group text-sm animate-pulse"></i>
+                <span>{{ $currentLang === 'en' ? 'Product & Technology' : 'واجهة المنتج والتقنية | Product' }}</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            </div>
+            
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight mb-5">
+                {{ $currentLang === 'en' 
+                    ? 'State-of-the-Art Legal Ingestion & Annotation Pipeline' 
+                    : 'لوحة تحكم ذكية لسحب، توسيم، وفهرسة الأنظمة والسوابق القضائية' }}
+            </h2>
+            
+            <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
+                {{ $currentLang === 'en'
+                    ? 'Explore how Radiif automates the ingestion of Saudi statutes, court rulings, and commercial regulations with automated OCR, deep NLP tagging, and vector knowledge graphs.'
+                    : 'تعرّف على كيفية قيام منصة "رديف" بسحب نصوص الأحكام القضائية والأنظمة السعودية من مصادرها الرسمية وتوسيمها دلالياً بالذكاء الاصطناعي لتقديم أدق استدلال قانوني فوري.' }}
+            </p>
+        </div>
+
+        {{-- Product Feature Showcase Window --}}
+        <div class="rounded-3xl bg-slate-900/90 border border-slate-700/60 shadow-[0_25px_70px_rgba(0,0,0,0.6)] overflow-hidden backdrop-blur-xl mb-12"
+             x-data="{ activeView: 'overview' }">
+
+            {{-- Mock Browser / App Titlebar --}}
+            <div class="flex flex-wrap items-center justify-between px-6 py-4 bg-slate-950/80 border-b border-slate-800 gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
+                    <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
+                    <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+                    <span class="text-xs font-mono text-slate-400 mr-2 ml-2 hidden sm:inline">radiif-control-center.internal/v2/ingestion-pipeline</span>
+                </div>
+
+                {{-- Interactive Tabs --}}
+                <div class="flex items-center gap-1 sm:gap-2 text-xs">
+                    <button @click="activeView = 'overview'" 
+                            :class="activeView === 'overview' ? 'bg-brand-green/20 text-brand-green border-brand-green/40' : 'text-slate-400 hover:text-white border-transparent'"
+                            class="px-3 py-1.5 rounded-lg border font-bold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-pie text-[11px]"></i>
+                        <span>لوحة الاستيعاب</span>
+                    </button>
+                    <button @click="activeView = 'tagging'" 
+                            :class="activeView === 'tagging' ? 'bg-brand-green/20 text-brand-green border-brand-green/40' : 'text-slate-400 hover:text-white border-transparent'"
+                            class="px-3 py-1.5 rounded-lg border font-bold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-tags text-[11px]"></i>
+                        <span>التوسيم الدلالي</span>
+                    </button>
+                    <button @click="activeView = 'terminal'" 
+                            :class="activeView === 'terminal' ? 'bg-brand-green/20 text-brand-green border-brand-green/40' : 'text-slate-400 hover:text-white border-transparent'"
+                            class="px-3 py-1.5 rounded-lg border font-bold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-terminal text-[11px]"></i>
+                        <span>سجل السحب المباشر</span>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Main Visual Display --}}
+            <div class="relative bg-[#060c17]">
+
+                {{-- View 1: Overview (Generated Dashboard Screenshot with glowing badge) --}}
+                <div x-show="activeView === 'overview'" class="relative group">
+                    <img src="{{ asset('images/product-dashboard.png') }}" 
+                         alt="Radiif Legal AI Ingestion Dashboard" 
+                         class="w-full h-auto max-h-[640px] object-cover object-top transition duration-500 group-hover:scale-[1.01]">
+
+                    {{-- Floating Ingestion Pulse Overlay --}}
+                    <div class="absolute bottom-6 {{ $direction === 'rtl' ? 'right-6' : 'left-6' }} bg-slate-950/85 backdrop-blur-md p-4 rounded-2xl border border-brand-green/30 shadow-2xl max-w-sm hidden sm:block">
+                        <div class="flex items-center gap-3">
+                            <span class="relative flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                            </span>
+                            <div>
+                                <h4 class="text-xs font-bold text-white">سحب وتوسيم مباشر (Live Ingestion)</h4>
+                                <p class="text-[11px] text-slate-400">تمت معالجة وتوسيم أكثر من 50,000 سابقة قضائية ونظام</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- View 2: Tagging Inspector Simulation --}}
+                <div x-show="activeView === 'tagging'" class="p-6 sm:p-10 min-h-[460px] flex flex-col justify-center" style="display: none;">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-4 text-right">
+                            <span class="text-xs font-bold px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 inline-block">
+                                محرك التوسيم والتصنيف الدلالي بالـ AI
+                            </span>
+                            <h3 class="text-2xl font-black text-white">تحليل أركان النزاع وربطها بنصوص الأنظمة</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">
+                                يقوم النموذج بفحص نصوص الأحكام، واستخراج: (الوقائع، الدفوع، الأساس النظامي، منطوق الحكم)، وتصنيفها تحت وسوم قانونية محكمة لتسهيل الاسترجاع الفوري.
+                            </p>
+
+                            <div class="flex flex-wrap gap-2 pt-2">
+                                <span class="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">#نظام_المحاكم_التجارية</span>
+                                <span class="px-3 py-1 rounded-lg text-xs font-bold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">#عقد_توريد_ومقاولات</span>
+                                <span class="px-3 py-1 rounded-lg text-xs font-bold bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">#فسخ_لعدم_السداد</span>
+                                <span class="px-3 py-1 rounded-lg text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">#قيمة_سابقة_عالية</span>
+                                <span class="px-3 py-1 rounded-lg text-xs font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30">#محكمة_الاستئناف_بالرياض</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 font-mono text-xs text-slate-300 text-left space-y-2" dir="ltr">
+                            <div class="text-slate-500">// Real-time Tagging Metadata Output</div>
+                            <div><span class="text-indigo-400">"document_id"</span>: <span class="text-emerald-400">"KSA-COMM-2026-9481"</span>,</div>
+                            <div><span class="text-indigo-400">"primary_domain"</span>: <span class="text-emerald-400">"Commercial Law"</span>,</div>
+                            <div><span class="text-indigo-400">"sub_categories"</span>: [<span class="text-amber-300">"Supply Dispute"</span>, <span class="text-amber-300">"Default Payment"</span>],</div>
+                            <div><span class="text-indigo-400">"matched_statutes"</span>: [</div>
+                            <div class="pl-4 text-teal-300">{"system": "Commercial Courts Law", "article": 19, "confidence": 0.994},</div>
+                            <div class="pl-4 text-teal-300">{"system": "Civil Transactions Law", "article": 107, "confidence": 0.982}</div>
+                            <div>],</div>
+                            <div><span class="text-indigo-400">"precedent_weight"</span>: <span class="text-cyan-400">0.96</span>,</div>
+                            <div><span class="text-indigo-400">"status"</span>: <span class="text-emerald-400">"INDEXED_READY"</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- View 3: Live Ingestion Terminal Simulation --}}
+                <div x-show="activeView === 'terminal'" class="p-6 sm:p-10 min-h-[460px] bg-slate-950 font-mono text-xs text-slate-300" dir="ltr" style="display: none;">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-4 text-slate-500">
+                        <span>LIVE_LOGSTREAM: saudi-legal-crawler-worker-01</span>
+                        <span class="text-emerald-400">● 240 req/min (HEALTHY)</span>
+                    </div>
+                    <div class="space-y-3 leading-relaxed">
+                        <p><span class="text-slate-500">[22:24:01]</span> <span class="text-cyan-400">INFO:</span> Connecting to Saudi Official Gazette & MoJ Legal Precedent Registry...</p>
+                        <p><span class="text-slate-500">[22:24:04]</span> <span class="text-emerald-400">SUCCESS:</span> Ingested 142 new appellate rulings from Commercial Courts.</p>
+                        <p><span class="text-slate-500">[22:24:08]</span> <span class="text-indigo-400">NLP_ENGINE:</span> Extracting statutory citations & applying BERT-Arabic legal embeddings.</p>
+                        <p><span class="text-slate-500">[22:24:12]</span> <span class="text-amber-400">QDRANT_VECTOR:</span> Indexed vector payloads to collection <code class="text-teal-300">'saudi_legal_tasks'</code>.</p>
+                        <p><span class="text-slate-500">[22:24:15]</span> <span class="text-emerald-400">READY:</span> Hybrid search clusters synced across Azure AI & Qdrant with sub-800ms latency.</p>
+                        <p class="text-brand-green animate-pulse">>>> Ready for real-time inference via Web Interface & Developer REST API...</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- Feature Highlights Grid --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-brand-green/30 transition">
+                <div class="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center text-brand-green text-lg mb-4">
+                    <i class="fa-solid fa-cloud-arrow-down"></i>
+                </div>
+                <h4 class="text-base font-bold text-white mb-2">{{ $currentLang === 'en' ? 'Automated Ingestion' : 'سحب واستيعاب آلي مستمر' }}</h4>
+                <p class="text-slate-400 text-xs leading-relaxed">
+                    تحديث يومي دوري لكافة التعديلات التشريعية والقرارات الوزارية الصادرة حديثاً لضمان حداثة البيانات.
+                </p>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-brand-green/30 transition">
+                <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-lg mb-4">
+                    <i class="fa-solid fa-network-wired"></i>
+                </div>
+                <h4 class="text-base font-bold text-white mb-2">{{ $currentLang === 'en' ? 'Citation Graph' : 'ربط شبكي بين المواد والأحكام' }}</h4>
+                <p class="text-slate-400 text-xs leading-relaxed">
+                    خوارزميات متقدمة تربط كل مادة نظامية بالأحكام القضائية التي طبقتها في أرض الواقع وسوابق الاستئناف.
+                </p>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-brand-green/30 transition">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 text-lg mb-4">
+                    <i class="fa-solid fa-code"></i>
+                </div>
+                <h4 class="text-base font-bold text-white mb-2">{{ $currentLang === 'en' ? 'Dual-Mode Assistant' : 'مساعد ذكي مزدوج الصياغة' }}</h4>
+                <p class="text-slate-400 text-xs leading-relaxed">
+                    إمكانية استخراج الإجابات بأسلوب مبسط للأفراد وغير المحامين، أو بأسلوب احترافي قضائي للمحامين والشركات.
+                </p>
+            </div>
+        </div>
+
+        {{-- Call To Action row --}}
+        <div class="flex flex-wrap items-center justify-center gap-4">
+            <a href="{{ route('legal_assistant.public') }}" class="px-8 py-3.5 bg-gradient-to-r from-brand-green to-brand-teal text-dark-navy font-black rounded-xl shadow-green-glow hover:scale-105 transition-all duration-200 flex items-center gap-2">
+                <i class="fa-solid fa-robot"></i>
+                <span>{{ $currentLang === 'en' ? 'Try AI Assistant Free' : 'تجربة المساعد القانوني مجاناً' }}</span>
+            </a>
+            <a href="{{ route('developers.index') }}" class="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-700 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-terminal text-cyan-400"></i>
+                <span>{{ $currentLang === 'en' ? 'View Developer API' : 'توثيق واجهة المطورين (API)' }}</span>
+            </a>
+        </div>
+
+    </div>
+</section>
+
 {{-- Why Radiif Section --}}
 <section class="why-section" dir="{{ $direction }}">
     <div class="container mx-auto px-4">

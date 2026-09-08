@@ -30,6 +30,12 @@ Route::get('/legal-assistant/conversations', [\App\Http\Controllers\Legal\LegalA
 Route::get('/legal-assistant/conversations/{uuid}', [\App\Http\Controllers\Legal\LegalAiController::class, 'getMessages'])->name('legal_assistant.messages');
 Route::delete('/legal-assistant/conversations/{uuid}', [\App\Http\Controllers\Legal\LegalAiController::class, 'deleteConversation'])->name('legal_assistant.delete');
 
+// Developer Portal & API Documentation Routes
+Route::get('/developers', [\App\Http\Controllers\DeveloperController::class, 'index'])->name('developers.index');
+Route::get('/api-docs', [\App\Http\Controllers\DeveloperController::class, 'index'])->name('developers.docs');
+Route::get('/request-beta-access', [\App\Http\Controllers\DeveloperController::class, 'betaForm'])->name('developers.beta');
+Route::post('/request-beta-access', [\App\Http\Controllers\DeveloperController::class, 'submitBeta'])->name('developers.beta.submit');
+
 // Careers Route
 Route::get('/careers', [App\Http\Controllers\CareerController::class, 'index'])->name('careers');
 

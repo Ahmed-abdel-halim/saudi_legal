@@ -36,9 +36,11 @@ return [
     'SOCIAL_LINKEDIN' => 'LinkedIn',
 
     // B2B SaaS Additions
-    'NAV_TECHNICAL_SERVICES' => 'Technical Services',
+    'NAV_TECHNICAL_SERVICES' => 'Technical Services & Product',
     'NAV_DEVELOPERS_SECURITY' => 'Developers & Security',
-    'NAV_MENU_API_DOCS' => 'API Documentation',
+    'NAV_MENU_PRODUCT' => 'Product & Platform Overview',
+    'NAV_MENU_API_DOCS' => 'Developer Portal & API Docs',
+    'NAV_MENU_BETA_ACCESS' => 'Request Beta API Access',
     'NAV_MENU_SECURITY_COMPLIANCE' => 'Security & Compliance',
     'NAV_MENU_RLHF' => 'Model Tuning (RLHF)',
     'NAV_MENU_HITL' => 'Human-in-the-Loop (HITL)',
