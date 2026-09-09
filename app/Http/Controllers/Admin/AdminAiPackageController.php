@@ -148,11 +148,99 @@ class AdminAiPackageController extends Controller
         $subscriptions = AiSubscription::with(['user', 'package'])
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->package_id, fn($q) => $q->where('ai_package_id', $request->package_id))
+            ->when($request->search, function ($q) use ($request) {
+                $q->whereHas('user', fn($uq) => $uq->where('name', 'like', "%{$request->search}%")
+                    ->orWhere('email', 'like', "%{$request->search}%"));
+            })
             ->latest()
             ->paginate(20);
 
         $packages = AiPackage::orderBy('sort_order')->get(['id', 'name']);
 
-        return view('admin.ai_packages.subscriptions', compact('subscriptions', 'packages'));
+        // لنموذج التفعيل اليدوي (يشمل جميع المستخدمين حتى يتسنى للمدير تفعيل باقة لحسابه أو لأي مستخدم آخر)
+        $users = \App\Models\User::orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        return view('admin.ai_packages.subscriptions', compact('subscriptions', 'packages', 'users'));
+    }
+
+    // ─── Grant Subscription Manually ──────────────────────────────────────────
+
+    public function grantSubscription(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id'      => 'required|exists:users,id',
+            'ai_package_id' => 'required|exists:ai_packages,id',
+            'duration_type' => 'required|in:lifetime,1_month,3_months,6_months,1_year',
+            'notes'        => 'nullable|string|max:500',
+        ]);
+
+        $user    = \App\Models\User::findOrFail($validated['user_id']);
+        $package = AiPackage::findOrFail($validated['ai_package_id']);
+
+        // احسب تاريخ الانتهاء
+        $endsAt = match ($validated['duration_type']) {
+            'lifetime'  => null,
+            '1_month'   => now()->addMonth(),
+            '3_months'  => now()->addMonths(3),
+            '6_months'  => now()->addMonths(6),
+            '1_year'    => now()->addYear(),
+        };
+
+        $isUnlimited = ($validated['duration_type'] === 'lifetime')
+            || $package->is_unlimited
+            || $package->query_limit === -1;
+
+        // إلغاء أي اشتراكات نشطة سابقة
+        AiSubscription::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->update(['status' => 'cancelled']);
+
+        // إنشاء الاشتراك الجديد
+        AiSubscription::create([
+            'user_id'       => $user->id,
+            'ai_package_id' => $package->id,
+            'status'        => 'active',
+            'amount_paid'   => 0.00,
+            'currency'      => 'SAR',
+            'starts_at'     => now(),
+            'ends_at'       => $endsAt,
+            'queries_used'  => 0,
+            'is_unlimited'  => $isUnlimited,
+            'granted_by'    => auth()->user()->name ?? 'Admin',
+            'notes'         => $validated['notes'] ?? 'تم التفعيل يدوياً من لوحة التحكم',
+        ]);
+
+        $durationLabel = match ($validated['duration_type']) {
+            'lifetime' => 'مدى الحياة ♾️',
+            '1_month'  => 'شهر واحد',
+            '3_months' => '3 أشهر',
+            '6_months' => '6 أشهر',
+            '1_year'   => 'سنة كاملة',
+        };
+
+        return back()->with('success',
+            "✅ تم تفعيل باقة [{$package->name}] للمستخدم [{$user->name}] لمدة: {$durationLabel}"
+        );
+    }
+
+    // ─── Revoke Subscription ───────────────────────────────────────────────────
+
+    public function revokeSubscription(AiSubscription $subscription)
+    {
+        $userName = $subscription->user->name ?? 'المستخدم';
+        $subscription->update(['status' => 'cancelled']);
+
+        return back()->with('success', "🚫 تم إلغاء اشتراك [{$userName}] بنجاح.");
+    }
+
+    // ─── Delete Subscription ───────────────────────────────────────────────────
+
+    public function destroySubscription(AiSubscription $subscription)
+    {
+        $userName = $subscription->user->name ?? 'المستخدم';
+        $subscription->delete();
+
+        return back()->with('success', "🗑️ تم حذف سجل الاشتراك للمستخدم [{$userName}].");
     }
 }

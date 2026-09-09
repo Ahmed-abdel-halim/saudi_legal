@@ -21,12 +21,16 @@ class AiSubscription extends Model
         'starts_at',
         'ends_at',
         'queries_used',
+        'is_unlimited',
+        'granted_by',
+        'notes',
     ];
 
     protected $casts = [
-        'starts_at'  => 'datetime',
-        'ends_at'    => 'datetime',
+        'starts_at'   => 'datetime',
+        'ends_at'     => 'datetime',
         'amount_paid' => 'decimal:2',
+        'is_unlimited' => 'boolean',
     ];
 
     // ─── Relationships ─────────────────────────────────────────────────────────
@@ -60,10 +64,30 @@ class AiSubscription extends Model
             && ($this->ends_at === null || $this->ends_at->isFuture());
     }
 
+    /**
+     * هل الاشتراك غير محدود الاستعلامات فعلياً؟
+     * يصح إذا: الحقل is_unlimited مفعّل، أو الباقة نفسها غير محدودة، أو ends_at فارغ.
+     */
+    public function isEffectivelyUnlimited(): bool
+    {
+        if ($this->is_unlimited) return true;
+        if ($this->ends_at === null && $this->status === 'active') return true;
+        if ($this->package && ($this->package->is_unlimited || $this->package->query_limit === -1)) return true;
+        return false;
+    }
+
+    /**
+     * هل الاشتراك مدى الحياة (Lifetime)؟
+     */
+    public function isLifetime(): bool
+    {
+        return $this->status === 'active' && $this->ends_at === null;
+    }
+
     public function getRemainingQueriesAttribute(): int
     {
+        if ($this->isEffectivelyUnlimited()) return PHP_INT_MAX;
         if (!$this->package) return 0;
-        if ($this->package->is_unlimited) return PHP_INT_MAX;
         return max(0, $this->package->query_limit - $this->queries_used);
     }
 

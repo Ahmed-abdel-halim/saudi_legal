@@ -164,6 +164,28 @@ class User extends Authenticatable
     }
 
     /**
+     * علاقة اشتراكات المساعد القانوني الذكي للمستخدم.
+     */
+    public function aiSubscriptions()
+    {
+        return $this->hasMany(\App\Models\AiSubscription::class);
+    }
+
+    /**
+     * الاشتراك النشط الحالي في المساعد القانوني الذكي.
+     */
+    public function activeAiSubscription()
+    {
+        return $this->hasOne(\App\Models\AiSubscription::class)
+            ->where('status', 'active')
+            ->where(function ($q) {
+                $q->whereNull('ends_at')->orWhere('ends_at', '>', now());
+            })
+            ->with('package')
+            ->latestOfMany();
+    }
+
+    /**
      * Get the AI responses submitted by the user.
      */
     public function aiResponses()

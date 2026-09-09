@@ -319,9 +319,14 @@ Route::middleware(['superadmin'])->prefix('admin')->name('admin.')->group(functi
     Route::patch('/ai-packages/{aiPackage}/toggle', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'toggleActive'])->name('ai_packages.toggle');
     Route::delete('/ai-packages/{aiPackage}', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'destroy'])->name('ai_packages.destroy');
     Route::get('/ai-packages-subscriptions', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'subscriptions'])->name('ai_packages.subscriptions');
+    // إدارة الاشتراكات يدوياً من الأدمن
+    Route::post('/ai-packages-subscriptions/grant', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'grantSubscription'])->name('ai_packages.subscriptions.grant');
+    Route::patch('/ai-packages-subscriptions/{subscription}/revoke', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'revokeSubscription'])->name('ai_packages.subscriptions.revoke');
+    Route::delete('/ai-packages-subscriptions/{subscription}', [\App\Http\Controllers\Admin\AdminAiPackageController::class, 'destroySubscription'])->name('ai_packages.subscriptions.destroy');
 
     Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('users.index');
     Route::patch('/users/{id}/toggle-status', [\App\Http\Controllers\Admin\AdminUserController::class, 'toggleStatus'])->name('users.toggle-status');
+    Route::post('/users/{id}/grant-ai-subscription', [\App\Http\Controllers\Admin\AdminUserController::class, 'grantAiSubscription'])->name('users.grant-ai-subscription');
     Route::delete('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'destroy'])->name('users.destroy');
 
     // Companies Management

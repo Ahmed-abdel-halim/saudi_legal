@@ -128,14 +128,31 @@ class LegalAiController extends Controller
         $this->checkMessageLimit($request, $messageCount, $limit);
         $referralLink = auth()->check() ? route('register.company', ['ref' => auth()->id()]) : null;
 
+        // فحص حالة الاشتراك للإرسال للواجهة الأمامية
+        $isUnlimited = $limit === PHP_INT_MAX && auth()->check();
+        $subName = null;
+        if (auth()->check()) {
+            $activeSub = \App\Models\AiSubscription::where('user_id', auth()->id())
+                ->where('status', 'active')
+                ->where(function ($q) { $q->whereNull('ends_at')->orWhere('ends_at', '>', now()); })
+                ->with('package')
+                ->latest()->first();
+            if ($activeSub) {
+                $isUnlimited = $activeSub->isEffectivelyUnlimited();
+                $subName = $activeSub->package->name ?? null;
+            }
+        }
+
         return response()->json([
             'conversations' => $conversations,
             'usage' => [
-                'count'        => $messageCount,
-                'limit'        => $limit,
-                'remaining'    => max(0, $limit - $messageCount),
-                'is_logged_in' => auth()->check(),
-                'referral_link'=> $referralLink,
+                'count'             => $messageCount,
+                'limit'             => $limit === PHP_INT_MAX ? 999999 : $limit,
+                'remaining'         => $limit === PHP_INT_MAX ? 999999 : max(0, $limit - $messageCount),
+                'is_logged_in'      => auth()->check(),
+                'referral_link'     => $referralLink,
+                'is_unlimited'      => $isUnlimited,
+                'subscription_name' => $subName,
             ]
         ]);
     }
@@ -845,6 +862,21 @@ class LegalAiController extends Controller
         $this->checkMessageLimit($request, $messageCount, $limit);
         $referralLink = auth()->check() ? route('register.company', ['ref' => auth()->id()]) : null;
 
+        // فحص حالة الاشتراك للإرسال للواجهة
+        $isUnlimited = $limit === PHP_INT_MAX && auth()->check();
+        $subName = null;
+        if (auth()->check()) {
+            $activeSub = \App\Models\AiSubscription::where('user_id', auth()->id())
+                ->where('status', 'active')
+                ->where(function ($q) { $q->whereNull('ends_at')->orWhere('ends_at', '>', now()); })
+                ->with('package')
+                ->latest()->first();
+            if ($activeSub) {
+                $isUnlimited = $activeSub->isEffectivelyUnlimited();
+                $subName = $activeSub->package->name ?? null;
+            }
+        }
+
         return response()->json([
             'answer'            => $answer,
             'citations'         => $citationsPayload,
@@ -852,11 +884,13 @@ class LegalAiController extends Controller
             'search_method'     => $searchMethod,
             'mode'              => $mode,
             'usage'             => [
-                'count'        => $messageCount,
-                'limit'        => $limit,
-                'remaining'    => max(0, $limit - $messageCount),
-                'is_logged_in' => auth()->check(),
-                'referral_link'=> $referralLink,
+                'count'             => $messageCount,
+                'limit'             => $limit === PHP_INT_MAX ? 999999 : $limit,
+                'remaining'         => $limit === PHP_INT_MAX ? 999999 : max(0, $limit - $messageCount),
+                'is_logged_in'      => auth()->check(),
+                'referral_link'     => $referralLink,
+                'is_unlimited'      => $isUnlimited,
+                'subscription_name' => $subName,
             ]
         ]);
     }
@@ -1101,7 +1135,7 @@ class LegalAiController extends Controller
                 ->latest()
                 ->first();
 
-            if ($subscription && $subscription->package) {
+            if ($subscription) {
                 // Subscription is active — count queries used in this billing period
                 $periodStart = $subscription->starts_at ?? now()->startOfMonth();
 
@@ -1112,10 +1146,15 @@ class LegalAiController extends Controller
                     ->where('created_at', '>=', $periodStart)
                     ->count();
 
-                if ($subscription->package->is_unlimited || $subscription->package->query_limit === -1) {
+                // يشمل: is_unlimited من الاشتراك، أو is_unlimited من الباقة، أو ends_at = null (مدى الحياة)
+                $effectivelyUnlimited = $subscription->isEffectivelyUnlimited();
+
+                if ($effectivelyUnlimited) {
                     $limit = PHP_INT_MAX; // لامحدود
-                } else {
+                } elseif ($subscription->package && $subscription->package->query_limit !== null) {
                     $limit = $subscription->package->query_limit;
+                } else {
+                    $limit = PHP_INT_MAX;
                 }
 
                 // Sync queries_used in subscription record

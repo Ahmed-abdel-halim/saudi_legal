@@ -909,8 +909,10 @@
         }
 
         let userReferralLink = '';
+        let currentUsageState = {}; // حالة الاستخدام الحالية للمستخدم
 
         function updateUsageUi(usage) {
+            currentUsageState = usage; // حفظ الحالة عالمياً
             const widget = document.getElementById('usage-limit-widget');
             const labelSpan = document.getElementById('usage-limit-label');
             const ratioSpan = document.getElementById('usage-limit-ratio');
@@ -919,11 +921,30 @@
 
             userReferralLink = usage.referral_link || '';
 
+            // ── مشترك غير محدود / مدى الحياة: إخفاء الويدجت + إظهار شارة الباقة
+            if (usage.is_unlimited) {
+                widget.classList.remove('hidden');
+                labelSpan.textContent = 'اشتراكك:';
+                const pkgName = usage.subscription_name || 'باقة نشطة';
+                ratioSpan.textContent = '♾️ استعلامات غير محدودة';
+                ratioSpan.style.color = '#10b981'; // emerald
+                bar.style.width = '100%';
+                bar.className = 'bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-300';
+                actionDiv.innerHTML = `
+                    <span class="text-[10px] font-black text-emerald-500 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-crown"></i> ${pkgName}
+                    </span>
+                `;
+                // لا تُظهر المودال أبداً للمشتركين
+                return;
+            }
+
             widget.classList.remove('hidden');
             const remaining = Math.max(0, usage.limit - usage.count);
             remainingMessagesCount = remaining;
             labelSpan.textContent = 'الرسائل المتبقية:';
             ratioSpan.textContent = `${remaining} رسالة`;
+            ratioSpan.style.color = '';
 
             const percentage = Math.min(100, (usage.count / usage.limit) * 100);
             bar.style.width = `${percentage}%`;
@@ -965,6 +986,9 @@
         }
 
         function showLimitModal(isLoggedIn) {
+            // لا تُظهر المودال مطلقاً إذا كان المستخدم يملك اشتراكاً غير محدود
+            if (typeof currentUsageState !== 'undefined' && currentUsageState.is_unlimited) return;
+
             const modal = document.getElementById('limit-modal');
             const box = document.getElementById('limit-modal-box');
             const title = document.getElementById('limit-modal-title');

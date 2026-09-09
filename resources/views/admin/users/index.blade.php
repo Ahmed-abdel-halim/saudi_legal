@@ -90,6 +90,7 @@
                     <th class="px-5 py-4 font-bold tracking-wider">{{ __('admin.phone_col') ?? 'Phone' }}</th>
                     <th class="px-5 py-4 font-bold tracking-wider">{{ __('admin.domain_col') ?? 'Domain / Spec.' }}</th>
                     <th class="px-5 py-4 font-bold tracking-wider">{!! __('admin.status_col') !!}</th>
+                    <th class="px-5 py-4 font-bold tracking-wider">باقة الذكاء الاصطناعي</th>
                     <th class="px-5 py-4 font-bold tracking-wider">{!! __('admin.joined_at_col') !!}</th>
                     <th class="px-5 py-4 font-bold tracking-wider text-right rtl:text-left">{!! __('admin.actions_col') !!}</th>
                 </tr>
@@ -180,9 +181,44 @@
                             <div class="text-slate-400 mt-0.5">{{ $user->created_at->diffForHumans() }}</div>
                         </td>
 
+                        {{-- AI Subscription Badge --}}
+                        @php
+                            $activeSub = $user->activeAiSubscription;
+                        @endphp
+                        <td class="px-5 py-4">
+                            @if($activeSub)
+                                @if($activeSub->isLifetime())
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                        👑 {{ $activeSub->package->name ?? 'مدى الحياة' }} ♾️
+                                    </span>
+                                @elseif($activeSub->isEffectivelyUnlimited())
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        ⚡ {{ $activeSub->package->name ?? 'غير محدود' }} ♾️
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                                        ✅ {{ $activeSub->package->name ?? 'باقة نشطة' }}
+                                        <span class="text-slate-400 font-normal">حتى {{ $activeSub->ends_at?->format('Y-m-d') ?? '—' }}</span>
+                                    </span>
+                                @endif
+                            @else
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-50 text-slate-400 border border-slate-200">
+                                    مجاني
+                                </span>
+                            @endif
+                        </td>
+
                         {{-- Actions --}}
                         <td class="px-5 py-4 text-right rtl:text-left">
                             <div class="flex items-center justify-end gap-2">
+
+                                {{-- Grant AI Subscription --}}
+                                <button type="button"
+                                    onclick="openGrantModal({{ $user->id }}, '{{ addslashes($user->name) }}')"
+                                    class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-amber-500 hover:text-white hover:border-amber-400 hover:bg-amber-400 transition shadow-sm"
+                                    title="تفعيل باقة ذكاء اصطناعي">
+                                    <i class="fa-solid fa-bolt text-xs"></i>
+                                </button>
 
                                 {{-- Toggle Suspend/Activate --}}
                                 <form action="{{ route('admin.users.toggle-status', $user->id) }}" method="POST" class="inline-block">
@@ -255,5 +291,152 @@
         </div>
     @endif
 </div>
+
+{{-- ═══════════════════════════════════════════════════════════════════
+     نافذة منبثقة: تفعيل باقة ذكاء اصطناعي لمستخدم (Grant AI Package Modal)
+     ═══════════════════════════════════════════════════════════════════ --}}
+<div id="grant-ai-modal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+     onclick="if(event.target===this)closeGrantModal()">
+
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-700 transform transition-all"
+         id="grant-ai-modal-box">
+
+        {{-- Header --}}
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-amber-100 flex items-center justify-center">
+                    <i class="fa-solid fa-bolt text-amber-500 text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="font-black text-slate-800 dark:text-white text-lg">تفعيل باقة ذكاء اصطناعي</h2>
+                    <p class="text-slate-500 text-xs mt-0.5">للمستخدم: <span id="grant-user-name" class="font-bold text-slate-700 dark:text-slate-300"></span></p>
+                </div>
+            </div>
+            <button onclick="closeGrantModal()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        {{-- Success Flash --}}
+        @if(session('success'))
+        <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-4 py-3 text-sm font-semibold">
+            <i class="fa-solid fa-circle-check mr-2"></i> {{ session('success') }}
+        </div>
+        @endif
+
+        <form id="grant-ai-form"
+              method="POST"
+              action=""
+              class="space-y-4">
+            @csrf
+
+            {{-- اختيار الباقة --}}
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    <i class="fa-solid fa-box-open text-amber-500 mr-1"></i> اختر الباقة
+                </label>
+                <select name="ai_package_id" required
+                        class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 transition">
+                    @foreach($packages as $pkg)
+                        <option value="{{ $pkg->id }}">
+                            {{ $pkg->name }}
+                            @if($pkg->billing_period === 'lifetime') (مدى الحياة)
+                            @elseif($pkg->billing_period === 'monthly') (شهري)
+                            @elseif($pkg->billing_period === 'yearly') (سنوي)
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- اختيار المدة --}}
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    <i class="fa-solid fa-calendar-days text-sky-500 mr-1"></i> مدة الاشتراك
+                </label>
+                <div class="grid grid-cols-3 gap-2">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="duration_type" value="lifetime" class="sr-only peer" checked>
+                        <div class="peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 text-center text-xs font-bold text-slate-600 dark:text-slate-400 hover:border-amber-400 transition">
+                            ♾️ مدى الحياة
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="duration_type" value="1_month" class="sr-only peer">
+                        <div class="peer-checked:bg-sky-500 peer-checked:text-white peer-checked:border-sky-500 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 text-center text-xs font-bold text-slate-600 dark:text-slate-400 hover:border-sky-400 transition">
+                            🗓️ شهر
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="duration_type" value="3_months" class="sr-only peer">
+                        <div class="peer-checked:bg-sky-500 peer-checked:text-white peer-checked:border-sky-500 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 text-center text-xs font-bold text-slate-600 dark:text-slate-400 hover:border-sky-400 transition">
+                            🗓️ 3 أشهر
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="duration_type" value="6_months" class="sr-only peer">
+                        <div class="peer-checked:bg-sky-500 peer-checked:text-white peer-checked:border-sky-500 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 text-center text-xs font-bold text-slate-600 dark:text-slate-400 hover:border-sky-400 transition">
+                            🗓️ 6 أشهر
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="duration_type" value="1_year" class="sr-only peer">
+                        <div class="peer-checked:bg-sky-500 peer-checked:text-white peer-checked:border-sky-500 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 text-center text-xs font-bold text-slate-600 dark:text-slate-400 hover:border-sky-400 transition">
+                            🗓️ سنة
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            {{-- ملاحظات --}}
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    <i class="fa-solid fa-note-sticky text-slate-400 mr-1"></i> ملاحظة (اختيارية)
+                </label>
+                <textarea name="notes" rows="2" placeholder="مثال: تم المنح بناءً على طلب الإدارة..."
+                    class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 transition resize-none"></textarea>
+            </div>
+
+            {{-- أزرار --}}
+            <div class="flex gap-3 pt-2">
+                <button type="submit"
+                    class="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-white font-black rounded-xl text-sm transition shadow-lg shadow-amber-400/20 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-bolt"></i> تفعيل الباقة الآن
+                </button>
+                <button type="button" onclick="closeGrantModal()"
+                    class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-sm transition">
+                    إلغاء
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    function openGrantModal(userId, userName) {
+        document.getElementById('grant-user-name').textContent = userName;
+        document.getElementById('grant-ai-form').action = `/admin/users/${userId}/grant-ai-subscription`;
+        const modal = document.getElementById('grant-ai-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            document.getElementById('grant-ai-modal-box').classList.add('scale-100');
+        }, 10);
+    }
+
+    function closeGrantModal() {
+        const modal = document.getElementById('grant-ai-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    // فتح المودال تلقائياً بعد العملية الناجحة إذا وُجد flash
+    @if(session('success') && str_contains(session('success'), 'تم تفعيل'))
+        // لا شيء — يظهر رسالة النجاح في مكان آخر
+    @endif
+</script>
+@endpush
 
 @endsection
