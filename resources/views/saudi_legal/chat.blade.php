@@ -794,8 +794,8 @@
 
             return `
                 <div class="mt-8 pt-5 border-t border-slate-200/50 dark:border-white/10 relative z-10">
-                    ${judgmentsHtml}
                     ${articlesHtml}
+                    ${judgmentsHtml}
                 </div>
             `;
         }
