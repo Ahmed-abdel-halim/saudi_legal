@@ -200,12 +200,60 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 </a>
 
                 {{-- Desktop Navigation --}}
-                <div class="hidden lg:flex items-center gap-6 text-sm">
-                    <a href="{{ route('legal_assistant.public') }}"
-                        class="text-brand-green font-bold transition whitespace-nowrap bg-brand-green/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-brand-green/25 hover:bg-brand-green hover:text-dark-navy group text-xs">
-                        <i class="fa-solid fa-robot group-hover:animate-bounce"></i>
-                        {{ __('header.NAV_AI_ASSISTANT', [], $currentLang) }}
-                    </a>
+                <div class="hidden lg:flex items-center gap-5 text-sm">
+                    {{-- Dropdown: منتجات رديف --}}
+                    <div x-data="{ productsOpen: false }" class="relative" @click.outside="productsOpen = false">
+                        <button @click="productsOpen = !productsOpen"
+                            class="text-brand-green font-bold transition whitespace-nowrap bg-brand-green/10 px-3.5 py-1.5 rounded-full flex items-center gap-2 border border-brand-green/25 hover:bg-brand-green/20 text-xs shadow-sm">
+                            <i class="fa-solid fa-layer-group text-brand-green"></i>
+                            <span>{{ __('header.NAV_PRODUCTS', [], $currentLang) }}</span>
+                            <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200" :class="{ 'rotate-180': productsOpen }"></i>
+                        </button>
+                        
+                        <div x-show="productsOpen"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 transform -translate-y-2 scale-95"
+                            x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 transform translate-y-0 scale-100"
+                            x-transition:leave-end="opacity-0 transform -translate-y-2 scale-95"
+                            class="absolute {{ $direction === 'rtl' ? 'right-0' : 'left-0' }} mt-2 w-80 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-2 z-50 divide-y divide-white/5"
+                            style="display: none;">
+                            
+                            {{-- Product 1: Legal Assistant --}}
+                            <a href="{{ route('legal_assistant.public') }}"
+                               class="flex items-start gap-3 p-3 rounded-xl hover:bg-white/5 transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-transform flex-shrink-0">
+                                    <i class="fa-solid fa-scale-balanced text-base"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-bold text-white text-xs group-hover:text-indigo-400 transition-colors flex items-center justify-between">
+                                        <span>{{ __('header.PRODUCT_LEGAL', [], $currentLang) }}</span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                                        {{ __('header.PRODUCT_LEGAL_DESC', [], $currentLang) }}
+                                    </div>
+                                </div>
+                            </a>
+
+                            {{-- Product 2: Islamic Mufti --}}
+                            <a href="{{ route('fatwa_assistant.public') }}"
+                               class="flex items-start gap-3 p-3 rounded-xl hover:bg-emerald-500/10 transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform flex-shrink-0">
+                                    <i class="fa-solid fa-kaaba text-base"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-bold text-white text-xs group-hover:text-emerald-400 transition-colors flex items-center justify-between">
+                                        <span>{{ __('header.PRODUCT_FATWA', [], $currentLang) }}</span>
+                                        <span class="text-[9px] bg-emerald-500/20 text-emerald-300 font-semibold px-2 py-0.5 rounded-full border border-emerald-500/30">{{ __('header.BADGE_BETA', [], $currentLang) }}</span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                                        {{ __('header.PRODUCT_FATWA_DESC', [], $currentLang) }}
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
                     <a href="{{ route('ai.packages') }}"
                         class="text-emerald-400 font-bold transition-colors duration-200 whitespace-nowrap flex items-center gap-1 hover:text-emerald-300">
                         <i class="fa-solid fa-gem text-xs"></i>
@@ -397,10 +445,26 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                 x-transition:leave-end="opacity-0 transform scale-95"
                 class="lg:hidden mt-4 pb-4 border-t pt-4">
                 <div class="flex flex-col gap-4">
-                    <a href="{{ route('legal_assistant.public') }}"
-                        class="text-brand-primary font-bold flex items-center gap-2 bg-brand-primary/10 p-2 rounded-lg border border-brand-primary/20">
-                        <i class="fa-solid fa-robot"></i> {{ __('header.NAV_AI_ASSISTANT', [], $currentLang) }}
-                    </a>
+                    {{-- Mobile Products Section --}}
+                    <div class="bg-slate-800/60 p-3 rounded-xl border border-white/10 space-y-2">
+                        <div class="text-[11px] font-bold text-slate-400 px-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-layer-group text-brand-green text-xs"></i>
+                            <span>{{ __('header.NAV_PRODUCTS', [], $currentLang) }}</span>
+                        </div>
+                        <a href="{{ route('legal_assistant.public') }}"
+                            class="text-indigo-300 font-bold flex items-center gap-2 bg-indigo-500/10 p-2.5 rounded-lg border border-indigo-500/20 text-xs hover:bg-indigo-500/20 transition">
+                            <i class="fa-solid fa-scale-balanced text-indigo-400"></i>
+                            <span>{{ __('header.PRODUCT_LEGAL', [], $currentLang) }}</span>
+                        </a>
+                        <a href="{{ route('fatwa_assistant.public') }}"
+                            class="text-emerald-300 font-bold flex items-center justify-between bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20 text-xs hover:bg-emerald-500/20 transition">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-kaaba text-emerald-400"></i>
+                                <span>{{ __('header.PRODUCT_FATWA', [], $currentLang) }}</span>
+                            </div>
+                            <span class="text-[9px] bg-emerald-500/20 text-emerald-300 font-semibold px-2 py-0.5 rounded-full border border-emerald-500/30">{{ __('header.BADGE_BETA', [], $currentLang) }}</span>
+                        </a>
+                    </div>
                     <a href="{{ route('ai.packages') }}"
                         class="text-emerald-400 font-bold flex items-center gap-2 bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
                         <i class="fa-solid fa-gem"></i> {{ __('header.NAV_PACKAGES', [], $currentLang) }}

@@ -30,6 +30,14 @@ Route::get('/legal-assistant/conversations', [\App\Http\Controllers\Legal\LegalA
 Route::get('/legal-assistant/conversations/{uuid}', [\App\Http\Controllers\Legal\LegalAiController::class, 'getMessages'])->name('legal_assistant.messages');
 Route::delete('/legal-assistant/conversations/{uuid}', [\App\Http\Controllers\Legal\LegalAiController::class, 'deleteConversation'])->name('legal_assistant.delete');
 
+// ISLAMIC MUFTI AI Assistant Routes (Zero-Hallucination Sovereign Sharia Assistant)
+Route::get('/fatwa-assistant', [\App\Http\Controllers\Sharia\FatwaAiController::class, 'index'])->name('fatwa_assistant.public');
+Route::post('/fatwa-assistant/ask', [\App\Http\Controllers\Sharia\FatwaAiController::class, 'ask'])->name('fatwa_assistant.public.ask');
+Route::post('/fatwa-assistant/feedback', [\App\Http\Controllers\Sharia\FatwaAiController::class, 'submitFeedback'])->name('fatwa_assistant.feedback');
+Route::get('/fatwa-assistant/conversations', [\App\Http\Controllers\Sharia\FatwaAiController::class, 'getConversations'])->name('fatwa_assistant.conversations');
+Route::get('/fatwa-assistant/conversations/{uuid}', [\App\Http\Controllers\Sharia\FatwaAiController::class, 'getMessages'])->name('fatwa_assistant.messages');
+Route::delete('/fatwa-assistant/conversations/{uuid}', [\App\Http\Controllers\Sharia\FatwaAiController::class, 'deleteConversation'])->name('fatwa_assistant.delete');
+
 // Developer Portal & API Documentation Routes
 Route::get('/developers', [\App\Http\Controllers\DeveloperController::class, 'index'])->name('developers.index');
 Route::get('/api-docs', [\App\Http\Controllers\DeveloperController::class, 'index'])->name('developers.docs');
