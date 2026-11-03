@@ -11,103 +11,115 @@
         ? $answer->citations
         : (is_string($answer->citations) ? (json_decode($answer->citations, true) ?? []) : []);
     $citationsList = is_array($citationsList) ? $citationsList : [];
-@endphp
 
-@php
-    // بناء JSON-LD Schema محسّن لـ AI SEO في PHP لتجنب تعارض @context مع Blade
     $pageUrl       = request()->url();
-    $publishedDate = $answer->created_at->toAtomString();
-    $modifiedDate  = $answer->updated_at->toAtomString();
+    $publishedDate = $answer->created_at ? $answer->created_at->toIso8601String() : now()->toIso8601String();
+    $plainQuestion = strip_tags($answer->question);
     $plainAnswer   = strip_tags($answer->answer);
-    // مقتطف الـ Quick Answer: أول 50 كلمة — هذا ما تقتبسه AI Overviews
-    $words         = array_filter(explode(' ', preg_replace('/\s+/', ' ', trim($plainAnswer))));
-    $quickAnswer   = implode(' ', array_slice($words, 0, 50)) . (count($words) > 50 ? '...' : '');
 
-    // ── 1. FAQPage (يجعل جوجل يعرض الإجابة كـ Rich Snippet) ──
-    $questionAuthorName = (!empty($answer->user) && !empty($answer->user->name)) 
-        ? $answer->user->name 
-        : ($isArabic ? 'رديف (Radiif)' : 'Radiif (رديف)');
-
-    $faqSchema = json_encode([
+    // ── 1. الإصلاح الجذري لأخطاء الـ Schema Markup وتجاوز تنبيهات Search Console ──
+    // كود JSON-LD مطابق للمعيار الأنظف المطلوب (QAPage + Question + acceptedAnswer)
+    $cleanQaSchema = [
         '@context'   => 'https://schema.org',
-        '@type'      => 'FAQPage',
-        'inLanguage' => $answer->locale,
-        'mainEntity' => [[
-            '@type'  => 'Question',
-            'name'   => $answer->question,
-            'text'   => strip_tags($answer->question),
-            'author' => [
-                '@type' => (!empty($answer->user) && !empty($answer->user->name)) ? 'Person' : 'Organization',
-                'name'  => $questionAuthorName,
-                'url'   => 'https://radiif.com',
-            ],
-            'acceptedAnswer' => [
-                '@type'       => 'Answer',
-                'text'        => $plainAnswer,
-                'dateCreated' => $publishedDate,
-                'author'      => [
-                    '@type' => 'Organization',
-                    'name'  => $isArabic ? 'رديف (Radiif)' : 'Radiif (رديف)',
-                    'url'   => 'https://radiif.com',
-                    'logo'  => [
-                        '@type' => 'ImageObject',
-                        'url'   => asset('images/favicon-32x32.png'),
-                    ],
-                ],
-            ],
-        ]],
-    ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-
-    // ── 2. QAPage (نوع محدد يفهمه الذكاء الاصطناعي لصفحات Q&A) ──
-    $qaPageSchema = json_encode([
-        '@context'      => 'https://schema.org',
-        '@type'         => 'QAPage',
-        'inLanguage'    => $answer->locale,
-        'url'           => $pageUrl,
-        'datePublished' => $publishedDate,
-        'dateModified'  => $modifiedDate,
-        'name'          => $answer->question,
-        'description'   => $quickAnswer,
-        'publisher'     => [
-            '@type' => 'Organization',
-            'name'  => $isArabic ? 'رديف - المساعد القانوني الذكي' : 'Radiif - AI Legal Assistant',
-            'url'   => 'https://radiif.com',
-            'sameAs' => [
-                'https://radiif.com',
-                'https://twitter.com/radiifcom',
-            ],
-        ],
+        '@type'      => 'QAPage',
         'mainEntity' => [
             '@type'          => 'Question',
             'name'           => $answer->question,
-            'text'           => strip_tags($answer->question),
-            'dateCreated'    => $publishedDate,
-            'author'         => [
-                '@type' => (!empty($answer->user) && !empty($answer->user->name)) ? 'Person' : 'Organization',
-                'name'  => $questionAuthorName,
-                'url'   => 'https://radiif.com',
-            ],
+            'text'           => $plainQuestion,
             'answerCount'    => 1,
             'acceptedAnswer' => [
                 '@type'       => 'Answer',
                 'text'        => $plainAnswer,
                 'dateCreated' => $publishedDate,
-                'upvoteCount' => max(1, (int)($answer->views_count / 10)),
-                'url'         => $pageUrl,
                 'author'      => [
                     '@type' => 'Organization',
-                    'name'  => $isArabic ? 'رديف (Radiif)' : 'Radiif (رديف)',
-                    'url'   => 'https://radiif.com',
-                    'logo'  => [
-                        '@type' => 'ImageObject',
-                        'url'   => asset('images/favicon-32x32.png'),
-                    ],
+                    'name'  => 'رديف (Radiif)',
                 ],
             ],
         ],
-    ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    ];
+    $cleanQaJsonLd = json_encode($cleanQaSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 
-    // ── 3. LegalService (لربط المحتوى بخدمات رديف القانونية) ──
+    // ── 2. تطبيق هيكل "الإجابة أولاً" (Answer-First Formatting) ──
+    // فصل الفقرة الأولى (الخلاصة الفورية المباشرة التي لا تتجاوز 30-40 كلمة) عن بقية التفاصيل والحيثيات
+    $rawAnswer = trim($answer->answer);
+    $immediateSummary = '';
+    $detailedContent = '';
+
+    // أ. إذا كانت الإجابة تبدأ أو تحتوي على قسم "خلاصة" (مثل مخرجات رديف الذكية)
+    if (preg_match('/###\s*[^\n]*خلاصة[^\n]*\n*(.+?)(?=\n+\s*---\s*\n+|\n+###|\z)/us', $rawAnswer, $summaryMatch)) {
+        $immediateSummary = trim($summaryMatch[1]);
+        $detailedContent = trim(str_replace($summaryMatch[0], '', $rawAnswer));
+        $detailedContent = preg_replace('/^\s*---\s*/u', '', $detailedContent);
+    }
+    // ب. إذا كانت الإجابة تبدأ بقسم markdown عادي (###)
+    elseif (preg_match('/^(###\s*[^\n]+\n+)(.+?)(?=\n+\s*---\s*\n+|\n+###|\z)/us', $rawAnswer, $summaryMatch)) {
+        $immediateSummary = trim($summaryMatch[2]);
+        $detailedContent = trim(str_replace($summaryMatch[0], '', $rawAnswer));
+        $detailedContent = preg_replace('/^\s*---\s*/u', '', $detailedContent);
+    }
+    // ج. تقسيم بالفقرات
+    else {
+        $paragraphs = preg_split('/\n{2,}/u', $rawAnswer);
+        if (count($paragraphs) > 1) {
+            if (preg_match('/^\*\*.*?\*\*\s*$/u', trim($paragraphs[0])) && isset($paragraphs[1])) {
+                $immediateSummary = trim($paragraphs[0]) . "\n\n" . trim($paragraphs[1]);
+                $detailedContent = trim(implode("\n\n", array_slice($paragraphs, 2)));
+            } else {
+                $immediateSummary = trim($paragraphs[0]);
+                $detailedContent = trim(implode("\n\n", array_slice($paragraphs, 1)));
+            }
+        } else {
+            $wordsList = preg_split('/\s+/u', $rawAnswer);
+            if (count($wordsList) > 40) {
+                $immediateSummary = implode(' ', array_slice($wordsList, 0, 35)) . '...';
+                $detailedContent = $rawAnswer;
+            } else {
+                $immediateSummary = $rawAnswer;
+                $detailedContent = '';
+            }
+        }
+    }
+
+    // استخراج اسم النظام ورقم المادة ورقم القضية بوضوح تام لشارات الخلاصة
+    $highlightedLaws = [];
+    $highlightedCases = [];
+
+    foreach ($citationsList as $cit) {
+        if (is_array($cit)) {
+            if (!empty($cit['law_system'])) {
+                $badge = $cit['law_system'];
+                if (!empty($cit['article_number'])) {
+                    $badge .= ' (المادة ' . $cit['article_number'] . ')';
+                }
+                $highlightedLaws[] = $badge;
+            }
+            if (!empty($cit['case_number'])) {
+                $highlightedCases[] = 'القضية رقم ' . $cit['case_number'];
+            }
+        }
+    }
+
+    if (empty($highlightedLaws)) {
+        if (preg_match('/(نظام\s+[^\s،\(\)\.]+)/u', $immediateSummary . ' ' . $answer->question, $lm)) {
+            $lawBadge = trim($lm[1]);
+            if (preg_match('/الماد[ةه]\s*[\(]?(\d+(?:\/\d+)?|[أ-ي]+)[\)]?/u', $immediateSummary . ' ' . $answer->question, $am)) {
+                $lawBadge .= ' (المادة ' . $am[1] . ')';
+            }
+            $highlightedLaws[] = $lawBadge;
+        }
+    }
+
+    if (empty($highlightedCases)) {
+        if (preg_match('/(القضي[ةه]|حكم)\s+رقم\s*([0-9]+)/u', $immediateSummary . ' ' . $rawAnswer, $cm)) {
+            $highlightedCases[] = 'القضية رقم ' . $cm[2];
+        }
+    }
+
+    $highlightedLaws = array_unique($highlightedLaws);
+    $highlightedCases = array_unique($highlightedCases);
+
+    // ── 3. LegalService Schema ──
     $legalSchema = json_encode([
         '@context'          => 'https://schema.org',
         '@type'             => 'LegalService',
@@ -120,7 +132,7 @@
             : 'Radiif is an AI legal platform specialized in Saudi Arabian law, providing verified answers with legal references.',
     ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
-    // ── 4. Speakable Schema (لمساعدات الصوت و Google Assistant) ──
+    // ── 4. Speakable Schema ──
     $speakableSchema = json_encode([
         '@context' => 'https://schema.org',
         '@type'    => 'WebPage',
@@ -164,9 +176,8 @@
     <link rel="alternate" hreflang="x-default" href="{{ $pageUrl }}" />
     <link rel="canonical" href="{{ $pageUrl }}" />
 
-    {{-- JSON-LD Schemas (4 types for maximum AI coverage) --}}
-    <script type="application/ld+json">{!! $faqSchema !!}</script>
-    <script type="application/ld+json">{!! $qaPageSchema !!}</script>
+    {{-- JSON-LD Schema (Google Search Console & AI Overviews Standard) --}}
+    <script type="application/ld+json">{!! $cleanQaJsonLd !!}</script>
     <script type="application/ld+json">{!! $legalSchema !!}</script>
     <script type="application/ld+json">{!! $speakableSchema !!}</script>
 @endpush
@@ -245,7 +256,7 @@
             {{-- Answer Column --}}
             <div class="lg:col-span-2 space-y-6">
 
-                {{-- Answer Card --}}
+                {{-- ══ Answer Card with Answer-First Formatting ══ --}}
                 <div class="relative bg-dark-card border border-dark-border rounded-2xl overflow-hidden shadow-xl">
                     <div class="flex items-center gap-3 px-6 py-4 border-b border-dark-border bg-gradient-to-r from-brand-primary/10 to-transparent">
                         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center flex-shrink-0 shadow-glow">
@@ -255,32 +266,63 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">
-                                {{ $isArabic ? 'الإجابة القانونية' : 'Legal Answer' }}
+                                {{ $isArabic ? 'الإجابة القانونية الموثقة' : 'Verified Legal Answer' }}
                             </p>
                             <p class="text-xs text-brand-primary font-semibold">
                                 {{ $isArabic ? 'رديف - المساعد القانوني الذكي' : 'Radiif AI Legal Assistant' }}
                             </p>
                         </div>
                     </div>
-                    <div class="px-6 py-6">
 
-                        {{-- ══ Quick Answer Block (هذا ما يقتبسه الذكاء الاصطناعي في AI Overviews) ══ --}}
+                    <div class="px-6 py-6 space-y-6">
+
+                        {{-- ══ 1. الخلاصة الفورية المباشرة (Answer-First Formatting) لا تتجاوز 30-40 كلمة موثقة بالأنظمة ══ --}}
                         <div id="qa-quick-answer"
-                             class="mb-5 p-4 rounded-xl bg-brand-primary/10 border border-brand-primary/30">
-                            <p class="text-xs font-bold text-brand-primary uppercase tracking-wider mb-2">
-                                {{ $isArabic ? '⚡ الإجابة المختصرة:' : '⚡ Quick Answer:' }}
-                            </p>
-                            <p class="text-gray-200 text-sm leading-relaxed font-medium">
-                                {{ $quickAnswer }}
-                            </p>
+                             class="p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-brand-primary/10 to-teal-500/10 border-2 border-emerald-500/40 shadow-lg">
+                            <div class="flex flex-wrap items-center justify-between gap-3 mb-3 pb-3 border-b border-emerald-500/20">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-sm font-bold shadow-glow">
+                                        ⚡
+                                    </span>
+                                    <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                                        {{ $isArabic ? 'الخلاصة الفورية المباشرة (Answer-First):' : 'Direct Quick Answer (Answer-First):' }}
+                                    </h2>
+                                </div>
+
+                                {{-- شارات السند النظامي (اسم النظام ورقم المادة ورقم القضية) في السطر الأول لتعظيم الاقتباس --}}
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    @foreach($highlightedLaws as $law)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                            📜 {{ $law }}
+                                        </span>
+                                    @endforeach
+                                    @foreach($highlightedCases as $case)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                            ⚖️ {{ $case }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <div class="text-gray-100 text-sm sm:text-base leading-relaxed font-medium">
+                                {!! \Illuminate\Support\Str::markdown($immediateSummary) !!}
+                            </div>
                         </div>
 
-                        {{-- النص الكامل --}}
-                        <div class="text-gray-300 leading-relaxed text-sm space-y-3">
-                            {!! nl2br(e($answer->answer)) !!}
+                        {{-- ══ 2. التفاصيل والحيثيات النظامية الكاملة ══ --}}
+                        @if(!empty($detailedContent))
+                        <div class="space-y-3 pt-2">
+                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+                                {{ $isArabic ? 'الحيثيات والتفاصيل النظامية والإجرائية:' : 'Detailed Legal Merits & Procedural Steps:' }}
+                            </h3>
+                            <div class="text-gray-300 leading-relaxed text-sm space-y-3 prose prose-invert max-w-none prose-headings:text-emerald-400 prose-headings:font-bold prose-headings:text-sm prose-p:my-2 prose-ul:my-2 prose-li:my-1 prose-strong:text-white">
+                                {!! \Illuminate\Support\Str::markdown($detailedContent) !!}
+                            </div>
                         </div>
+                        @endif
 
-                        {{-- Brand Attribution (يساعد الذكاء الاصطناعي على ربط المعلومة بـ Radiif) --}}
+                        {{-- Brand Attribution (لربط ميزات AI Overviews ومحركات البحث برئيسية رديف كمصدر رسمي) --}}
                         <div class="mt-5 pt-4 border-t border-dark-border flex items-center gap-2">
                             <span class="text-xs text-gray-500">
                                 {{ $isArabic ? 'المصدر:' : 'Source:' }}
@@ -290,7 +332,7 @@
                             </a>
                             <span class="text-gray-600 text-xs">·</span>
                             <span class="text-xs text-gray-500">
-                                {{ $isArabic ? 'منصة قانونية سعودية' : 'Saudi Legal AI Platform' }}
+                                {{ $isArabic ? 'منصة ذكاء اصطناعي للأنظمة السعودية' : 'Saudi Legal AI Platform' }}
                             </span>
                         </div>
                     </div>
@@ -408,30 +450,61 @@
             </div>
         </div>
 
-        {{-- CTA Section --}}
-        <div class="mt-12 relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-primary/20 via-brand-secondary/15 to-brand-primary/10 border border-brand-primary/30 p-8 text-center">
-            <div class="absolute inset-0 pointer-events-none opacity-30">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-brand-primary/20 rounded-full blur-3xl"></div>
-                <div class="absolute bottom-0 left-0 w-48 h-48 bg-brand-secondary/20 rounded-full blur-3xl"></div>
-            </div>
-            <div class="relative">
-                <h3 class="text-xl font-bold text-white mb-2">
-                    {{ $isArabic ? 'هل لديك تفاصيل خاصة بقضيتك؟' : 'Do you have specific details about your case?' }}
-                </h3>
-                <p class="text-gray-300 mb-6 max-w-lg mx-auto text-sm leading-relaxed">
-                    {{ $isArabic
-                        ? 'اطرح استفسارك على المساعد القانوني الذكي في رديف واحصل على إجابة موثقة بالمصادر.'
-                        : 'Ask Radiif AI Legal Assistant now and get verified answers with exact citations from Saudi law.'
-                    }}
-                </p>
-                <div class="flex flex-wrap items-center justify-center gap-3">
-                    <a href="{{ route('legal_assistant.public') }}"
-                       class="inline-flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-semibold px-6 py-3 rounded-xl shadow-glow hover:scale-105 transition-all duration-200">
-                        {{ $isArabic ? 'اسأل مساعد رديف الآن' : 'Ask Radiif AI Now' }}
+        {{-- ══ 3. Conversion Funnel CTA Box (صندوق قمع التحويل التفاعلي لزوار محركات البحث) ══ --}}
+        <div class="mt-12 relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950/70 via-dark-card to-brand-primary/20 border-2 border-emerald-500/40 p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+            <div class="absolute -top-24 -right-24 w-72 h-72 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-brand-primary/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5">
+                    <div class="flex items-center gap-3">
+                        <span class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-glow flex-shrink-0 text-xl font-bold">
+                            🤖
+                        </span>
+                        <div>
+                            <h3 class="text-lg sm:text-xl font-bold text-white leading-snug">
+                                {{ $isArabic ? 'هل لديك تفاصيل إضافية تخص قضيتك؟ اسأل مساعد رديف الذكي الآن...' : 'Have additional details about your case? Ask Radiif AI Legal Assistant now...' }}
+                            </h3>
+                            <p class="text-xs sm:text-sm text-gray-300 mt-1">
+                                {{ $isArabic ? 'اطرح سؤالك أو وقائع نزاعك لتحصل فوراً على استشارة ذكية مدعومة بالمواد النظامية والسوابق القضائية المماثلة.' : 'Enter your case facts or query to get an instant AI analysis verified with Saudi law articles.' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Interactive Search / Chat Box --}}
+                <form action="{{ route('legal_assistant.public') }}" method="GET" class="mt-4">
+                    <div class="relative flex flex-col sm:flex-row items-stretch gap-2.5 bg-dark-bg/90 border border-emerald-500/40 rounded-2xl p-2 shadow-inner focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all">
+                        <input type="text"
+                               name="q"
+                               placeholder="{{ $isArabic ? 'اكتب وقائع قضيتك هنا وسيقوم المساعد القانوني بدراستها فوراً...' : 'Type your specific case details here to ask Radiif AI...' }}"
+                               class="w-full bg-transparent border-none text-white text-sm sm:text-base px-4 py-3 placeholder-gray-400 focus:outline-none focus:ring-0 text-right font-medium"
+                               dir="{{ $dir }}"
+                               required>
+                        <button type="submit"
+                                class="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold text-sm shadow-green-glow hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer flex-shrink-0">
+                            <span>{{ $isArabic ? 'اسأل مساعد رديف الذكي الآن' : 'Ask Radiif AI Now' }}</span>
+                            <svg class="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+
+                {{-- Quick Suggestion Pills --}}
+                <div class="mt-3.5 flex flex-wrap items-center gap-2 text-xs text-gray-400">
+                    <span class="text-gray-500 font-semibold">{{ $isArabic ? 'استفسارات شائعة:' : 'Popular queries:' }}</span>
+                    <a href="{{ route('legal_assistant.public', ['q' => 'ما هي إجراءات فسخ العقد لعدم الالتزام بالسداد؟']) }}"
+                       class="px-3 py-1 rounded-lg bg-white/5 hover:bg-emerald-500/15 hover:text-emerald-300 border border-white/10 transition-colors">
+                        {{ $isArabic ? 'فسخ عقد لعدم السداد' : 'Contract Termination' }}
                     </a>
-                    <a href="{{ route('login') }}"
-                       class="inline-flex items-center gap-2 bg-white/10 text-white font-medium px-5 py-3 rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-200">
-                        {{ $isArabic ? 'إنشاء حساب مجاني' : 'Create Free Account' }}
+                    <a href="{{ route('legal_assistant.public', ['q' => 'كيف أطالب بأتعاب المحاماة والتعويض عن المماطلة؟']) }}"
+                       class="px-3 py-1 rounded-lg bg-white/5 hover:bg-emerald-500/15 hover:text-emerald-300 border border-white/10 transition-colors">
+                        {{ $isArabic ? 'أتعاب المحاماة والمماطلة' : 'Attorney Fees & Delay' }}
+                    </a>
+                    <a href="{{ route('legal_assistant.public', ['q' => 'ما هي شروط وحجية السند لأمر في محكمة التنفيذ؟']) }}"
+                       class="px-3 py-1 rounded-lg bg-white/5 hover:bg-emerald-500/15 hover:text-emerald-300 border border-white/10 transition-colors">
+                        {{ $isArabic ? 'حجية السند لأمر' : 'Promissory Note Rules' }}
                     </a>
                 </div>
             </div>

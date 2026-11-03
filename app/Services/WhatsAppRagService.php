@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Services\Legal\LegalSearchService;
+use App\Services\Legal\LegalQueryExpansionService;
 use App\Services\AzureSearchService;
 use App\Services\QdrantSearchService;
 use App\Services\Legal\LegalReferenceService;
@@ -18,12 +19,13 @@ use Illuminate\Support\Facades\Log;
 class WhatsAppRagService
 {
     public function __construct(
-        protected LegalSearchService    $searchService,
-        protected AzureSearchService    $azureService,
-        protected QdrantSearchService   $qdrantService,
-        protected LegalReferenceService $referenceService,
-        protected GeminiApiService      $geminiService,
-        protected BedrockApiService     $bedrockService
+        protected LegalSearchService          $searchService,
+        protected AzureSearchService          $azureService,
+        protected QdrantSearchService         $qdrantService,
+        protected LegalReferenceService       $referenceService,
+        protected GeminiApiService            $geminiService,
+        protected BedrockApiService           $bedrockService,
+        protected LegalQueryExpansionService  $expansionService
     ) {}
 
     /**
@@ -79,8 +81,15 @@ class WhatsAppRagService
             $searchQuery = $this->rewriteQuery($question, $history);
         }
 
-        // 2. استخراج المواد المذكورة مباشرة في الاستعلام
+        // 1.1. التوسيع الدلالي والاسترجاع الهجين
+        $expansion = $this->expansionService->expand($searchQuery);
+        $expandedSearchQuery = $expansion['expanded_query'];
+
+        // 2. استخراج المواد المذكورة مباشرة في الاستعلام أو الاستعلام الموسع
         $queryArticles = $this->referenceService->getMentionedArticles($searchQuery);
+        if ($queryArticles->isEmpty() && $expandedSearchQuery !== $searchQuery) {
+            $queryArticles = $this->referenceService->getMentionedArticles($expandedSearchQuery);
+        }
         $allArticles   = collect($queryArticles);
         $exactArticles = collect();
 
@@ -105,13 +114,13 @@ class WhatsAppRagService
         ) || preg_match('/^المادة\s+([أ-ي0-9]+)/u', trim($searchQuery))
           || preg_match('/نص\s+المادة/u', $searchQuery);
 
-        // 4. البحث متعدد المستويات
+        // 4. البحث متعدد المستويات (Hybrid Search with Expansion)
         $searchMethod = 'keyword';
         $contextTasks = collect();
 
         if ($this->azureService->isEnabled()) {
-            $cases       = $isDirectArticleRequest ? collect() : $this->azureService->hybridSearch($searchQuery, 5, ['!source_type' => 'article']);
-            $lawArticles = $this->azureService->hybridSearch($searchQuery, 3, ['source_type' => 'article']);
+            $cases       = $isDirectArticleRequest ? collect() : $this->azureService->hybridSearch($expandedSearchQuery, 5, ['!source_type' => 'article']);
+            $lawArticles = $this->azureService->hybridSearch($expandedSearchQuery, 3, ['source_type' => 'article']);
             $contextTasks = $cases->merge($lawArticles);
             if ($contextTasks->isNotEmpty()) {
                 $searchMethod = 'azure_vector';
@@ -119,8 +128,8 @@ class WhatsAppRagService
         }
 
         if ($contextTasks->isEmpty() && $this->qdrantService->isEnabled()) {
-            $cases       = $isDirectArticleRequest ? collect() : $this->qdrantService->search($searchQuery, 5, ['!source_type' => 'article']);
-            $lawArticles = $this->qdrantService->search($searchQuery, 3, ['source_type' => 'article']);
+            $cases       = $isDirectArticleRequest ? collect() : $this->qdrantService->search($expandedSearchQuery, 5, ['!source_type' => 'article']);
+            $lawArticles = $this->qdrantService->search($expandedSearchQuery, 3, ['source_type' => 'article']);
             $contextTasks = $cases->merge($lawArticles);
             if ($contextTasks->isNotEmpty()) {
                 $searchMethod = 'qdrant_vector';
@@ -128,7 +137,7 @@ class WhatsAppRagService
         }
 
         if ($contextTasks->isEmpty()) {
-            $contextTasks = $this->searchService->search($searchQuery, 5);
+            $contextTasks = $this->searchService->search($expandedSearchQuery, 5);
             $searchMethod = 'keyword';
         }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Legal;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\Legal\LegalSearchService;
+use App\Services\Legal\LegalQueryExpansionService;
 use App\Services\AzureSearchService;
 use App\Services\QdrantSearchService;
 use App\Services\Legal\LegalReferenceService;
@@ -22,21 +23,24 @@ class LegalAiController extends Controller
     protected $referenceService;
     protected $geminiService;
     protected $bedrockService;
+    protected $expansionService;
 
     public function __construct(
-        LegalSearchService    $searchService,
-        AzureSearchService    $azureService,
-        QdrantSearchService   $qdrantService,
-        LegalReferenceService $referenceService,
+        LegalSearchService          $searchService,
+        AzureSearchService          $azureService,
+        QdrantSearchService         $qdrantService,
+        LegalReferenceService       $referenceService,
         \App\Services\GeminiApiService $geminiService,
-        \App\Services\BedrockApiService $bedrockService
+        \App\Services\BedrockApiService $bedrockService,
+        LegalQueryExpansionService  $expansionService
     ) {
-        $this->searchService   = $searchService;
-        $this->azureService    = $azureService;
-        $this->qdrantService   = $qdrantService;
+        $this->searchService    = $searchService;
+        $this->azureService     = $azureService;
+        $this->qdrantService    = $qdrantService;
         $this->referenceService = $referenceService;
-        $this->geminiService   = $geminiService;
-        $this->bedrockService  = $bedrockService;
+        $this->geminiService    = $geminiService;
+        $this->bedrockService   = $bedrockService;
+        $this->expansionService = $expansionService;
     }
 
     public function index()
@@ -330,11 +334,15 @@ class LegalAiController extends Controller
             ]);
         }
 
-        // 3. صياغة استعلام البحث دلالياً (Query Rewriting) لربط الأسئلة المتابعة والأسئلة غير العربية
+        // 3. صياغة استعلام البحث دلالياً (Query Rewriting & Semantic Expansion)
         $searchQuery = $question;
         if ($history->isNotEmpty() || preg_match('/[a-zA-Z]/', $question)) {
             $searchQuery = $this->rewriteQuery($question, $history);
         }
+
+        // 3.1. تفعيل التوسيع الدلالي والاسترجاع الهجين للاستعلام ولهجات المستخدمين
+        $expansion = $this->expansionService->expand($searchQuery);
+        $expandedSearchQuery = $expansion['expanded_query'];
 
         // 4. البحث المتوازي الذكي (Cases & Law Articles)
         $searchMethod = 'keyword';
@@ -342,8 +350,11 @@ class LegalAiController extends Controller
         $allArticles  = collect();
         $exactArticles = collect();
 
-        // أ. استخراج أي مواد مذكورة في السؤال نفسه مباشرة
+        // أ. استخراج أي مواد مذكورة في السؤال الأصلي أو الاستعلام الموسع مباشرة
         $queryArticles = $this->referenceService->getMentionedArticles($searchQuery);
+        if ($queryArticles->isEmpty() && $expandedSearchQuery !== $searchQuery) {
+            $queryArticles = $this->referenceService->getMentionedArticles($expandedSearchQuery);
+        }
         foreach ($queryArticles as $art) {
             $allArticles->push($art);
             
@@ -363,8 +374,8 @@ class LegalAiController extends Controller
 
         // ب. استخراج أرقام القضايا أو المراجع المحددة في السؤال مباشرة وتضمينها
         $extractedNumbers = [];
-        if (preg_match_all('/\b\d{3,}\b/u', $searchQuery, $numMatches)) {
-            $extractedNumbers = array_unique($numMatches[0]);
+        if (preg_match_all('/\b\d{3,}\b/u', $searchQuery . ' ' . $expandedSearchQuery, $numMatches)) {
+            $extractedNumbers = array_unique(array_merge($numMatches[0], $expansion['extracted_numbers'] ?? []));
         }
 
         $exactMatches = collect();
@@ -373,7 +384,7 @@ class LegalAiController extends Controller
                 foreach ($extractedNumbers as $num) {
                     $q->orWhere('case_reference', $num)
                       ->orWhere('id', (int)$num);
-                    if (strlen($num) >= 6) {
+                    if (strlen($num) >= 4) {
                         $q->orWhere('case_reference', 'LIKE', "%{$num}%");
                     }
                 }
@@ -396,15 +407,15 @@ class LegalAiController extends Controller
             $searchQuery
         );
 
-        // Tier 1: Azure AI Search (Split hybrid search)
+        // Tier 1: Azure AI Search (Split hybrid search with semantic expansion)
         if ($this->azureService->isEnabled()) {
-            Log::info('[LegalAi] Using Azure Split Search for: ' . $searchQuery);
+            Log::info('[LegalAi] Using Azure Split Search for: ' . $expandedSearchQuery);
 
             // أ. بحث عن أحكام قضائية وسوابق (تستثنى منها المواد) - يتم تخطيها إذا كان الطلب لنص مادة مباشرة
-            $cases = $isDirectArticleRequest ? collect() : $this->azureService->hybridSearch($searchQuery, 5, ['!source_type' => 'article']);
+            $cases = $isDirectArticleRequest ? collect() : $this->azureService->hybridSearch($expandedSearchQuery, 5, ['!source_type' => 'article']);
 
             // ب. بحث عن نصوص أنظمة وقوانين مخصصة
-            $lawArticles = $this->azureService->hybridSearch($searchQuery, 3, ['source_type' => 'article']);
+            $lawArticles = $this->azureService->hybridSearch($expandedSearchQuery, 3, ['source_type' => 'article']);
 
             // ج. دمج وتفعيل الطريقة
             $contextTasks = $cases->merge($lawArticles);
@@ -415,10 +426,10 @@ class LegalAiController extends Controller
 
         // Tier 2: Qdrant Vector Search (Split retrieval fallback)
         if ($contextTasks->isEmpty() && $this->qdrantService->isEnabled()) {
-            Log::info('[LegalAi] Falling back to Qdrant Split Search for: ' . $searchQuery);
+            Log::info('[LegalAi] Falling back to Qdrant Split Search for: ' . $expandedSearchQuery);
 
-            $cases = $isDirectArticleRequest ? collect() : $this->qdrantService->search($searchQuery, 5, ['!source_type' => 'article']);
-            $lawArticles = $this->qdrantService->search($searchQuery, 3, ['source_type' => 'article']);
+            $cases = $isDirectArticleRequest ? collect() : $this->qdrantService->search($expandedSearchQuery, 5, ['!source_type' => 'article']);
+            $lawArticles = $this->qdrantService->search($expandedSearchQuery, 3, ['source_type' => 'article']);
 
             $contextTasks = $cases->merge($lawArticles);
             if ($contextTasks->isNotEmpty()) {
@@ -426,10 +437,10 @@ class LegalAiController extends Controller
             }
         }
 
-        // Tier 3: Keyword Search (الـ fallback العادي)
+        // Tier 3: Keyword Search (الـ fallback العادي بالاستعلام الموسع)
         if ($contextTasks->isEmpty()) {
             Log::info('[LegalAi] Falling back to keyword search');
-            $contextTasks = $this->searchService->search($searchQuery, 5);
+            $contextTasks = $this->searchService->search($expandedSearchQuery, 5);
             $searchMethod = 'keyword';
         }
 

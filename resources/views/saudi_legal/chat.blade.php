@@ -1085,11 +1085,23 @@
             updateModeUi();
             const urlParams = new URLSearchParams(window.location.search);
             const initialUuid = urlParams.get('c');
+            const initialQuery = urlParams.get('q');
 
             if (initialUuid) {
                 loadConversation(initialUuid);
             } else {
                 loadConversations();
+            }
+
+            // استقبال الاستفسار الممرر من صناديق قمع التحويل (Conversion Funnel CTA)
+            if (initialQuery) {
+                setTimeout(() => {
+                    const input = document.getElementById('question-input');
+                    if (input) {
+                        input.value = initialQuery;
+                        input.focus();
+                    }
+                }, 200);
             }
 
             // تهيئة السايدبار وحالة الخلفية المظللة حسب حجم الشاشة
