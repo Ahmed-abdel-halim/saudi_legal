@@ -7,59 +7,31 @@
     $metaDesc = mb_substr(strip_tags($answer->answer), 0, 160);
 
     // معالجة آمنة لـ citations سواء كانت array أو json string أو null
-    $citationsList = is_array($answer->citations)
+    $rawCitations = is_array($answer->citations)
         ? $answer->citations
         : (is_string($answer->citations) ? (json_decode($answer->citations, true) ?? []) : []);
-    $citationsList = is_array($citationsList) ? $citationsList : [];
+    $rawCitations = is_array($rawCitations) ? $rawCitations : [];
 
     $pageUrl       = request()->url();
     $publishedDate = $answer->created_at ? $answer->created_at->toIso8601String() : now()->toIso8601String();
-    $plainQuestion = strip_tags($answer->question);
-    $plainAnswer   = strip_tags($answer->answer);
+    $plainQuestion = trim(strip_tags($answer->question));
+    $rawAnswer     = trim($answer->answer);
+    $plainAnswer   = trim(strip_tags($rawAnswer));
 
-    // ── 1. الإصلاح الجذري لأخطاء الـ Schema Markup وتجاوز تنبيهات Search Console ──
-    // كود JSON-LD مطابق للمعيار الأنظف المطلوب (QAPage + Question + acceptedAnswer)
-    $cleanQaSchema = [
-        '@context'   => 'https://schema.org',
-        '@type'      => 'QAPage',
-        'mainEntity' => [
-            '@type'          => 'Question',
-            'name'           => $answer->question,
-            'text'           => $plainQuestion,
-            'answerCount'    => 1,
-            'acceptedAnswer' => [
-                '@type'       => 'Answer',
-                'text'        => $plainAnswer,
-                'dateCreated' => $publishedDate,
-                'author'      => [
-                    '@type' => 'Organization',
-                    'name'  => 'رديف (Radiif)',
-                ],
-            ],
-        ],
-    ];
-    $cleanQaJsonLd = json_encode($cleanQaSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-
-    // ── 2. تطبيق هيكل "الإجابة أولاً" (Answer-First Formatting) ──
-    // فصل الفقرة الأولى (الخلاصة الفورية المباشرة التي لا تتجاوز 30-40 كلمة) عن بقية التفاصيل والحيثيات
-    $rawAnswer = trim($answer->answer);
+    // ── 1. تطبيق هيكل "الإجابة أولاً" (Answer-First Formatting) ──
+    // فصل الفقرة الأولى (الخلاصة الفورية المباشرة) عن بقية الحيثيات
     $immediateSummary = '';
     $detailedContent = '';
 
-    // أ. إذا كانت الإجابة تبدأ أو تحتوي على قسم "خلاصة" (مثل مخرجات رديف الذكية)
     if (preg_match('/###\s*[^\n]*خلاصة[^\n]*\n*(.+?)(?=\n+\s*---\s*\n+|\n+###|\z)/us', $rawAnswer, $summaryMatch)) {
         $immediateSummary = trim($summaryMatch[1]);
         $detailedContent = trim(str_replace($summaryMatch[0], '', $rawAnswer));
         $detailedContent = preg_replace('/^\s*---\s*/u', '', $detailedContent);
-    }
-    // ب. إذا كانت الإجابة تبدأ بقسم markdown عادي (###)
-    elseif (preg_match('/^(###\s*[^\n]+\n+)(.+?)(?=\n+\s*---\s*\n+|\n+###|\z)/us', $rawAnswer, $summaryMatch)) {
+    } elseif (preg_match('/^(###\s*[^\n]+\n+)(.+?)(?=\n+\s*---\s*\n+|\n+###|\z)/us', $rawAnswer, $summaryMatch)) {
         $immediateSummary = trim($summaryMatch[2]);
         $detailedContent = trim(str_replace($summaryMatch[0], '', $rawAnswer));
         $detailedContent = preg_replace('/^\s*---\s*/u', '', $detailedContent);
-    }
-    // ج. تقسيم بالفقرات
-    else {
+    } else {
         $paragraphs = preg_split('/\n{2,}/u', $rawAnswer);
         if (count($paragraphs) > 1) {
             if (preg_match('/^\*\*.*?\*\*\s*$/u', trim($paragraphs[0])) && isset($paragraphs[1])) {
@@ -81,45 +53,186 @@
         }
     }
 
-    // استخراج اسم النظام ورقم المادة ورقم القضية بوضوح تام لشارات الخلاصة
+    $cleanImmediateText = trim(strip_tags($immediateSummary));
+
+    // ── 2. كشف النظام السعودي الأساسي والتصنيف الدلالي المتقدم ──
+    $detectedLaw = null;
+    try {
+        $detectedLaw = app(\App\Services\Legal\LegalQueryExpansionService::class)->detectTargetLawSystem($plainQuestion);
+    } catch (\Throwable $e) {
+        $detectedLaw = null;
+    }
+
+    if (!$detectedLaw) {
+        $normText = preg_replace('/[\x{064B}-\x{065F}\x{0670}]/u', '', $plainQuestion . ' ' . $cleanImmediateText);
+        $normText = preg_replace('/[أإآٱ]/u', 'ا', $normText);
+        $normText = str_replace(['ة', 'ى'], ['ه', 'ي'], $normText);
+        $normText = mb_strtolower($normText);
+
+        if (preg_match('/(محاكم تجاريه|محكمه تجاريه|اختصاص المحاكم التجاريه|اختصاص تجاري|دعوى تجاريه|دعاوى تجاريه|عمل تجاري|اعمال تجاريه|عقود تجاريه|عقد تجاري|محرر عادي|تقادم تجاري|سماع الدعوى|افلاس|اتعاب محاماه|توريد عماله|تجاريه|تجاري)/u', $normText) && !preg_match('/(تستر|تستر تجاري)/u', $normText)) {
+            $detectedLaw = 'نظام المحاكم التجارية';
+        } elseif (preg_match('/(شركات|شركه مساهمه|شركه ذات مسؤوليه|مدير الشركه|تصفيه شركه|مجلس اداره|شريك|شركاء)/u', $normText)) {
+            $detectedLaw = 'نظام الشركات';
+        } elseif (preg_match('/(عقد عمل|علاقه عمل|صاحب العمل|مكتب العمل|محكمه عماليه|فصل تعسفي|طردوني|فصلوني|مكافاه نهايه الخدمه|حمايه الاجور|تاخير رواتب|راتبي|بدل سكن|اوفر تايم|ساعات عمل|تغيب عن العمل|بلاغ هروب|كفيلي|اصابه عمل)/u', $normText)) {
+            $detectedLaw = 'نظام العمل';
+        } elseif (preg_match('/(معاملات مدنيه|مدني|عربون|شرط جزائي|بيع ملك الغير|عقد بيع|شفعه|حواله حق|مسؤوليه تقصيريه|فسخ عقد|انفساخ|عقد مقاوله|عقد ايجار|مقاول)/u', $normText)) {
+            $detectedLaw = 'نظام المعاملات المدنية';
+        } elseif (preg_match('/(احوال شخصيه|طلاق|خلع|حضانه|نفقه|فسخ نكاح|عضل|ارث|تركه|زوجه|زوج|نكاح|زواج|مهر)/u', $normText)) {
+            $detectedLaw = 'نظام الأحوال الشخصية';
+        } elseif (preg_match('/(تنفيذ|سند تنفيذي|سند لامر|شيك|كمبياله|ايقاف خدمات|قاضي التنفيذ|حجز اموال)/u', $normText)) {
+            $detectedLaw = 'نظام التنفيذ';
+        } elseif (preg_match('/(اثبات|شهاده|يمين حاسمه|محرر رسمي|حجيه الاثبات|بينه|شهود)/u', $normText)) {
+            $detectedLaw = 'نظام الإثبات';
+        } elseif (preg_match('/(مرافعات شرعيه|اختصاص ولائي|اختصاص نوعي|التماس اعاده نظر)/u', $normText)) {
+            $detectedLaw = 'نظام المرافعات الشرعية';
+        } elseif (preg_match('/(ديوان المظالم|قرار اداري|الغاء قرار|محكمه اداريه)/u', $normText)) {
+            $detectedLaw = 'نظام ديوان المظالم';
+        } elseif (preg_match('/(تستر|تستر تجاري)/u', $normText)) {
+            $detectedLaw = 'نظام مكافحة التستر';
+        }
+    }
+
+    $primaryLawName = $detectedLaw ?: 'الأنظمة واللوائح السعودية';
+
+    // ── 3. تنظيف وتصحيح المراجع واستبعاد كلمة "مبدأ" كـ Placeholder ──
+    $cleanedCitations = [];
     $highlightedLaws = [];
     $highlightedCases = [];
 
-    foreach ($citationsList as $cit) {
-        if (is_array($cit)) {
-            if (!empty($cit['law_system'])) {
-                $badge = $cit['law_system'];
-                if (!empty($cit['article_number'])) {
-                    $badge .= ' (المادة ' . $cit['article_number'] . ')';
-                }
-                $highlightedLaws[] = $badge;
-            }
-            if (!empty($cit['case_number'])) {
-                $highlightedCases[] = 'القضية رقم ' . $cit['case_number'];
-            }
+    foreach ($rawCitations as $cit) {
+        if (!is_array($cit)) continue;
+
+        $rawSys = trim($cit['law_system'] ?? '');
+        $rawArt = trim($cit['article_number'] ?? '');
+        $citText = trim($cit['text'] ?? '');
+        $caseRef = trim($cit['case_reference'] ?? ($cit['case_number'] ?? ''));
+
+        // معالجة اسم النظام (إذا كان "مبدأ قضائي" نستبدله بالنظام الحقيقي)
+        $cleanSys = (!empty($rawSys) && $rawSys !== 'مبدأ قضائي' && $rawSys !== 'null' && $rawSys !== 'غير محدد')
+            ? $rawSys
+            : $primaryLawName;
+
+        // معالجة رقم المادة (استبعاد "مبدأ" أو "null" أو النصوص الشكلية نهائياً)
+        $cleanArt = null;
+        if (!empty($rawArt) && !in_array($rawArt, ['مبدأ', 'null', 'غير محدد', 'عام', '-', 'undefined'])) {
+            $cleanArt = $rawArt;
+        }
+
+        // استخراج السابقة القضائية / القرار من النص إن وجد
+        $precedent = null;
+        if (preg_match('/(قرار\s+المحكمة\s+العليا[^\n\r،]+)/u', $citText, $pm)) {
+            $precedent = trim($pm[1]);
+        } elseif (preg_match('/(حكم\s+محكمة\s+الاستئناف[^\n\r،]+)/u', $citText, $pm)) {
+            $precedent = trim($pm[1]);
+        } elseif (preg_match('/(مبدأ\s+قضائي[^\n\r:،]+[:]?\s*[^\n\r،]+)/u', $citText, $pm)) {
+            $precedent = trim($pm[1]);
+        } elseif (!empty($cit['precedent'])) {
+            $precedent = trim($cit['precedent']);
+        }
+
+        $cleanedCitations[] = [
+            'law_system'     => $cleanSys,
+            'article_number' => $cleanArt,
+            'precedent'      => $precedent,
+            'text'           => $citText,
+            'case_reference' => $caseRef,
+        ];
+
+        // شارات السند في أعلى الصفحة (Answer-First Badges)
+        if ($cleanArt) {
+            $highlightedLaws[] = $cleanSys . ' (المادة ' . $cleanArt . ')';
+        } else {
+            $highlightedLaws[] = $cleanSys;
+        }
+
+        if ($precedent) {
+            $highlightedCases[] = mb_substr($precedent, 0, 45);
+        } elseif (!empty($caseRef) && is_numeric($caseRef)) {
+            $highlightedCases[] = 'القضية رقم ' . $caseRef;
         }
     }
 
     if (empty($highlightedLaws)) {
-        if (preg_match('/(نظام\s+[^\s،\(\)\.]+)/u', $immediateSummary . ' ' . $answer->question, $lm)) {
-            $lawBadge = trim($lm[1]);
-            if (preg_match('/الماد[ةه]\s*[\(]?(\d+(?:\/\d+)?|[أ-ي]+)[\)]?/u', $immediateSummary . ' ' . $answer->question, $am)) {
-                $lawBadge .= ' (المادة ' . $am[1] . ')';
-            }
-            $highlightedLaws[] = $lawBadge;
-        }
+        $highlightedLaws[] = $primaryLawName;
     }
 
-    if (empty($highlightedCases)) {
-        if (preg_match('/(القضي[ةه]|حكم)\s+رقم\s*([0-9]+)/u', $immediateSummary . ' ' . $rawAnswer, $cm)) {
-            $highlightedCases[] = 'القضية رقم ' . $cm[2];
-        }
+    $highlightedLaws = array_values(array_unique($highlightedLaws));
+    $highlightedCases = array_values(array_unique($highlightedCases));
+    $citationsList = $cleanedCitations;
+
+    // ── 4. الكيانات الدلالية والكلمات المفتاحية (Topic Entities & Meta Keywords) ──
+    $topicEntities = [
+        $primaryLawName,
+        'الأنظمة السعودية',
+        'وزارة العدل السعودية',
+        'منصة رديف القانونية',
+        'استشارات قانونية موثقة',
+    ];
+    if (str_contains($primaryLawName, 'المحاكم التجارية')) {
+        $topicEntities[] = 'المحكمة التجارية';
+        $topicEntities[] = 'اختصاص المحاكم التجارية';
+        $topicEntities[] = 'القضاء التجاري السعودي';
+    } elseif (str_contains($primaryLawName, 'العمل')) {
+        $topicEntities[] = 'المحكمة العمالية';
+        $topicEntities[] = 'حقوق العمال في السعودية';
+        $topicEntities[] = 'نظام العمل ولائحته التنفيذية';
+    } elseif (str_contains($primaryLawName, 'الشركات')) {
+        $topicEntities[] = 'نظام الشركات السعودي الجديد';
+        $topicEntities[] = 'مسؤولية الشركاء والمديرين';
+    } elseif (str_contains($primaryLawName, 'المعاملات المدنية')) {
+        $topicEntities[] = 'العقود والالتزامات في القانون السعودي';
+        $topicEntities[] = 'التعويض والضمان';
+    } elseif (str_contains($primaryLawName, 'الأحوال الشخصية')) {
+        $topicEntities[] = 'محكمة الأحوال الشخصية';
+        $topicEntities[] = 'الأسرة وحقوق الزوجين';
+    } elseif (str_contains($primaryLawName, 'التنفيذ')) {
+        $topicEntities[] = 'محكمة التنفيذ';
+        $topicEntities[] = 'السندات التنفيذية';
     }
+    $topicEntities = array_unique($topicEntities);
 
-    $highlightedLaws = array_unique($highlightedLaws);
-    $highlightedCases = array_unique($highlightedCases);
+    // ── 5. كود الـ Schema Markup المتقدم (QAPage + about + mentions + Text Consistency) ──
+    $schemaAnswerText = !empty($cleanImmediateText)
+        ? ($cleanImmediateText . "\n\n" . strip_tags($detailedContent))
+        : $plainAnswer;
 
-    // ── 3. LegalService Schema ──
+    $cleanQaSchema = [
+        '@context'   => 'https://schema.org',
+        '@type'      => 'QAPage',
+        'mainEntity' => [
+            '@type'          => 'Question',
+            'name'           => $answer->question,
+            'text'           => $plainQuestion,
+            'answerCount'    => 1,
+            'about'          => [
+                '@type'                   => 'Legislation',
+                'name'                    => $primaryLawName,
+                'legislationType'         => 'Statute',
+                'legislationJurisdiction' => [
+                    '@type'          => 'AdministrativeArea',
+                    'name'           => 'المملكة العربية السعودية',
+                    'addressCountry' => 'SA',
+                ],
+            ],
+            'mentions'       => array_map(fn($entity) => [
+                '@type' => 'Thing',
+                'name'  => $entity,
+            ], array_values(array_slice($topicEntities, 0, 4))),
+            'acceptedAnswer' => [
+                '@type'       => 'Answer',
+                'text'        => $schemaAnswerText,
+                'dateCreated' => $publishedDate,
+                'author'      => [
+                    '@type' => 'Organization',
+                    'name'  => 'رديف (Radiif)',
+                    'url'   => 'https://radiif.com',
+                ],
+            ],
+        ],
+    ];
+    $cleanQaJsonLd = json_encode($cleanQaSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+
+    // ── 6. LegalService Schema ──
     $legalSchema = json_encode([
         '@context'          => 'https://schema.org',
         '@type'             => 'LegalService',
@@ -132,7 +245,7 @@
             : 'Radiif is an AI legal platform specialized in Saudi Arabian law, providing verified answers with legal references.',
     ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
-    // ── 4. Speakable Schema ──
+    // ── 7. Speakable Schema ──
     $speakableSchema = json_encode([
         '@context' => 'https://schema.org',
         '@type'    => 'WebPage',
@@ -148,6 +261,7 @@
     {{-- Meta Author + Brand Entity Optimization --}}
     <meta name="author" content="Radiif - رديف">
     <meta name="description" content="{{ $metaDesc }}">
+    <meta name="keywords" content="{{ implode(', ', $topicEntities) }}">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 
     {{-- Open Graph (لمشاركة أفضل وثقة أعلى للذكاء الاصطناعي) --}}
@@ -157,6 +271,10 @@
     <meta property="og:url" content="{{ $pageUrl }}">
     <meta property="og:site_name" content="Radiif (رديف) - Saudi Legal AI">
     <meta property="og:locale" content="{{ $answer->locale === 'ar' ? 'ar_SA' : 'en_US' }}">
+    <meta property="article:section" content="{{ $primaryLawName }}">
+    @foreach($topicEntities as $tag)
+    <meta property="article:tag" content="{{ $tag }}">
+    @endforeach
     <meta property="article:published_time" content="{{ $answer->created_at->toAtomString() }}">
     <meta property="article:modified_time" content="{{ $answer->updated_at->toAtomString() }}">
 
@@ -362,11 +480,23 @@
                                     @isset($citation['law_system'])
                                         <span class="font-semibold text-emerald-400">{{ $citation['law_system'] }}</span>
                                     @endisset
-                                    @isset($citation['article_number'])
+                                    @if(!empty($citation['article_number']) && !in_array($citation['article_number'], ['مبدأ', 'null', 'غير محدد', 'عام', '-']))
                                         <span class="text-gray-400"> - {{ $isArabic ? 'المادة' : 'Article' }} <span class="font-semibold text-white">{{ $citation['article_number'] }}</span></span>
-                                    @endisset
+                                    @endif
+                                    @if(!empty($citation['precedent']))
+                                        <div class="mt-1.5 flex items-center gap-1.5 text-xs text-amber-300 font-medium">
+                                            <span>⚖️</span>
+                                            <span>{{ $citation['precedent'] }}</span>
+                                        </div>
+                                    @endif
+                                    @if(!empty($citation['case_reference']) && is_numeric($citation['case_reference']))
+                                        <div class="mt-1 flex items-center gap-1.5 text-xs text-emerald-400/90 font-medium">
+                                            <span>🏛️</span>
+                                            <span>{{ $isArabic ? 'القضية رقم' : 'Case Ref' }} {{ $citation['case_reference'] }}</span>
+                                        </div>
+                                    @endif
                                     @isset($citation['text'])
-                                        <p class="mt-1 text-gray-400 text-xs">{{ \Illuminate\Support\Str::limit($citation['text'], 200) }}</p>
+                                        <p class="mt-2 text-gray-400 text-xs leading-relaxed">{{ \Illuminate\Support\Str::limit($citation['text'], 250) }}</p>
                                     @endisset
                                 @else
                                     {{ $citation }}

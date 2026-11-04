@@ -79,12 +79,31 @@ class PopulatePublicLegalAnswers extends Command
                     $slugEn = 'legal-en-task-' . $task->id;
 
                     $citations = [];
-                    if ($task->law_system_name || $task->law_article_number) {
-                        $citations[] = [
-                            'law_system'     => $task->law_system_name ?: ($task->correct_law_system ?: 'Saudi Law'),
-                            'article_number' => $task->law_article_number ?: ($task->correct_law_article ?: ''),
-                            'text'           => $task->law_article_text ?: '',
+                    $rawSys = $task->law_system_name ?: ($task->correct_law_system ?: '');
+                    $rawArt = $task->law_article_number ?: ($task->correct_law_article ?: '');
+                    $artText = $task->law_article_text ?: '';
+                    $caseRef = $task->case_reference ?: '';
+
+                    $cleanSys = (!empty($rawSys) && $rawSys !== 'مبدأ قضائي' && $rawSys !== 'null' && $rawSys !== 'غير محدد') ? $rawSys : null;
+                    $cleanArt = (!empty($rawArt) && !in_array($rawArt, ['مبدأ', 'null', 'غير محدد', 'عام', '-', 'undefined'])) ? $rawArt : null;
+
+                    if ($cleanSys || $cleanArt || !empty($artText)) {
+                        $citItem = [
+                            'law_system'     => $cleanSys ?: 'الأنظمة واللوائح السعودية',
+                            'article_number' => $cleanArt,
+                            'text'           => $artText,
                         ];
+                        if (preg_match('/(قرار\s+المحكمة\s+العليا[^\n\r،]+)/u', $artText, $pm)) {
+                            $citItem['precedent'] = trim($pm[1]);
+                        } elseif (preg_match('/(حكم\s+محكمة\s+الاستئناف[^\n\r،]+)/u', $artText, $pm)) {
+                            $citItem['precedent'] = trim($pm[1]);
+                        } elseif (preg_match('/(مبدأ\s+قضائي[^\n\r:،]+[:]?\s*[^\n\r،]+)/u', $artText, $pm)) {
+                            $citItem['precedent'] = trim($pm[1]);
+                        }
+                        if (!empty($caseRef) && is_numeric($caseRef)) {
+                            $citItem['case_reference'] = $caseRef;
+                        }
+                        $citations[] = $citItem;
                     }
 
                     // إدراج النسخة العربية
