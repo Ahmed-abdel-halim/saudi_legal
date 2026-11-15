@@ -39,11 +39,11 @@ class AdminUserController extends Controller
 
         $users = $query->with('activeAiSubscription.package')->orderBy('created_at', 'desc')->paginate(20);
 
-        $totalUsers      = User::where('role', '!=', 'super_admin')->count();
-        $activeUsers     = User::where('role', '!=', 'super_admin')->where('is_active', 1)->count();
-        $suspendedUsers  = User::where('role', '!=', 'super_admin')->where('is_active', 0)->count();
+        $totalUsers      = User::whereNotIn('role', ['superadmin', 'super_admin'])->count();
+        $activeUsers     = User::whereNotIn('role', ['superadmin', 'super_admin'])->where('is_active', 1)->count();
+        $suspendedUsers  = User::whereNotIn('role', ['superadmin', 'super_admin'])->where('is_active', 0)->count();
         $expertCount     = User::where('role', 'expert')->count();
-        $companyCount    = User::where('role', 'company')->count();
+        $companyCount    = User::whereIn('role', ['company', 'supplier'])->count();
 
         $packages = AiPackage::where('is_active', true)->orderBy('sort_order')->get(['id', 'name', 'billing_period']);
 
@@ -61,15 +61,17 @@ class AdminUserController extends Controller
         
         // Prevent Super Admin from suspending themselves
         if ($user->id === auth()->id()) {
-            return back()->with('error', 'You cannot suspend your own account.');
+            return back()->with('error', __('admin.cannot_suspend_self') ?: 'لا يمكنك إيقاف حسابك الخاص كمدير نظام.');
         }
 
         $user->is_active = !$user->is_active;
         $user->save();
 
-        $statusAction = $user->is_active ? 'activated' : 'suspended';
+        $msg = $user->is_active 
+            ? (__('admin.user_activated') ?: 'تم تفعيل حساب المستخدم بنجاح.') 
+            : (__('admin.user_suspended') ?: 'تم إيقاف حساب المستخدم بنجاح.');
 
-        return back()->with('success', "User successfully {$statusAction}.");
+        return back()->with('success', $msg);
     }
 
     /**
@@ -139,11 +141,11 @@ class AdminUserController extends Controller
         $user = User::findOrFail($id);
 
         if ($user->id === auth()->id()) {
-            return back()->with('error', 'You cannot delete your own account.');
+            return back()->with('error', __('admin.cannot_delete_self') ?: 'لا يمكنك حذف حسابك الخاص كمدير نظام.');
         }
 
         $user->delete();
 
-        return back()->with('success', 'User permanently deleted from the system.');
+        return back()->with('success', __('admin.user_deleted') ?: 'تم حذف حساب المستخدم نهائياً.');
     }
 }
