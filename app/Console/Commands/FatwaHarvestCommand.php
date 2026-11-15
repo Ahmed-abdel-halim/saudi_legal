@@ -27,23 +27,33 @@ class FatwaHarvestCommand extends Command
         } elseif ($file && file_exists($file)) {
             $files = [$file];
         } else {
-            // Check common directories: فتوي, فتوى, fatwa, fatwas, or root
+            // Check common fatwa directories: فتوي, فتوى, fatwa, fatwas, storage
             $possibleDirs = [
                 base_path('فتوي'),
                 base_path('فتوى'),
                 base_path('fatwa'),
                 base_path('fatwas'),
                 base_path('storage/app/fatwa'),
-                base_path(),
             ];
             foreach ($possibleDirs as $d) {
                 if (is_dir($d)) {
-                    $found = glob(rtrim($d, '/\\') . '/*.jsonl');
+                    $found = glob(rtrim($d, '/\\') . '/*fatwa*.jsonl');
+                    if (empty($found)) {
+                        $found = glob(rtrim($d, '/\\') . '/*.jsonl');
+                    }
                     if (!empty($found)) {
                         $files = $found;
                         sort($files);
                         break;
                     }
+                }
+            }
+            // If still empty, check if *fatwa*.jsonl exists in root
+            if (empty($files)) {
+                $rootFatwas = glob(base_path('/*fatwa*.jsonl'));
+                if (!empty($rootFatwas)) {
+                    $files = $rootFatwas;
+                    sort($files);
                 }
             }
         }
