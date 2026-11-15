@@ -137,6 +137,11 @@ return [
     // Companies & Experts Added Keys
     'companies_desc' => 'Manage and verify all registered companies on the platform.',
     'experts_desc' => 'Manage all registered experts and their performance metrics.',
+    'performance' => 'Auditing & Performance',
+    'audited_tasks' => 'Total Audited Tasks',
+    'expert_activated' => 'Expert account activated successfully.',
+    'expert_suspended' => 'Expert account suspended successfully.',
+    'expert_deleted' => 'Expert account deleted permanently.',
     'search_companies' => 'Search by name, CR, or industry...',
     'search_experts' => 'Search by name, email, or domain...',
     'all_types' => 'All Types',

@@ -45,14 +45,15 @@ class AdminExpertController extends Controller
             'legalQaPairs'
         ])->orderBy('rating_average', 'desc')->paginate(20);
 
-        $totalExperts     = User::where('role', 'expert')->count();
-        $activeExperts    = User::where('role', 'expert')->where('is_active', 1)->count();
-        $forHireExperts   = User::where('role', 'expert')->where('is_active_for_hire', 1)->count();
-        $domains          = User::where('role', 'expert')->whereNotNull('expert_domain')
+        $totalExperts      = User::where('role', 'expert')->count();
+        $activeExperts     = User::where('role', 'expert')->where('is_active', 1)->count();
+        $forHireExperts    = User::where('role', 'expert')->where('is_active_for_hire', 1)->count();
+        $totalAuditedTasks = LegalTask::whereNotNull('expert_id')->where('status', 'completed')->count();
+        $domains           = User::where('role', 'expert')->whereNotNull('expert_domain')
                                 ->distinct()->pluck('expert_domain');
 
         return view('admin.experts.index', compact(
-            'experts', 'totalExperts', 'activeExperts', 'forHireExperts', 'domains'
+            'experts', 'totalExperts', 'activeExperts', 'forHireExperts', 'totalAuditedTasks', 'domains'
         ));
     }
 
@@ -88,7 +89,9 @@ class AdminExpertController extends Controller
         $expert->is_active = !$expert->is_active;
         $expert->save();
 
-        $msg = $expert->is_active ? 'Expert activated successfully.' : 'Expert suspended successfully.';
+        $msg = $expert->is_active 
+            ? (__('admin.expert_activated') ?: 'تم تفعيل حساب الخبير بنجاح.') 
+            : (__('admin.expert_suspended') ?: 'تم إيقاف حساب الخبير بنجاح.');
         return back()->with('success', $msg);
     }
 
@@ -96,6 +99,6 @@ class AdminExpertController extends Controller
     {
         $expert = User::where('role', 'expert')->findOrFail($id);
         $expert->delete();
-        return back()->with('success', 'Expert permanently deleted.');
+        return back()->with('success', __('admin.expert_deleted') ?: 'تم حذف حساب الخبير نهائياً.');
     }
 }
