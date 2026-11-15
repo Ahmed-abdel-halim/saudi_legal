@@ -27,13 +27,6 @@
         </div>
     </div>
 
-    {{-- Flash --}}
-    @if(session('success'))
-        <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl px-5 py-3 text-sm font-semibold flex items-center gap-2">
-            <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
-        </div>
-    @endif
-
     {{-- Filter Bar --}}
     <div class="bg-sidebar rounded-xl border border-slate-700/50 p-4">
         <form method="GET" action="{{ route('admin.ai_packages.subscriptions') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">

@@ -47,25 +47,6 @@
     </div>
 </div>
 
-@if(session('success'))
-    <div class="mb-6 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-between shadow-md">
-        <div class="flex items-center gap-2">
-            <i class="fa-solid fa-circle-check text-emerald-400"></i>
-            <span>{{ session('success') }}</span>
-        </div>
-        <a href="{{ route('dashboard.expert.legal_workbench') }}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded-lg text-xs font-bold transition shadow-green-glow">
-            فتح شاشة الخبراء Workbench <i class="fa-solid fa-up-right-from-square ms-1"></i>
-        </a>
-    </div>
-@endif
-
-@if(session('error'))
-    <div class="mb-6 bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2 shadow-md">
-        <i class="fa-solid fa-triangle-exclamation text-red-400"></i>
-        <span>{{ session('error') }}</span>
-    </div>
-@endif
-
 {{-- Conversation Timeline --}}
 <div class="max-w-4xl mx-auto space-y-6 mb-12">
     @forelse($conversation->messages as $msg)

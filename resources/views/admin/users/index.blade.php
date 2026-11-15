@@ -318,13 +318,6 @@
             </button>
         </div>
 
-        {{-- Success Flash --}}
-        @if(session('success'))
-        <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-4 py-3 text-sm font-semibold">
-            <i class="fa-solid fa-circle-check mr-2"></i> {{ session('success') }}
-        </div>
-        @endif
-
         <form id="grant-ai-form"
               method="POST"
               action=""

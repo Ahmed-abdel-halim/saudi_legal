@@ -56,12 +56,6 @@
         </form>
     </div>
 
-    @if(session('success'))
-        <div class="bg-emerald-50 border-b border-emerald-100 text-emerald-600 px-6 py-3 text-sm font-bold flex items-center gap-2">
-            <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
-        </div>
-    @endif
-
     {{-- Table --}}
     <div class="overflow-x-auto">
         <table class="w-full text-sm text-left rtl:text-right whitespace-nowrap">

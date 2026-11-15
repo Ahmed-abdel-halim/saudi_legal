@@ -26,18 +26,6 @@
         </div>
     </div>
 
-    {{-- Flash Messages --}}
-    @if(session('success'))
-        <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl px-4 py-3 flex items-center gap-2 text-sm font-semibold">
-            <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl px-4 py-3 flex items-center gap-2 text-sm font-semibold">
-            <i class="fa-solid fa-triangle-exclamation"></i> {{ session('error') }}
-        </div>
-    @endif
-
     {{-- Stats --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-sidebar rounded-xl border border-slate-700/50 p-4 flex flex-col gap-2">

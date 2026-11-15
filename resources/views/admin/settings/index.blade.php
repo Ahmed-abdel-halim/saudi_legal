@@ -59,13 +59,6 @@
 
     {{-- Right Side: Form Content --}}
     <div class="lg:col-span-3" id="settings-panel">
-        @if(session('success'))
-            <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-3 shadow-sm">
-                <i class="fa-solid fa-circle-check text-emerald-500 text-lg"></i>
-                <span class="font-bold text-sm">{{ session('success') }}</span>
-            </div>
-        @endif
-
         <div id="tab-general" class="tab-content bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden min-h-[500px]">
             <div class="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
                 <div>
