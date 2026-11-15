@@ -264,6 +264,27 @@
                         <i class="fa-solid fa-user-tie w-5 text-center group-hover:text-brand-primary transition"></i>
                         <span class="mx-3">{!! __('admin.experts') !!}</span>
                     </a>
+
+                    @php
+                        try {
+                            $unreadContactsCount = \Illuminate\Support\Facades\Schema::hasTable('contact_messages') 
+                                ? \App\Models\ContactMessage::where('is_read', false)->count() 
+                                : 0;
+                        } catch (\Throwable $e) {
+                            $unreadContactsCount = 0;
+                        }
+                    @endphp
+                    <a class="flex items-center justify-between px-4 py-2.5 {{ request()->routeIs('admin.contact_messages.*') ? 'text-white bg-brand-primary/20 border border-brand-primary/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }} rounded-xl transition text-xs font-semibold group" href="{{ route('admin.contact_messages.index') }}">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-envelope-open-text w-5 text-center text-teal-400 group-hover:scale-110 transition-transform"></i>
+                            <span class="mx-3">{!! __('admin.contact_messages') !!}</span>
+                        </div>
+                        @if($unreadContactsCount > 0)
+                            <span class="px-2 py-0.5 text-[10px] font-black rounded-full bg-emerald-500 text-slate-950 shadow-green-glow animate-pulse">
+                                {{ $unreadContactsCount }}
+                            </span>
+                        @endif
+                    </a>
                     
                     {{-- Category 2 --}}
                     <div class="pt-4 pb-1">

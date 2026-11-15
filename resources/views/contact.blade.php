@@ -60,7 +60,6 @@
                     <div class="bg-brand-green/10 text-brand-green border border-brand-green/20 p-4 rounded-xl mb-6 text-sm font-semibold">{{ session('success') }}</div>
                 @endif
                 
-                {{-- Placeholder route for now --}}
                 <form action="{{ route('contact.send') }}" method="POST" class="space-y-5">
                     @csrf
                     <div>
@@ -74,6 +73,13 @@
                         <label for="email" class="block text-sm font-medium text-slate-300 mb-1.5">{{ __('contact.AUTH_EMAIL_LABEL') }}</label>
                         <input type="email" name="email" id="email" value="{{ old('email') }}" class="w-full px-4 py-3 bg-slate-900/60 border border-white/5 rounded-lg focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green text-white transition-all @error('email') border-red-500 @enderror" required>
                         @error('email')
+                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-slate-300 mb-1.5">{{ __('contact.PHONE_LABEL') }}</label>
+                        <input type="text" name="phone" id="phone" value="{{ old('phone') }}" dir="ltr" placeholder="05XXXXXXXX / +966..." class="w-full px-4 py-3 bg-slate-900/60 border border-white/5 rounded-lg focus:ring-2 focus:ring-brand-green/30 focus:border-brand-green text-white transition-all @error('phone') border-red-500 @enderror">
+                        @error('phone')
                             <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>

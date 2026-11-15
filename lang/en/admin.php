@@ -26,6 +26,8 @@ return [
     'ai_feedback' => 'Answer Feedback',
     'ai_packages' => 'AI Packages',
     'azure_integration' => 'Azure Integration',
+    'contact_messages' => 'Contact Messages',
+    'contact_messages_desc' => 'Manage messages submitted via Contact Us form.',
     'activity_ai_subscription' => 'New AI Subscription',
 
     // Dashboard Overview

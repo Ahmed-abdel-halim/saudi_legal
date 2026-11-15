@@ -10,6 +10,7 @@ return [
     'CONTACT_SUCCESS_MESSAGE' => 'Your message has been sent successfully.',
     'AUTH_FULL_NAME' => 'Full Name',
     'AUTH_EMAIL_LABEL' => 'Email Address',
+    'PHONE_LABEL' => 'Phone Number (Optional)',
     'CONTACT_SUBJECT' => 'Subject',
     'CONTACT_SUBJECT_GENERAL' => 'General Inquiry',
     'CONTACT_SUBJECT_TECH' => 'Technical Support',

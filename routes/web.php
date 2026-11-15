@@ -62,12 +62,8 @@ Route::get('/about', function () {
 })->name('about');
 
 // Contact Us Route
-Route::get('/contact', function () {
-    return view('contact');
-})->name('contact');
-Route::post('/contact', function () {
-    return back()->with('success', __('contact.CONTACT_SUCCESS_MESSAGE'));
-})->name('contact.send');
+Route::get('/contact', [\App\Http\Controllers\ContactController::class, 'index'])->name('contact');
+Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'send'])->name('contact.send');
 
 // Login routes
 Route::get('/login', function () {
@@ -336,6 +332,13 @@ Route::middleware(['superadmin'])->prefix('admin')->name('admin.')->group(functi
     Route::patch('/users/{id}/toggle-status', [\App\Http\Controllers\Admin\AdminUserController::class, 'toggleStatus'])->name('users.toggle-status');
     Route::post('/users/{id}/grant-ai-subscription', [\App\Http\Controllers\Admin\AdminUserController::class, 'grantAiSubscription'])->name('users.grant-ai-subscription');
     Route::delete('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'destroy'])->name('users.destroy');
+
+    // Contact Messages Management
+    Route::get('/contact-messages', [\App\Http\Controllers\Admin\AdminContactMessageController::class, 'index'])->name('contact_messages.index');
+    Route::get('/contact-messages/{id}', [\App\Http\Controllers\Admin\AdminContactMessageController::class, 'show'])->name('contact_messages.show');
+    Route::patch('/contact-messages/{id}/toggle-read', [\App\Http\Controllers\Admin\AdminContactMessageController::class, 'toggleRead'])->name('contact_messages.toggle_read');
+    Route::post('/contact-messages/{id}/notes', [\App\Http\Controllers\Admin\AdminContactMessageController::class, 'updateNotes'])->name('contact_messages.notes');
+    Route::delete('/contact-messages/{id}', [\App\Http\Controllers\Admin\AdminContactMessageController::class, 'destroy'])->name('contact_messages.destroy');
 
     // Companies Management
     Route::get('/companies', [\App\Http\Controllers\Admin\AdminCompanyController::class, 'index'])->name('companies.index');

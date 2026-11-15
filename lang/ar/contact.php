@@ -10,6 +10,7 @@ return [
     'CONTACT_SUCCESS_MESSAGE' => 'تم إرسال رسالتك بنجاح.',
     'AUTH_FULL_NAME' => 'الاسم الكامل',
     'AUTH_EMAIL_LABEL' => 'البريد الإلكتروني',
+    'PHONE_LABEL' => 'رقم الجوال (اختياري)',
     'CONTACT_SUBJECT' => 'الموضوع',
     'CONTACT_SUBJECT_GENERAL' => 'استفسار عام',
     'CONTACT_SUBJECT_TECH' => 'دعم فني',

@@ -26,6 +26,8 @@ return [
     'ai_feedback' => 'تقييمات الإجابات (Feedback)',
     'ai_packages' => 'باقات المساعد الذكي',
     'azure_integration' => 'تكامل Azure',
+    'contact_messages' => 'رسائل اتصل بنا',
+    'contact_messages_desc' => 'متابعة وإدارة الرسائل الواردة من زوار نموذج تواصل معنا.',
     'activity_ai_subscription' => 'اشتراك باقة ذكاء اصطناعي',
 
     // Dashboard Overview
