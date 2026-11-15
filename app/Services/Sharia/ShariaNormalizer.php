@@ -9,7 +9,10 @@ class ShariaNormalizer
         'ماذا', 'كيف', 'متى', 'أين', 'ذلك', 'هذا', 'هذه', 'وما', 'وهل', 'داخل', 'عند', 'بعد',
         'قبل', 'بين', 'التي', 'الذي', 'الذين', 'إذا', 'ان', 'أن', 'أو', 'ثم', 'لا', 'لم', 'لن',
         'له', 'لها', 'لهم', 'لنا', 'به', 'بها', 'بهم', 'فيه', 'فيها', 'منه', 'منها', 'عليه', 'عليها',
-        'الشرعي', 'شرعا', 'شرعاً', 'فيها', 'كان', 'يكون', 'تكون'
+        'الشرعي', 'شرعا', 'شرعاً', 'فيها', 'كان', 'يكون', 'تكون',
+        'يجوز', 'جواز', 'تجوز', 'يجوزان', 'عبر', 'طريق', 'طريقه', 'طريقة', 'شخص', 'شخصا', 'رجل',
+        'امراه', 'امراة', 'احد', 'شيء', 'اريد', 'معرفه', 'معرفة', 'سؤال', 'سؤالي', 'السلام',
+        'عليكم', 'ورحمة', 'الله', 'وبركاته', 'جزاكم', 'خيرا', 'خير'
     ];
 
     /**
@@ -48,6 +51,23 @@ class ShariaNormalizer
         $words = array_filter(explode(' ', $normalized), fn($w) => mb_strlen($w) >= 3);
         $substantive = array_filter($words, fn($w) => !in_array($w, self::$stopwords));
         return array_values(array_unique($substantive));
+    }
+
+    /**
+     * Extract root stems by stripping common Arabic prefixes (ال, بال, كال, فال, لل, و).
+     */
+    public static function extractStems(string $text): array
+    {
+        $substantive = self::extractSubstantiveKeywords($text);
+        $stems = [];
+        foreach ($substantive as $word) {
+            $stems[] = $word;
+            $stem = preg_replace('/^(ال|بال|كال|فال|لل|وال|و|ف)/u', '', $word);
+            if (mb_strlen($stem) >= 3 && !in_array($stem, self::$stopwords)) {
+                $stems[] = $stem;
+            }
+        }
+        return array_values(array_unique($stems));
     }
 
     /**

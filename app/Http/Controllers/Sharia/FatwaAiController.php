@@ -244,17 +244,41 @@ class FatwaAiController extends Controller
             // Collect Citations ONLY from the matching records
             foreach ($bestMatch->citations as $citation) {
                 if ($citation->citation_type === 'quran') {
-                    $citations['quran'][] = [
-                        'surah' => $citation->surah_name,
-                        'ayah'  => $citation->ayah_number,
-                        'text'  => $citation->quran_text,
-                    ];
+                    if (!empty($citation->quran_text)) {
+                        $citations['quran'][] = [
+                            'surah' => $citation->surah_name,
+                            'ayah'  => $citation->ayah_number,
+                            'text'  => $citation->quran_text,
+                        ];
+                    }
                 } elseif ($citation->citation_type === 'hadith') {
-                    $citations['hadiths'][] = [
-                        'text'   => $citation->hadith_text,
-                        'source' => $citation->hadith_source ?? 'صحيح السنة',
-                        'grade'  => $citation->hadith_grade ?? 'صحيح',
-                    ];
+                    $src = $citation->hadith_source ?? '';
+                    $txt = trim($citation->hadith_text ?? '');
+
+                    // Filter out non-hadiths (prayers, peace formula, or disclaimer notes)
+                    if (mb_stripos($src, 'دعاء') !== false || mb_stripos($src, 'ليس حديث') !== false || mb_stripos($src, 'الصيغة العامة') !== false) {
+                        continue;
+                    }
+
+                    // If source is actually Quran, route to Quran citations
+                    if (mb_stripos($src, 'القرآن') !== false || mb_stripos($src, 'قرآن') !== false) {
+                        if (!empty($txt)) {
+                            $citations['quran'][] = [
+                                'surah' => $citation->surah_name ?: 'القرآن الكريم',
+                                'ayah'  => $citation->ayah_number,
+                                'text'  => $txt,
+                            ];
+                        }
+                        continue;
+                    }
+
+                    if (!empty($txt)) {
+                        $citations['hadiths'][] = [
+                            'text'   => $txt,
+                            'source' => $src ?: 'صحيح السنة',
+                            'grade'  => $citation->hadith_grade ?? 'صحيح',
+                        ];
+                    }
                 } elseif ($citation->citation_type === 'scholar') {
                     if (!in_array($citation->scholar_name, $citations['scholars']) && !empty($citation->scholar_name)) {
                         $citations['scholars'][] = $citation->scholar_name;
