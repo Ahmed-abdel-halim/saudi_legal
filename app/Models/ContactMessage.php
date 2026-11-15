@@ -39,3 +39,4 @@ class ContactMessage extends Model
         return $query->where('is_read', true);
     }
 }
+

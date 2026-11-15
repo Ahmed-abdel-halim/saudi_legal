@@ -108,3 +108,4 @@ class AdminContactMessageController extends Controller
         return redirect()->route('admin.contact_messages.index')->with('success', 'تم حذف رسالة التواصل بنجاح.');
     }
 }
+
