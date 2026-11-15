@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 class FatwaHarvestCommand extends Command
 {
     protected $signature = 'sharia:harvest {--file= : Path to JSON or JSONL file to ingest} {--dir= : Directory containing JSONL files}';
+    protected $aliases = ['sharia:harvest-fatwas'];
     protected $description = 'Ingest and deduplicate Islamic fatwas into the sovereign knowledge base';
 
     public function handle(FatwaHarvesterService $harvester)
@@ -26,11 +27,24 @@ class FatwaHarvestCommand extends Command
         } elseif ($file && file_exists($file)) {
             $files = [$file];
         } else {
-            // Default check E:\Radiif\فتوي
-            $defaultDir = base_path('فتوي');
-            if (is_dir($defaultDir)) {
-                $files = glob(rtrim($defaultDir, '/\\') . '/*.jsonl');
-                sort($files);
+            // Check common directories: فتوي, فتوى, fatwa, fatwas, or root
+            $possibleDirs = [
+                base_path('فتوي'),
+                base_path('فتوى'),
+                base_path('fatwa'),
+                base_path('fatwas'),
+                base_path('storage/app/fatwa'),
+                base_path(),
+            ];
+            foreach ($possibleDirs as $d) {
+                if (is_dir($d)) {
+                    $found = glob(rtrim($d, '/\\') . '/*.jsonl');
+                    if (!empty($found)) {
+                        $files = $found;
+                        sort($files);
+                        break;
+                    }
+                }
             }
         }
 
