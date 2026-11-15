@@ -54,7 +54,9 @@ class AdminCompanyController extends Controller
         $company->is_verified_provider = !$company->is_verified_provider;
         $company->save();
 
-        $msg = $company->is_verified_provider ? 'Company verified successfully.' : 'Company verification removed.';
+        $msg = $company->is_verified_provider 
+            ? (__('admin.company_verified_success') ?? 'تم توثيق الشركة بنجاح.') 
+            : (__('admin.company_unverified_success') ?? 'تم إلغاء توثيق الشركة بنجاح.');
         return back()->with('success', $msg);
     }
 
@@ -62,6 +64,6 @@ class AdminCompanyController extends Controller
     {
         $company = Company::findOrFail($id);
         $company->delete();
-        return back()->with('success', 'Company permanently deleted.');
+        return back()->with('success', __('admin.company_deleted_success') ?? 'تم حذف الشركة بنجاح.');
     }
 }

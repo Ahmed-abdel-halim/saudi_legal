@@ -52,7 +52,11 @@ class AdminServiceController extends Controller
         $service->is_active = !$service->is_active;
         $service->save();
 
-        return back()->with('success', 'Service status updated successfully.');
+        $msg = $service->is_active 
+            ? (__('admin.service_activated_success') ?? 'تم تفعيل الخدمة بنجاح.') 
+            : (__('admin.service_suspended_success') ?? 'تم إيقاف الخدمة بنجاح.');
+
+        return back()->with('success', $msg);
     }
 
     /**
@@ -63,6 +67,6 @@ class AdminServiceController extends Controller
         $service = ExpertService::findOrFail($id);
         $service->delete();
 
-        return back()->with('success', 'Service deleted successfully.');
+        return back()->with('success', __('admin.service_deleted_success') ?? 'تم حذف الخدمة بنجاح.');
     }
 }

@@ -188,8 +188,14 @@ return [
     'activate' => 'تفعيل',
     'delete' => 'حذف',
     'preview' => 'معاينة',
-    'confirm_delete_service' => 'هل أنت متأكد من حذف هذه الخدمة؟',
-    'no_services_found' => 'لا توجد خدمات',
+    'confirm_delete_service' => 'هل أنت متأكد من حذف هذه الخدمة نهائياً من المنصة؟',
+    'service_activated_success' => 'تم تفعيل الخدمة بنجاح.',
+    'service_suspended_success' => 'تم إيقاف الخدمة بنجاح.',
+    'service_deleted_success' => 'تم حذف الخدمة بنجاح.',
+    'company_verified_success' => 'تم توثيق الشركة بنجاح.',
+    'company_unverified_success' => 'تم إلغاء توثيق الشركة بنجاح.',
+    'company_deleted_success' => 'تم حذف الشركة بنجاح.',
+    'no_services_found' => 'لا توجد خدمات مطابقة للبحث',
 
     // Financials
     'financials_desc' => 'مراقبة أرباح المنصة، مدفوعات الضمان، ومستحقات الخبراء.',
