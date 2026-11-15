@@ -36,6 +36,12 @@ return [
     'toast_error_title' => 'حدث خطأ',
     'toast_warning_title' => 'تنبيه',
     'toast_info_title' => 'إشعار',
+    'confirm_modal_title' => 'تأكيد الإجراء',
+    'confirm_modal_btn' => 'نعم، متابعة',
+    'confirm_modal_cancel' => 'إلغاء',
+    'confirm_modal_delete_btn' => 'نعم، حذف',
+    'confirm_modal_activate_btn' => 'نعم، تفعيل',
+    'confirm_modal_suspend_btn' => 'نعم، إيقاف',
     'activity_ai_subscription' => 'اشتراك باقة ذكاء اصطناعي',
 
     // Dashboard Overview

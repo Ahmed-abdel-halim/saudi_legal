@@ -397,6 +397,7 @@
             {{-- Main Dashboard Content --}}
             <main class="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-8 relative">
                 @include('partials.toasts')
+                @include('partials.confirm_modal')
                 
                 @yield('content')
             </main>

@@ -36,6 +36,12 @@ return [
     'toast_error_title' => 'Error',
     'toast_warning_title' => 'Warning',
     'toast_info_title' => 'Information',
+    'confirm_modal_title' => 'Confirm Action',
+    'confirm_modal_btn' => 'Yes, Proceed',
+    'confirm_modal_cancel' => 'Cancel',
+    'confirm_modal_delete_btn' => 'Yes, Delete',
+    'confirm_modal_activate_btn' => 'Yes, Reactivate',
+    'confirm_modal_suspend_btn' => 'Yes, Suspend',
     'activity_ai_subscription' => 'New AI Subscription',
 
     // Dashboard Overview

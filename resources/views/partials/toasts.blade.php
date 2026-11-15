@@ -136,3 +136,4 @@ class="fixed top-6 left-6 rtl:left-6 rtl:right-auto ltr:right-6 ltr:left-auto z-
         </div>
     </template>
 </div>
+
