@@ -270,12 +270,23 @@
     <aside id="chat-sidebar"
         class="w-80 h-full glass-sidebar flex flex-col z-30 transition-all duration-300 fixed right-0 top-0 transform translate-x-0">
         <!-- Sidebar Header: New Chat Button -->
-        <div class="p-4 border-b border-slate-200/50 dark:border-white/10">
+        <div class="p-4 border-b border-slate-200/50 dark:border-white/10 space-y-2.5">
             <button onclick="startNewChat()"
                 class="w-full py-3.5 px-4 bg-gradient-to-br from-brand-green to-brand-green-dim text-white rounded-2xl flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-brand-green/20 active:scale-[0.98] transition-all cursor-pointer font-bold text-sm shadow-md">
                 <i class="fa-solid fa-plus text-xs"></i>
                 محادثة جديدة
             </button>
+            <a href="{{ route('fatwa_assistant.public') }}"
+                class="w-full py-2.5 px-3.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-between transition-all group">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-kaaba text-emerald-500 group-hover:scale-110 transition-transform"></i>
+                    <span>المفتي الإسلامي الذكي</span>
+                </span>
+                <span class="text-[10px] bg-emerald-500/15 px-2 py-0.5 rounded-md border border-emerald-500/30 flex items-center gap-1">
+                    <span>38 ألف فتوى</span>
+                    <i class="fa-solid fa-arrow-left text-[9px]"></i>
+                </span>
+            </a>
         </div>
 
         <!-- Sidebar Content: Chat List -->

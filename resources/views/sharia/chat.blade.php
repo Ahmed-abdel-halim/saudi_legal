@@ -500,7 +500,43 @@
                     `;
                 }
 
-                citationsHtml = quranCards + hadithCards + authorityBadge;
+                let topBadges = '';
+                let rulingBadge = '';
+                if (citations.ruling) {
+                    let rulingColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+                    if (citations.ruling.includes('تحريم') || citations.ruling.includes('لا يجوز')) {
+                        rulingColor = 'bg-rose-500/20 text-rose-300 border-rose-500/30';
+                    } else if (citations.ruling.includes('وجوب') || citations.ruling.includes('واجب')) {
+                        rulingColor = 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+                    } else if (citations.ruling.includes('مفصل')) {
+                        rulingColor = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+                    }
+                    rulingBadge = `
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${rulingColor}">
+                            <i class="fa-solid fa-scale-balanced text-[9px]"></i> الحكم: ${escapeHtml(citations.ruling)}
+                        </span>
+                    `;
+                }
+
+                let categoryBadge = '';
+                if (citations.category || citations.sub_domain) {
+                    categoryBadge = `
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                            <i class="fa-solid fa-bookmark text-[9px]"></i> ${escapeHtml(citations.sub_domain || citations.category)}
+                        </span>
+                    `;
+                }
+
+                if (rulingBadge || categoryBadge) {
+                    topBadges = `
+                        <div class="flex flex-wrap items-center gap-1.5 pb-2.5 mb-2.5 border-b border-white/10">
+                            ${rulingBadge}
+                            ${categoryBadge}
+                        </div>
+                    `;
+                }
+
+                citationsHtml = topBadges + quranCards + hadithCards + authorityBadge;
             }
 
             // Formatted text

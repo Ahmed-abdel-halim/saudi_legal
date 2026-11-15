@@ -221,9 +221,22 @@ class FatwaAiController extends Controller
         } else {
             // ── CASE B: SUBSTANTIVE MATCH FOUND ──────────────────────────────────
             $bestMatch = $results->first();
-            $authority = $bestMatch->record->source_authority ?? 'اللجنة الدائمة للبحوث العلمية والإفتاء';
+            $authority = $bestMatch->record->source_authority ?? 'مركز الفتوى - إسلام ويب';
+            $ruling    = $bestMatch->record->core_principles['direct_ruling'] ?? null;
+            $category  = $bestMatch->record->domain ?? null;
+            $subDomain = $bestMatch->record->sub_domain ?? null;
 
             $citations['authorities'][] = $authority;
+            if ($ruling) {
+                $citations['ruling'] = $ruling;
+            }
+            if ($category) {
+                $citations['category'] = $category;
+            }
+            if ($subDomain) {
+                $citations['sub_domain'] = $subDomain;
+            }
+
             if ($bestMatch->traffic_light === 'green' || $bestMatch->review_status === 'Approved') {
                 $citations['verified'] = true;
             }
@@ -259,13 +272,14 @@ class FatwaAiController extends Controller
 
             // Build Prompt for LLM formatting if available
             $contextText = "المصدر الشرعي المعتمد: [{$authority}]\n" .
+                           ($ruling ? "الحكم الفقهي المباشر: [{$ruling}]\n" : "") .
                            "السؤال الشرعي الأصلي: " . $bestMatch->question . "\n" .
                            "الفتوى والحكم المعتمد: " . $bestMatch->final_answer;
 
             $systemPrompt = "أنت «المفتي الإسلامي الذكي» التابع لمنصة رديف. مهمتك صياغة الفتوى بناءً حصراً على الفتوى المعتمدة المرفقة في السياق أدناه بدقة تامة دون زيادة أو اختراع. اذكر الحكم بوضوح متبوعاً بالأدلة المنقولة، ثم انسب الفتوى لـ [{$authority}].";
             $userPrompt = "سؤال المستفيد: {$question}\n\nالسياق المعتمد:\n{$contextText}";
 
-            // Try Gemini API
+            // 1. Try Gemini API
             $geminiKey = trim(config('services.gemini.key', env('GEMINI_API_KEY', '')));
             if (!empty($geminiKey) && $this->geminiService) {
                 try {
@@ -278,6 +292,21 @@ class FatwaAiController extends Controller
                     }
                 } catch (\Exception $e) {
                     Log::warning("[FatwaAi] Gemini call failed: " . $e->getMessage());
+                }
+            }
+
+            // 2. Try Bedrock API (Claude 3.5 Sonnet) if Gemini did not produce an answer
+            if (empty($aiAnswer) && $this->bedrockService && $this->bedrockService->isEnabled()) {
+                try {
+                    $messages = [
+                        ['role' => 'user', 'content' => $userPrompt]
+                    ];
+                    $raw = $this->bedrockService->generateContent($messages, $systemPrompt, ['temperature' => 0.0, 'timeout' => 25]);
+                    if (!empty($raw)) {
+                        $aiAnswer = $this->cleanModelResponse($raw);
+                    }
+                } catch (\Exception $e) {
+                    Log::warning("[FatwaAi] Bedrock call failed: " . $e->getMessage());
                 }
             }
 
