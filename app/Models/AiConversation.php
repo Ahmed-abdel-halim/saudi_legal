@@ -12,6 +12,7 @@ class AiConversation extends Model
     protected $fillable = [
         'uuid',
         'user_id',
+        'type',
         'title',
     ];
 

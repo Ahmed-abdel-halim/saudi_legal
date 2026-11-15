@@ -36,6 +36,15 @@ class AdminAiChatLogsController extends Controller
                         });
                 });
             })
+            ->when($request->filled('bot_type'), function ($q) use ($request) {
+                if ($request->bot_type === 'sharia') {
+                    return $q->where('type', 'sharia');
+                } elseif ($request->bot_type === 'legal') {
+                    return $q->where(function ($sub) {
+                        $sub->where('type', 'legal')->orWhereNull('type');
+                    });
+                }
+            })
             ->when($request->filled('user_type'), function ($q) use ($request) {
                 if ($request->user_type === 'registered') {
                     return $q->whereNotNull('user_id');
@@ -51,10 +60,12 @@ class AdminAiChatLogsController extends Controller
             });
 
         $stats = [
-            'total_conversations' => AiConversation::count(),
-            'total_messages'      => AiMessage::count(),
-            'user_conversations'  => AiConversation::whereNotNull('user_id')->count(),
-            'guest_conversations' => AiConversation::whereNull('user_id')->count(),
+            'total_conversations'  => AiConversation::count(),
+            'total_messages'       => AiMessage::count(),
+            'legal_conversations'  => AiConversation::where(fn($q) => $q->where('type', 'legal')->orWhereNull('type'))->count(),
+            'sharia_conversations' => AiConversation::where('type', 'sharia')->count(),
+            'user_conversations'   => AiConversation::whereNotNull('user_id')->count(),
+            'guest_conversations'  => AiConversation::whereNull('user_id')->count(),
         ];
 
         $conversations = $query->orderBy('updated_at', 'desc')->paginate(15);

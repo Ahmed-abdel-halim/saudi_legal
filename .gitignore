@@ -32,3 +32,5 @@ all_laws_combined.json
 /scratch
 فتوي/
 *.jsonl
+*.sql
+*.zip

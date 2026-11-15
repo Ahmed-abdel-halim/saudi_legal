@@ -90,6 +90,7 @@ class FatwaAiController extends Controller
 
         if ($userId) {
             $conversations = AiConversation::where('user_id', $userId)
+                ->where('type', 'sharia')
                 ->orderBy('updated_at', 'desc')
                 ->take(20)
                 ->get(['uuid', 'title', 'updated_at']);
@@ -97,6 +98,7 @@ class FatwaAiController extends Controller
             $sessionUuids = session()->get('sharia_conversations', []);
             if (!empty($sessionUuids)) {
                 $conversations = AiConversation::whereIn('uuid', $sessionUuids)
+                    ->where('type', 'sharia')
                     ->orderBy('updated_at', 'desc')
                     ->get(['uuid', 'title', 'updated_at']);
             }
@@ -180,6 +182,7 @@ class FatwaAiController extends Controller
             $conversation = AiConversation::create([
                 'uuid'    => (string) Str::uuid(),
                 'user_id' => auth()->id(),
+                'type'    => 'sharia',
                 'title'   => Str::limit($question, 60),
             ]);
 

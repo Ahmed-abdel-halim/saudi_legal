@@ -10,11 +10,20 @@
         <a href="{{ route('admin.ai_chats.index') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-emerald-400 mb-2 transition">
             <i class="fa-solid fa-arrow-right rtl:rotate-180"></i> العودة لسجل المحادثات
         </a>
-        <h1 class="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <span class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-sm shadow-green-glow">
-                <i class="fa-solid fa-comments"></i>
-            </span>
-            {{ $conversation->title ?: 'محادثة قانونية مع البوت' }}
+        <h1 class="text-2xl font-black text-white tracking-tight flex items-center gap-2 flex-wrap">
+            @if(($conversation->type ?? '') === 'sharia')
+                <span class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-sm shadow-green-glow">
+                    <i class="fa-solid fa-kaaba"></i>
+                </span>
+                <span>{{ $conversation->title ?: 'استفتاء شرعي مع المفتي الذكي' }}</span>
+                <span class="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg text-xs font-bold">🕌 فتوى شرعية</span>
+            @else
+                <span class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                </span>
+                <span>{{ $conversation->title ?: 'محادثة قانونية مع البوت' }}</span>
+                <span class="bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2.5 py-1 rounded-lg text-xs font-bold">⚖️ استشارة قانونية</span>
+            @endif
         </h1>
         <p class="text-xs text-gray-500 mt-1 font-mono">UUID: {{ $conversation->uuid }}</p>
     </div>

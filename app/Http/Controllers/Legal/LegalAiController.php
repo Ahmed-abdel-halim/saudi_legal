@@ -103,6 +103,9 @@ class LegalAiController extends Controller
 
         if ($userId) {
             $conversations = AiConversation::where('user_id', $userId)
+                ->where(function ($q) {
+                    $q->where('type', 'legal')->orWhereNull('type');
+                })
                 ->orderBy('updated_at', 'desc')
                 ->get(['uuid', 'title', 'updated_at']);
         } else {
@@ -122,6 +125,9 @@ class LegalAiController extends Controller
 
             if (! empty($allUuids)) {
                 $conversations = AiConversation::whereIn('uuid', $allUuids)
+                    ->where(function ($q) {
+                        $q->where('type', 'legal')->orWhereNull('type');
+                    })
                     ->orderBy('updated_at', 'desc')
                     ->get(['uuid', 'title', 'updated_at']);
             }
@@ -278,6 +284,7 @@ class LegalAiController extends Controller
             $conversation = AiConversation::create([
                 'uuid'    => $uuid,
                 'user_id' => auth()->id(),
+                'type'    => 'legal',
                 'title'   => $title,
             ]);
 
