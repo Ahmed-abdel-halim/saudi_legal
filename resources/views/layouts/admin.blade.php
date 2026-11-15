@@ -396,23 +396,7 @@
 
             {{-- Main Dashboard Content --}}
             <main class="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-8 relative">
-                @if(session('success'))
-                    <div class="mb-6 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-xl shadow-lg flex items-center justify-between text-xs font-bold" role="alert">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-circle-check text-base text-emerald-400"></i>
-                            <span>{{ session('success') }}</span>
-                        </div>
-                    </div>
-                @endif
-                
-                @if(session('error'))
-                    <div class="mb-6 bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl shadow-lg flex items-center justify-between text-xs font-bold" role="alert">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-triangle-exclamation text-base text-red-400"></i>
-                            <span>{{ session('error') }}</span>
-                        </div>
-                    </div>
-                @endif
+                @include('partials.toasts')
                 
                 @yield('content')
             </main>

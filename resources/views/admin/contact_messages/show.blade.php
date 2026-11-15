@@ -44,15 +44,6 @@
     </div>
 </div>
 
-@if(session('success'))
-<div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xl shadow-sm text-sm mb-6 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-        <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
-        <span>{{ session('success') }}</span>
-    </div>
-</div>
-@endif
-
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
     {{-- Left/Main 2 Cols: Message Body & Reply Actions --}}

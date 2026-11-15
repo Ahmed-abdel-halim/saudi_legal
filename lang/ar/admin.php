@@ -28,6 +28,14 @@ return [
     'azure_integration' => 'تكامل Azure',
     'contact_messages' => 'رسائل اتصل بنا',
     'contact_messages_desc' => 'متابعة وإدارة الرسائل الواردة من زوار نموذج تواصل معنا.',
+    'contact_marked_read' => 'تم تحديد الرسالة كمقروءة.',
+    'contact_marked_unread' => 'تم تحديد الرسالة كغير مقروءة.',
+    'contact_notes_saved' => 'تم حفظ الملاحظات الإدارية بنجاح.',
+    'contact_deleted' => 'تم حذف رسالة التواصل بنجاح.',
+    'toast_success_title' => 'تمت العملية بنجاح',
+    'toast_error_title' => 'حدث خطأ',
+    'toast_warning_title' => 'تنبيه',
+    'toast_info_title' => 'إشعار',
     'activity_ai_subscription' => 'اشتراك باقة ذكاء اصطناعي',
 
     // Dashboard Overview

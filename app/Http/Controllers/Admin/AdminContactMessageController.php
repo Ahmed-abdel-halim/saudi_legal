@@ -80,7 +80,9 @@ class AdminContactMessageController extends Controller
         $message = ContactMessage::findOrFail($id);
         $message->update(['is_read' => !$message->is_read]);
 
-        $statusText = $message->is_read ? 'تم تحديد الرسالة كمقروءة.' : 'تم تحديد الرسالة كغير مقروءة.';
+        $statusText = $message->is_read 
+            ? __('admin.contact_marked_read') 
+            : __('admin.contact_marked_unread');
         return back()->with('success', $statusText);
     }
 
@@ -94,7 +96,7 @@ class AdminContactMessageController extends Controller
             'admin_notes' => $request->input('admin_notes'),
         ]);
 
-        return back()->with('success', 'تم حفظ الملاحظات الإدارية بنجاح.');
+        return back()->with('success', __('admin.contact_notes_saved'));
     }
 
     /**
@@ -105,7 +107,7 @@ class AdminContactMessageController extends Controller
         $message = ContactMessage::findOrFail($id);
         $message->delete();
 
-        return redirect()->route('admin.contact_messages.index')->with('success', 'تم حذف رسالة التواصل بنجاح.');
+        return redirect()->route('admin.contact_messages.index')->with('success', __('admin.contact_deleted'));
     }
 }
 

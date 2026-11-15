@@ -17,15 +17,6 @@
     </div>
 </div>
 
-@if(session('success'))
-<div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xl shadow-sm text-sm mb-6 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-        <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
-        <span>{{ session('success') }}</span>
-    </div>
-</div>
-@endif
-
 {{-- KPI Summary Cards --}}
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
     <div class="bg-dark-card border border-dark-border rounded-2xl p-5 shadow-xl flex flex-col gap-1 relative overflow-hidden group">

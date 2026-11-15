@@ -28,6 +28,14 @@ return [
     'azure_integration' => 'Azure Integration',
     'contact_messages' => 'Contact Messages',
     'contact_messages_desc' => 'Manage messages submitted via Contact Us form.',
+    'contact_marked_read' => 'Message marked as read.',
+    'contact_marked_unread' => 'Message marked as unread.',
+    'contact_notes_saved' => 'Administrative notes saved successfully.',
+    'contact_deleted' => 'Contact message deleted successfully.',
+    'toast_success_title' => 'Success',
+    'toast_error_title' => 'Error',
+    'toast_warning_title' => 'Warning',
+    'toast_info_title' => 'Information',
     'activity_ai_subscription' => 'New AI Subscription',
 
     // Dashboard Overview
