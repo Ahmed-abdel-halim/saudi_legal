@@ -127,6 +127,7 @@
                 <tr>
                     <th class="p-4 w-12 text-center">الحالة</th>
                     <th class="p-4">المرسل</th>
+                    <th class="p-4 whitespace-nowrap">رقم الجوال</th>
                     <th class="p-4">الموضوع</th>
                     <th class="p-4 max-w-md">مقتطف من الرسالة</th>
                     <th class="p-4">تاريخ الإرسال</th>
@@ -150,23 +151,42 @@
                     </td>
 
                     {{-- Sender Info --}}
-                    <td class="p-4">
+                    <td class="p-4 whitespace-nowrap">
                         <div class="font-bold text-white text-xs flex items-center gap-2">
                             <span>{{ $msg->name }}</span>
                             @if(!$msg->is_read)
                                 <span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded text-[9px] font-black">جديد</span>
                             @endif
                         </div>
-                        <div class="text-[11px] text-gray-400 mt-0.5 flex flex-col gap-0.5">
-                            <a href="mailto:{{ $msg->email }}" class="text-teal-400 hover:underline flex items-center gap-1">
-                                <i class="fa-regular fa-envelope text-[10px]"></i> {{ $msg->email }}
+                        <div class="text-[11px] text-gray-400 mt-1">
+                            <a href="mailto:{{ $msg->email }}" class="text-teal-400 hover:underline flex items-center gap-1.5">
+                                <i class="fa-regular fa-envelope text-[10px]"></i>
+                                <span>{{ $msg->email }}</span>
                             </a>
-                            @if($msg->phone)
-                                <a href="tel:{{ $msg->phone }}" class="text-gray-400 hover:text-white flex items-center gap-1" dir="ltr">
-                                    <i class="fa-solid fa-phone text-[10px]"></i> {{ $msg->phone }}
-                                </a>
-                            @endif
                         </div>
+                    </td>
+
+                    {{-- Phone --}}
+                    <td class="p-4 whitespace-nowrap">
+                        @if($msg->phone)
+                            <div class="inline-flex items-center gap-2" dir="ltr">
+                                <a href="tel:{{ $msg->phone }}" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-gray-200 hover:text-teal-400 hover:border-teal-500/30 font-mono text-xs transition" title="اتصال هاتفي">
+                                    <i class="fa-solid fa-phone text-[10px] text-teal-400"></i>
+                                    <span>{{ $msg->phone }}</span>
+                                </a>
+                                @php
+                                    $cleanPhone = preg_replace('/[^0-9]/', '', $msg->phone);
+                                    if (str_starts_with($cleanPhone, '05')) {
+                                        $cleanPhone = '966' . substr($cleanPhone, 1);
+                                    }
+                                @endphp
+                                <a href="https://wa.me/{{ $cleanPhone }}" target="_blank" class="p-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg transition" title="محادثة واتساب">
+                                    <i class="fa-brands fa-whatsapp text-xs"></i>
+                                </a>
+                            </div>
+                        @else
+                            <span class="text-gray-500 text-xs italic">غير متوفر</span>
+                        @endif
                     </td>
 
                     {{-- Subject --}}
@@ -230,7 +250,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="p-12 text-center text-gray-500">
+                    <td colspan="7" class="p-12 text-center text-gray-500">
                         <div class="flex flex-col items-center justify-center gap-3">
                             <span class="w-14 h-14 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center text-2xl text-gray-600">
                                 <i class="fa-solid fa-inbox"></i>

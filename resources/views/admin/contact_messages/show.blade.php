@@ -148,10 +148,21 @@
                 <div>
                     <span class="text-gray-400 block mb-1">رقم الجوال:</span>
                     @if($message->phone)
-                        <a href="tel:{{ $message->phone }}" class="font-bold text-white hover:text-teal-400 flex items-center gap-1.5" dir="ltr">
-                            <i class="fa-solid fa-phone text-gray-400"></i>
-                            <span>{{ $message->phone }}</span>
-                        </a>
+                        <div class="flex items-center gap-2">
+                            <a href="tel:{{ $message->phone }}" class="font-bold text-white hover:text-teal-400 inline-flex items-center gap-1.5 font-mono text-xs" dir="ltr">
+                                <i class="fa-solid fa-phone text-teal-400 text-xs"></i>
+                                <span>{{ $message->phone }}</span>
+                            </a>
+                            @php
+                                $cleanPhone = preg_replace('/[^0-9]/', '', $message->phone);
+                                if (str_starts_with($cleanPhone, '05')) {
+                                    $cleanPhone = '966' . substr($cleanPhone, 1);
+                                }
+                            @endphp
+                            <a href="https://wa.me/{{ $cleanPhone }}" target="_blank" class="px-2 py-0.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded text-[11px] font-bold inline-flex items-center gap-1 transition" title="فتح واتساب">
+                                <i class="fa-brands fa-whatsapp text-xs"></i> واتساب
+                            </a>
+                        </div>
                     @else
                         <span class="text-gray-500 italic">غير متوفر</span>
                     @endif
