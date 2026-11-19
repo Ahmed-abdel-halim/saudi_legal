@@ -120,8 +120,27 @@ class WhatsAppController extends Controller
 
         switch ($intent) {
             case 'main_menu':
-                $reply       = "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nاختر من الخيارات التالية 👇\n1️⃣ الاطلاع على الباقات 💳\n2️⃣ المساعد القانوني ⚖️\n3️⃣ طلب تنقيح بيانات 📝\n4️⃣ ديمو مياه بيرين (نادية) 💧";
-                $buttons     = ['المساعد القانوني', 'ديمو مياه بيرين 💧', 'الاطلاع على الباقات'];
+                $reply       = "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nاختر من الأزرار التفاعلية أدناه المساعد الذي ترغب في تجربته 👇:\n1️⃣ المساعد القانوني ⚖️\n2️⃣ المفتي الذكي 🕌\n3️⃣ ديمو مياه بيرين (نادية) 💧\n\n💳 للاطلاع على الباقات (أرسل 4)\n📝 لطلب تنقيح البيانات (أرسل 5)";
+                $buttons     = ['المساعد القانوني', 'المفتي الذكي ⚖️', 'ديمو مياه بيرين 💧'];
+                $templateKey = 'main_menu';
+                break;
+
+            case 'sharia_chat':
+                $reply       = $this->handleStartShariaChat($conversation);
+                $buttons     = ['إنهاء المحادثة', 'القائمة الرئيسية'];
+                $templateKey = 'in_chat';
+                break;
+
+            case 'sharia_query':
+                $reply       = $this->handleShariaQuery($conversation, $body);
+                $buttons     = ['إنهاء المحادثة', 'القائمة الرئيسية'];
+                $templateKey = 'in_chat';
+                break;
+
+            case 'end_sharia_chat':
+                $conversation->update(['session_state' => 'idle']);
+                $reply       = "تم إنهاء جلسة المفتي الذكي بنجاح. نسأل الله لنا ولكم السداد والتوفيق 🤲\n\n_(أرسل أي رسالة في أي وقت للعودة لقائمة رديف الرئيسية)_";
+                $buttons     = ['المساعد القانوني', 'المفتي الذكي ⚖️', 'ديمو مياه بيرين 💧'];
                 $templateKey = 'main_menu';
                 break;
 
@@ -146,21 +165,21 @@ class WhatsAppController extends Controller
             case 'end_berain_chat':
                 $conversation->update(['session_state' => 'idle']);
                 $reply       = "سعدت بخدمتك أستاذ محمد! 🤍💧 في أمان الله وحفظه، ونورتنا دائماً في مياه بيرين.\n\n_(أرسل أي رسالة في أي وقت للعودة لقائمة رديف الرئيسية)_";
-                $buttons     = ['المساعد القانوني', 'ديمو مياه بيرين 💧', 'الاطلاع على الباقات'];
+                $buttons     = ['المساعد القانوني', 'المفتي الذكي ⚖️', 'ديمو مياه بيرين 💧'];
                 $templateKey = 'main_menu';
                 break;
 
             case 'view_plans':
                 $appUrl      = config('app.url', 'https://radiif.com');
                 $reply       = "💳 *باقات منصة رديف للذكاء الاصطناعي:*\n\nاطلع على كافة الباقات والمميزات عبر الرابط التالي:\n🔗 {$appUrl}/plans" . self::DISCLAIMER;
-                $buttons     = ['المساعد القانوني', 'ديمو مياه بيرين 💧', 'القائمة الرئيسية'];
-                $templateKey = 'after_plans';
+                $buttons     = ['المساعد القانوني', 'المفتي الذكي ⚖️', 'ديمو مياه بيرين 💧'];
+                $templateKey = 'main_menu';
                 break;
 
             case 'request_refinement':
                 $reply       = "📝 *طلب تنقيح البيانات:*\n\nنرجو تزويدنا بالمتطلبات والبريد الالكتروني وسيتم إفادتكم بالرد خلال يوم عمل." . self::DISCLAIMER;
-                $buttons     = ['المساعد القانوني', 'ديمو مياه بيرين 💧', 'القائمة الرئيسية'];
-                $templateKey = 'after_plans';
+                $buttons     = ['المساعد القانوني', 'المفتي الذكي ⚖️', 'ديمو مياه بيرين 💧'];
+                $templateKey = 'main_menu';
                 break;
 
             case 'start_chat':
@@ -172,7 +191,7 @@ class WhatsAppController extends Controller
 
             case 'end_chat':
                 $reply       = $this->handleEndChat($conversation);
-                $buttons     = ['تنشيط المحادثة', 'ديمو مياه بيرين 💧', 'القائمة الرئيسية'];
+                $buttons     = ['تنشيط المحادثة', 'المفتي الذكي ⚖️', 'ديمو مياه بيرين 💧'];
                 $templateKey = 'ended_chat';
                 break;
 
@@ -184,7 +203,7 @@ class WhatsAppController extends Controller
 
             case 'pure_greeting':
                 $reply       = $this->handlePureGreeting($conversation, $body);
-                $buttons     = ['المساعد القانوني', 'ديمو مياه بيرين 💧', 'الاطلاع على الباقات'];
+                $buttons     = ['المساعد القانوني', 'المفتي الذكي ⚖️', 'ديمو مياه بيرين 💧'];
                 $templateKey = 'main_menu';
                 break;
 
@@ -197,7 +216,7 @@ class WhatsAppController extends Controller
             case 'idle_prompt':
             default:
                 $reply       = $this->getIdlePrompt();
-                $buttons     = ['المساعد القانوني', 'ديمو مياه بيرين 💧', 'الاطلاع على الباقات'];
+                $buttons     = ['المساعد القانوني', 'المفتي الذكي ⚖️', 'ديمو مياه بيرين 💧'];
                 $templateKey = 'main_menu';
                 break;
         }
@@ -228,6 +247,8 @@ class WhatsAppController extends Controller
         $buttonPayloadMap = [
             'view_plans'            => 'view_plans',
             'start_chat'            => 'start_chat',
+            'sharia_chat'           => 'sharia_chat',
+            'start_sharia'          => 'sharia_chat',
             'request_refinement'    => 'request_refinement',
             'end_chat'              => 'end_chat',
             'main_menu'             => 'main_menu',
@@ -239,43 +260,56 @@ class WhatsAppController extends Controller
             return $buttonPayloadMap[$normalizedBody];
         }
 
-        // 1. كشف طلب رقم خيار: 1 (الباقات) ، 2 (المساعد) ، 3 (تنقيح) ، 4 (ديمو بيرين)
-        if ($normalizedBody === '1' || in_array($normalizedBody, [
-            'الاطلاع على الباقات', 'الاطلاع على الباقات 💳', 'الباقات', 'باقات', 'الاسعار', 'الأسعار', 'عرض الباقات'
-        ], true)) {
-            return 'view_plans';
-        }
-
-        if ($normalizedBody === '2' || in_array($normalizedBody, [
-            'تجربة المساعد القانوني', 'تجربة المساعد القانوني ⚖️', 'المساعد القانوني', 'مساعد قانوني',
+        // 1. كشف طلب رقم أو اسم خيار:
+        // خيار 1: المساعد القانوني
+        if ($normalizedBody === '1' || $normalizedBody === '١' || in_array($normalizedBody, [
+            'المساعد القانوني', 'المساعد القانوني ⚖️', 'مساعد قانوني', 'قانوني',
             'تنشيط المحادثة', 'تنشيط المحادثة 🔄', 'ابدأ الاستشارة', 'ابدأ الاستشارة ⚖️',
             'ابدأ', 'ابدا', 'ابدأ الآن', 'ابدأ الان', 'نعم، لدي استفسار ⚖️'
         ], true)) {
             return 'start_chat';
         }
 
-        if ($normalizedBody === '3' || in_array($normalizedBody, [
-            'طلب تنقيح بيانات', 'طلب تنقيح بيانات 📝', 'تنقيح بيانات', 'تنقيح البيانات', 'طلب تنقيح'
+        // خيار 2: المفتي الذكي (الأحكام والاستشارات الشرعية)
+        if ($normalizedBody === '2' || $normalizedBody === '٢' || in_array($normalizedBody, [
+            'المفتي الذكي', 'المفتي الذكي ⚖️', 'المفتي الذكي 🕌', 'المفتي', 'مفتي', 'المستشار الشرعي', 'استشارة شرعية', 'فتوى', 'فتاوى', 'احكام شرعية', 'أحكام شرعية', 'sharia', 'sharia_chat'
         ], true)) {
-            return 'request_refinement';
+            return 'sharia_chat';
         }
 
-        if ($normalizedBody === '4' || $normalizedBody === '٤' || in_array($normalizedBody, [
+        // خيار 3 (أو 4): ديمو مياه بيرين (نادية)
+        if (in_array($normalizedBody, ['3', '٣', '4', '٤'], true) || in_array($normalizedBody, [
             'ديمو مياه بيرين', 'ديمو مياه بيرين 💧', 'مياه بيرين', 'مياه بيرين 💧', 'بيرين', 'نادية', 'ناديه', 'ديمو', 'berain', 'nadia', 'berain_demo'
         ], true)) {
             return 'berain_demo';
+        }
+
+        // الاطلاع على الباقات
+        if (in_array($normalizedBody, [
+            'الاطلاع على الباقات', 'الاطلاع على الباقات 💳', 'الباقات', 'باقات', 'الاسعار', 'الأسعار', 'عرض الباقات'
+        ], true)) {
+            return 'view_plans';
+        }
+
+        // طلب تنقيح بيانات
+        if (in_array($normalizedBody, [
+            'طلب تنقيح بيانات', 'طلب تنقيح بيانات 📝', 'تنقيح بيانات', 'تنقيح البيانات', 'طلب تنقيح'
+        ], true)) {
+            return 'request_refinement';
         }
 
         // 2. زر القائمة الرئيسية أو العودة
         if (in_array($normalizedBody, [
             'القائمة الرئيسية', 'القائمة الرئيسية 🏠', 'الرئيسية', 'قائمة', '0', '٠', 'رجوع'
         ], true)) {
-            return ($sessionState === 'berain_demo') ? 'end_berain_chat' : 'main_menu';
+            if ($sessionState === 'berain_demo') return 'end_berain_chat';
+            if ($sessionState === 'sharia_chat') return 'end_sharia_chat';
+            return 'main_menu';
         }
 
         // 3. كشف جلسة ديمو مياه بيرين (نادية)
         if ($sessionState === 'berain_demo') {
-            $exitTriggers = ['خروج', 'انهاء', 'إنهاء', 'وداعا', 'وداعاً', 'bye', 'exit', 'quit'];
+            $exitTriggers = ['خروج', 'انهاء', 'إنهاء', 'وداعا', 'وداعاً', 'bye', 'exit', 'quit', '0', '٠'];
             foreach ($exitTriggers as $trigger) {
                 if ($normalizedBody === $trigger || mb_strpos($normalizedBody, 'خروج') !== false || mb_strpos($normalizedBody, 'إنهاء') !== false) {
                     return 'end_berain_chat';
@@ -287,6 +321,18 @@ class WhatsAppController extends Controller
             }
 
             return 'berain_chat';
+        }
+
+        // 4. كشف جلسة المفتي الذكي (sharia_chat)
+        if ($sessionState === 'sharia_chat') {
+            $exitTriggers = ['خروج', 'انهاء', 'إنهاء', 'وداعا', 'وداعاً', 'bye', 'exit', 'quit', '0', '٠'];
+            foreach ($exitTriggers as $trigger) {
+                if ($normalizedBody === $trigger || mb_strpos($normalizedBody, 'خروج') !== false || mb_strpos($normalizedBody, 'إنهاء') !== false) {
+                    return 'end_sharia_chat';
+                }
+            }
+
+            return 'sharia_query';
         }
 
         // 4. زر إنهاء المحادثة القانونية
@@ -380,6 +426,58 @@ class WhatsAppController extends Controller
         ]);
 
         return $reply;
+    }
+
+    /**
+     * بدء جلسة محادثة المفتي الذكي (الاستشارات والأحكام الشرعية)
+     */
+    private function handleStartShariaChat(WhatsAppConversation $conversation): string
+    {
+        $conversation->update([
+            'session_state'        => 'sharia_chat',
+            'last_active_at'       => now(),
+            'inactivity_warned_at' => null,
+        ]);
+
+        $welcome = "🌟 *مرحباً بك في «المفتي الإسلامي الذكي» عبر منصة رديف! 🕌⚖️*\n\n"
+                 . "أنا هنا لمساعدتك في استخراج وتوثيق الأحكام والفتاوى الشرعية في المعاملات المالية، العبادات، والأحكام العامة استناداً إلى المصادر الفقهية المعتمدة.\n\n"
+                 . "📌 *أمثلة على الاستفسارات:*\n"
+                 . "• ما حكم بيع المرابحة للآمر بالشراء؟\n"
+                 . "• ما شروط زكاة الأسهم وعروض التجارة؟\n"
+                 . "• ما حكم التأمين التجاري والتعاوني؟\n\n"
+                 . "👇 *اكتب مسألتك الشرعية مباشرة، أو أرسل 0 للعودة للقائمة الرئيسية.*";
+
+        WhatsAppMessage::create([
+            'whatsapp_conversation_id' => $conversation->id,
+            'role'                     => 'assistant',
+            'content'                  => $welcome,
+        ]);
+
+        return $welcome;
+    }
+
+    /**
+     * التفاعل الذكي مع المفتي وإصدار الفتوى الموثقة
+     */
+    private function handleShariaQuery(WhatsAppConversation $conversation, string $body): string
+    {
+        $conversation->incrementAndTouch();
+
+        WhatsAppMessage::create([
+            'whatsapp_conversation_id' => $conversation->id,
+            'role'                     => 'user',
+            'content'                  => $body,
+        ]);
+
+        $reply = $this->rag->handleShariaQuery($conversation, $body);
+
+        WhatsAppMessage::create([
+            'whatsapp_conversation_id' => $conversation->id,
+            'role'                     => 'assistant',
+            'content'                  => $reply,
+        ]);
+
+        return $reply . self::DISCLAIMER;
     }
 
     /**

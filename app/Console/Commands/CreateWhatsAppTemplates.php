@@ -18,11 +18,20 @@ class CreateWhatsAppTemplates extends Command
 
         // القائمة الرئيسية — تظهر عند بدء المحادثة وعند أي رسالة غير مفهومة
         'main_menu' => [
-            'friendly_name' => 'radiif_main_menu_v2',
+            'friendly_name' => 'radiif_main_menu_v3',
             'buttons' => [
                 ['title' => 'المساعد القانوني',     'id' => 'start_chat'],
+                ['title' => 'المفتي الذكي ⚖️',     'id' => 'sharia_chat'],
                 ['title' => 'ديمو مياه بيرين 💧',  'id' => 'berain_demo'],
-                ['title' => 'الاطلاع على الباقات', 'id' => 'view_plans'],
+            ],
+        ],
+
+        // أزرار أثناء محادثة المفتي الذكي
+        'in_sharia_chat' => [
+            'friendly_name' => 'radiif_in_sharia_chat_v1',
+            'buttons' => [
+                ['title' => 'إنهاء المحادثة',    'id' => 'end_chat'],
+                ['title' => 'القائمة الرئيسية', 'id' => 'main_menu'],
             ],
         ],
 

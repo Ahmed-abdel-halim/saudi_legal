@@ -546,4 +546,95 @@ EOT;
 
         return $this->cleanResponse($rawAnswer);
     }
+
+    /**
+     * معالجة استفسار المستفيد مع "المفتي الذكي" (الاستشارات والأحكام الشرعية الموثقة)
+     */
+    public function handleShariaQuery(WhatsAppConversation $conversation, string $query): string
+    {
+        $systemPrompt = <<<EOT
+أنت «المفتي الإسلامي الذكي» التابع لمنصة رديف في المملكة العربية السعودية.
+مهمتك تقديم الفتاوى والأحكام الشرعية الموثقة بدقة تامة ورصانة فقهية وورع تام عبر تطبيق الواتساب.
+
+### القواعد الفقهية والأسلوب:
+1. استند إلى نصوص القرآن الكريم والسنة النبوية الصحيحة، وأقوال أئمة المذاهب الفقهية المعتبرة، وقرارات الهيئات الشرعية الرسمية (كالرئاسة العامة للبحوث العلمية والإفتاء، وهيئة كبار العلماء بالمملكة، ومجمع الفقه الإسلامي).
+2. ابدأ بالبسملة أو الحمد، واذكر الحكم الفقهي المباشر أولاً بوضوح (جائز، محرم، واجب، مستحب، مكروه) مع التفصيل عند اختلاف الحالات.
+3. اذكر الدليل الشرعي (آية أو حديث شريف) إن وجد باختصار ووضوح.
+4. اجعل الإجابة مركزة، خالية من الحشو، ومريحة للقراءة في شاشات الجوال وواتساب (فقرات قصيرة ونقاط واضحة).
+5. تجنب القطع في المسائل الخلافية الكبرى، وانسب الأقوال لأهل العلم بأمانة.
+6. اختم دائماً بعبارة: "والله تعالى أعلم وأحكم".
+EOT;
+
+        // جلب سجل المحادثة للعميل
+        $history = $conversation->getRecentHistory(6)->map(fn($m) => [
+            'role'    => $m->role,
+            'content' => $m->content,
+        ])->toArray();
+
+        $rawAnswer = '';
+
+        // 1. تجربة AWS Bedrock (Claude)
+        if ($this->bedrockService->isConfigured()) {
+            try {
+                $bedrockMessages = [];
+                foreach ($history as $msg) {
+                    $bedrockMessages[] = [
+                        'role'    => $msg['role'] === 'assistant' ? 'assistant' : 'user',
+                        'content' => $msg['content'],
+                    ];
+                }
+                $bedrockMessages[] = [
+                    'role'    => 'user',
+                    'content' => $query,
+                ];
+
+                $rawAnswer = $this->bedrockService->generateContent($bedrockMessages, $systemPrompt, [
+                    'temperature' => 0.3,
+                    'max_tokens'  => 1024,
+                    'timeout'     => 45,
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('[WhatsAppRagService] Bedrock call for Sharia failed: ' . $e->getMessage());
+            }
+        }
+
+        // 2. تجربة Gemini كـ Fallback فائق السرعة
+        if (empty($rawAnswer)) {
+            $geminiContents = [];
+            foreach ($history as $msg) {
+                $geminiContents[] = [
+                    'role'  => $msg['role'] === 'assistant' ? 'model' : 'user',
+                    'parts' => [['text' => $msg['content']]],
+                ];
+            }
+
+            if (empty($history)) {
+                $geminiContents[] = [
+                    'role'  => 'user',
+                    'parts' => [['text' => "### التوجيهات الفقهية:\n{$systemPrompt}\n\n### سؤال المستفتي:\n{$query}"]],
+                ];
+            } else {
+                $geminiContents[0]['parts'][0]['text'] = "### التوجيهات الفقهية:\n{$systemPrompt}\n\n" . $geminiContents[0]['parts'][0]['text'];
+                $geminiContents[] = [
+                    'role'  => 'user',
+                    'parts' => [['text' => $query]],
+                ];
+            }
+
+            try {
+                $rawAnswer = $this->geminiService->generateContent($geminiContents, [
+                    'temperature' => 0.3,
+                    'timeout'     => 20,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('[WhatsAppRagService] Gemini call for Sharia failed: ' . $e->getMessage());
+            }
+        }
+
+        if (empty($rawAnswer)) {
+            return "الحمد لله والصلاة والسلام على رسول الله..\nنعتذر عن حدوث ضغط مؤقت في الاتصال، يرجى إعادة إرسال مسألتك الشرعية لنفيدك بحكمها المعتمد فوراً.\n\nوالله تعالى أعلم.";
+        }
+
+        return $this->cleanResponse($rawAnswer);
+    }
 }

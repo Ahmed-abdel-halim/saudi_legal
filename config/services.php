@@ -72,6 +72,7 @@ return [
             'main_menu'      => env('TWILIO_TEMPLATE_MAIN_MENU', ''),
             'in_chat'        => env('TWILIO_TEMPLATE_IN_CHAT', ''),
             'in_berain_chat' => env('TWILIO_TEMPLATE_IN_BERAIN_CHAT', ''),
+            'in_sharia_chat' => env('TWILIO_TEMPLATE_IN_SHARIA_CHAT', ''),
             'ended_chat'     => env('TWILIO_TEMPLATE_ENDED_CHAT', ''),
             'after_plans'    => env('TWILIO_TEMPLATE_AFTER_PLANS', ''),
         ],
