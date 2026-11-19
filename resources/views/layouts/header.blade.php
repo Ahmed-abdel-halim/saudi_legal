@@ -252,6 +252,23 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                                     </div>
                                 </div>
                             </a>
+
+                            {{-- Product 3: Berain Water AI Demo (Nadia) --}}
+                            <a href="{{ route('demo.berain') }}"
+                               class="flex items-start gap-3 p-3 rounded-xl hover:bg-sky-500/10 transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 group-hover:scale-105 transition-transform flex-shrink-0 text-base">
+                                    💧
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-bold text-white text-xs group-hover:text-sky-400 transition-colors flex items-center justify-between">
+                                        <span>{{ __('header.PRODUCT_BERAIN', [], $currentLang) }}</span>
+                                        <span class="text-[9px] bg-sky-500/20 text-sky-300 font-semibold px-2 py-0.5 rounded-full border border-sky-500/30">{{ __('header.BADGE_DEMO', [], $currentLang) }}</span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                                        {{ __('header.PRODUCT_BERAIN_DESC', [], $currentLang) }}
+                                    </div>
+                                </div>
+                            </a>
                         </div>
                     </div>
                     <a href="{{ route('ai.packages') }}"
@@ -463,6 +480,14 @@ $switchLangUrl = $currentUrl . '?' . http_build_query($currentQuery);
                                 <span>{{ __('header.PRODUCT_FATWA', [], $currentLang) }}</span>
                             </div>
                             <span class="text-[9px] bg-emerald-500/20 text-emerald-300 font-semibold px-2 py-0.5 rounded-full border border-emerald-500/30">{{ __('header.BADGE_BETA', [], $currentLang) }}</span>
+                        </a>
+                        <a href="{{ route('demo.berain') }}"
+                            class="text-sky-300 font-bold flex items-center justify-between bg-sky-500/10 p-2.5 rounded-lg border border-sky-500/20 text-xs hover:bg-sky-500/20 transition">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs">💧</span>
+                                <span>{{ __('header.PRODUCT_BERAIN', [], $currentLang) }}</span>
+                            </div>
+                            <span class="text-[9px] bg-sky-500/20 text-sky-300 font-semibold px-2 py-0.5 rounded-full border border-sky-500/30">{{ __('header.BADGE_DEMO', [], $currentLang) }}</span>
                         </a>
                     </div>
                     <a href="{{ route('ai.packages') }}"

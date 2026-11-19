@@ -235,6 +235,13 @@
                         <span class="mx-3">{!! __('admin.ai_bot_chats') !!}</span>
                     </a>
 
+                    {{-- Live Berain AI Demo Link --}}
+                    <a class="flex items-center px-4 py-2.5 text-sky-300 hover:bg-sky-500/10 rounded-xl transition text-xs font-semibold group border border-sky-500/20 my-1 bg-sky-500/5" href="{{ route('demo.berain') }}" target="_blank">
+                        <span class="w-5 text-center text-sm">💧</span>
+                        <span class="mx-3 flex-1 font-bold">ديمو مياه بيرين (نادية)</span>
+                        <span class="text-[9px] bg-sky-500/25 text-sky-300 px-1.5 py-0.5 rounded font-mono">LIVE</span>
+                    </a>
+
                     <a class="flex items-center px-4 py-2.5 {{ request()->routeIs('admin.ai_feedback.*') ? 'text-white bg-brand-primary/20 border border-brand-primary/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }} rounded-xl transition text-xs font-semibold group" href="{{ route('admin.ai_feedback.index') }}">
                         <i class="fa-solid fa-thumbs-up w-5 text-center text-emerald-400 group-hover:scale-110 transition-transform"></i>
                         <span class="mx-3">{!! __('admin.ai_feedback') !!}</span>
