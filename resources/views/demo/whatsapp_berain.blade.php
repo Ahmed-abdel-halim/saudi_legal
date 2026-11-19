@@ -213,6 +213,10 @@ _(خذ راحتك كلمني بأي لهجة أو لغة تحبها، كتابة
                                             class="bg-[#202c33] hover:bg-sky-950 text-slate-200 border border-slate-700/60 rounded-xl px-2.5 py-1 text-[11px] font-medium transition shadow-sm">
                                         <span>🕋 سقيا المساجد</span>
                                     </button>
+                                    <button onclick="window.sendScenario('نادیہ، مجھے اپنے گھر کے لیے پانی کے 5 کارٹن آرڈر کرنے ہیں، قیمت کیا ہے؟')"
+                                            class="bg-[#202c33] hover:bg-sky-950 text-slate-200 border border-slate-700/60 rounded-xl px-2.5 py-1 text-[11px] font-medium transition shadow-sm">
+                                        <span>🇵🇰 اردو (پانی کا آرڈر)</span>
+                                    </button>
                                 </div>
                             </div>
 
@@ -417,21 +421,21 @@ _(خذ راحتك كلمني بأي لهجة أو لغة تحبها، كتابة
                             </div>
                         </div>
 
-                        {{-- Scenario 5: Catalog & Pricing --}}
-                        <div onclick="window.sendScenario('كم سعر كرتون بيرين 600 مل وبيرين 200 مل، وإيش الأحجام المتوفرة؟')"
-                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/50 rounded-2xl p-3 transition cursor-pointer group flex flex-col justify-between">
+                        {{-- Scenario 5: Urdu / Asian Language --}}
+                        <div onclick="window.sendScenario('نادیہ، مجھے اپنے گھر کے لیے پانی کے 5 کارٹن آرڈر کرنے ہیں، قیمت کیا ہے؟')"
+                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/50 rounded-2xl p-3 transition cursor-pointer group flex flex-col justify-between" dir="rtl">
                             <div>
                                 <div class="flex items-center justify-between mb-1">
                                     <span class="text-xs font-black text-teal-300 flex items-center gap-1.5">
-                                        <span>📦</span>
-                                        <span>الأسعار والأحجام: كتالوج بيرين</span>
+                                        <span>🇵🇰</span>
+                                        <span>اردو / Urdu: پانی کا آرڈر اور قیمت</span>
                                     </span>
                                     <span class="w-6 h-6 rounded-lg bg-teal-500/20 text-teal-300 group-hover:bg-teal-500 group-hover:text-white flex items-center justify-center text-[10px] transition">
                                         <i class="fa-solid fa-play"></i>
                                     </span>
                                 </div>
-                                <p class="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
-                                    "كم سعر كرتون بيرين 600 مل وبيرين 200 مل، وإيش الأحجام المتوفرة؟"
+                                <p class="text-[11px] text-slate-300 line-clamp-2 leading-relaxed font-sans">
+                                    "نادیہ، مجھے اپنے گھر کے لیے پانی کے 5 کارٹن آرڈر کرنے ہیں، قیمت کیا ہے؟"
                                 </p>
                             </div>
                         </div>
