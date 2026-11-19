@@ -5,20 +5,20 @@
 @section('content')
 
 <style>
-    /* Luxury Dark Atmosphere */
+    /* Luxury Dark Background */
     .berain-bg-ambient {
         background-color: #060b13;
         background-image: 
-            radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.15) 0px, transparent 50%),
-            radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
-            radial-gradient(at 50% 100%, rgba(30, 58, 138, 0.2) 0px, transparent 60%);
+            radial-gradient(at 10% 10%, rgba(14, 165, 233, 0.12) 0px, transparent 40%),
+            radial-gradient(at 90% 10%, rgba(16, 185, 129, 0.10) 0px, transparent 40%),
+            radial-gradient(at 50% 90%, rgba(30, 58, 138, 0.15) 0px, transparent 50%);
     }
 
-    /* WhatsApp Wallpaper Pattern */
+    /* WhatsApp Doodle Pattern */
     .whatsapp-doodle-bg {
         background-color: #0b141a;
         background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                          radial-gradient(rgba(14, 165, 233, 0.06) 1px, transparent 1px);
+                          radial-gradient(rgba(14, 165, 233, 0.05) 1px, transparent 1px);
         background-size: 22px 22px;
         background-position: 0 0, 11px 11px;
     }
@@ -28,8 +28,8 @@
         box-shadow: 
             0 0 0 3px #334155,
             0 0 0 5px #1e293b,
-            0 25px 50px -12px rgba(0, 0, 0, 0.7),
-            0 0 35px rgba(14, 165, 233, 0.25);
+            0 25px 50px -12px rgba(0, 0, 0, 0.75),
+            0 0 30px rgba(14, 165, 233, 0.2);
     }
 
     /* Chat Scrollbar */
@@ -57,195 +57,132 @@
         0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
         40% { transform: scale(1); opacity: 1; }
     }
-
-    /* Glowing Badge Pulse */
-    @keyframes pulseGlow {
-        0%, 100% { opacity: 0.8; transform: scale(1); }
-        50% { opacity: 1; transform: scale(1.05); }
-    }
-    .pulse-glow {
-        animation: pulseGlow 2.5s infinite ease-in-out;
-    }
 </style>
 
-<div class="min-h-screen berain-bg-ambient text-slate-100 py-8 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto space-y-8">
+<div class="min-h-screen berain-bg-ambient text-slate-100 py-6 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto space-y-6">
 
-        {{-- Top Executive Co-Branding Banner --}}
-        <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden">
-            <div class="absolute -top-24 -left-24 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
-                
-                {{-- Title & Branding --}}
-                <div class="space-y-3">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-sky-500/15 text-sky-400 border border-sky-500/30 shadow-sm">
-                            <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
-                            <span>Enterprise AI Showcase</span>
+        {{-- Clean & Prestigious Executive Header --}}
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 via-blue-600 to-teal-500 flex items-center justify-center text-white text-2xl shadow-lg shadow-sky-500/20 flex-shrink-0">
+                    💧
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/20">
+                            Enterprise AI Demo
                         </span>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                            <i class="fa-brands fa-whatsapp text-xs"></i>
-                            <span>واتساب + ويب متزامن</span>
-                        </span>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                            <i class="fa-solid fa-crown text-[10px]"></i>
-                            <span>شخصية حقيقية 100%</span>
-                        </span>
+                        <span class="text-xs text-slate-400 font-mono">• مياه بيرين × رديف</span>
                     </div>
-
-                    <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight flex items-center gap-3">
-                        <span class="text-3xl sm:text-5xl">💧</span>
-                        <span class="bg-gradient-to-r from-white via-sky-200 to-sky-400 bg-clip-text text-transparent">
-                            مياه بيرين × رديف للذكاء الاصطناعي
-                        </span>
+                    <h1 class="text-lg sm:text-2xl font-black text-white mt-0.5">
+                        المساعد الذكي لخدمة العملاء <span class="text-sky-300">"نادية"</span>
                     </h1>
-
-                    <p class="text-slate-300 text-xs sm:text-sm max-w-3xl leading-relaxed">
-                        نموذج مخصص فائق الذكاء لخدمة عملاء شركة <strong class="text-white font-bold">مياه بيرين</strong> بشخصية <strong class="text-sky-300 font-bold">"نادية"</strong>. يتحدث كإنسان حقيقي ويفهم اللهجات السعودية والمصرية والخليجية وكافة اللغات العالمية، مع استرجاع بيانات العميل الذهبي <strong class="text-white font-bold">محمد عبدالحميد</strong> ونقاطه وطلباته بدقة تامة.
-                    </p>
                 </div>
-
-                {{-- Action Buttons --}}
-                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto flex-shrink-0">
-                    <a href="https://wa.me/{{ $cleanBotPhone }}?text={{ urlencode('ديمو مياه بيرين') }}" target="_blank"
-                       class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm transition shadow-lg shadow-emerald-500/25 group">
-                        <i class="fa-brands fa-whatsapp text-xl group-hover:scale-110 transition-transform"></i>
-                        <span>فتح على واتساب الحقيقي 📱</span>
-                    </a>
-
-                    <button onclick="window.resetChat()"
-                       class="inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white font-bold text-xs border border-slate-700/80 transition shadow-sm"
-                       title="إعادة بدء المحادثة">
-                        <i class="fa-solid fa-rotate-left"></i>
-                        <span>إعادة الضبط</span>
-                    </button>
-                </div>
-
             </div>
 
-            {{-- 4 Pillars Highlights --}}
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-800/80 text-xs">
-                <div class="flex items-center gap-2.5 text-slate-300">
-                    <div class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center flex-shrink-0">
-                        <i class="fa-solid fa-bolt text-xs"></i>
-                    </div>
-                    <span>استجابة فورية أقل من ثانية</span>
-                </div>
-                <div class="flex items-center gap-2.5 text-slate-300">
-                    <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
-                        <i class="fa-solid fa-microphone text-xs"></i>
-                    </div>
-                    <span>دعم الصوت والمحادثة الحية</span>
-                </div>
-                <div class="flex items-center gap-2.5 text-slate-300">
-                    <div class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center flex-shrink-0">
-                        <i class="fa-solid fa-language text-xs"></i>
-                    </div>
-                    <span>فهم كافة اللهجات واللغات</span>
-                </div>
-                <div class="flex items-center gap-2.5 text-slate-300">
-                    <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0">
-                        <i class="fa-solid fa-shield-halved text-xs"></i>
-                    </div>
-                    <span>صفر فبركة (Grounded 100%)</span>
-                </div>
+            {{-- CTA Actions --}}
+            <div class="flex items-center gap-2.5 w-full md:w-auto justify-end">
+                <a href="https://wa.me/{{ $cleanBotPhone }}?text={{ urlencode('ديمو مياه بيرين') }}" target="_blank"
+                   class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs transition shadow-md shadow-emerald-600/20 group">
+                    <i class="fa-brands fa-whatsapp text-base group-hover:scale-110 transition-transform"></i>
+                    <span>فتح على واتساب الحقيقي 📱</span>
+                </a>
+
+                <button onclick="window.resetChat()"
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white font-bold text-xs border border-slate-700/80 transition"
+                   title="إعادة بدء المحادثة">
+                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                    <span>إعادة ضبط</span>
+                </button>
             </div>
         </div>
 
-        {{-- Main Two-Column Showcase Area --}}
+        {{-- Main Two-Column Harmonious Layout --}}
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-            {{-- Right Column (RTL: Left in display): The Smartphone Simulator (7 Cols) --}}
-            <div class="lg:col-span-7 flex justify-center order-1 lg:order-2">
+            {{-- Column 1: Smartphone Simulator (5 Cols on desktop - centered frame) --}}
+            <div class="lg:col-span-5 flex justify-center">
 
                 {{-- Phone Outer Bezel --}}
-                <div class="w-full max-w-[440px] rounded-[50px] p-3.5 bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 phone-titanium relative">
+                <div class="w-full max-w-[390px] rounded-[46px] p-3 bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 phone-titanium relative">
                     
                     {{-- Volume & Power Buttons Simulation --}}
-                    <div class="absolute -left-1.5 top-28 w-1 h-12 bg-slate-700 rounded-l-md"></div>
-                    <div class="absolute -left-1.5 top-44 w-1 h-12 bg-slate-700 rounded-l-md"></div>
-                    <div class="absolute -right-1.5 top-36 w-1 h-16 bg-slate-700 rounded-r-md"></div>
+                    <div class="absolute -left-1 top-24 w-1 h-10 bg-slate-700 rounded-l-md"></div>
+                    <div class="absolute -left-1 top-38 w-1 h-10 bg-slate-700 rounded-l-md"></div>
+                    <div class="absolute -right-1 top-32 w-1 h-14 bg-slate-700 rounded-r-md"></div>
 
                     {{-- Dynamic Island Top Notch --}}
-                    <div class="w-32 h-4 bg-black rounded-full mx-auto mb-2 flex items-center justify-center gap-2">
+                    <div class="w-28 h-3.5 bg-black rounded-full mx-auto mb-2 flex items-center justify-center gap-1.5">
                         <div class="w-2 h-2 rounded-full bg-slate-900 border border-slate-800"></div>
-                        <div class="w-2.5 h-2.5 rounded-full bg-[#0a1218] border border-slate-800"></div>
+                        <div class="w-2 h-2 rounded-full bg-[#0a1218] border border-slate-800"></div>
                     </div>
 
                     {{-- WhatsApp Screen Container --}}
-                    <div class="rounded-[38px] overflow-hidden bg-[#0b141a] border border-slate-800/80 flex flex-col h-[700px] shadow-inner relative">
+                    <div class="rounded-[34px] overflow-hidden bg-[#0b141a] border border-slate-800/80 flex flex-col h-[640px] shadow-inner relative">
 
                         {{-- WhatsApp Header --}}
-                        <div class="bg-[#202c33] text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 z-10 shadow-md">
-                            <div class="flex items-center gap-3 min-w-0">
+                        <div class="bg-[#202c33] text-white px-3.5 py-2.5 flex items-center justify-between border-b border-slate-800 z-10 shadow-md">
+                            <div class="flex items-center gap-2.5 min-w-0">
                                 <a href="javascript:void(0)" class="text-slate-400 hover:text-white transition text-xs">
                                     <i class="fa-solid fa-arrow-right"></i>
                                 </a>
                                 {{-- Nadia Avatar --}}
                                 <div class="relative flex-shrink-0">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-base shadow-md ring-2 ring-sky-400/30">
+                                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-sky-400 via-sky-600 to-blue-700 flex items-center justify-center text-white font-black text-sm shadow-md ring-2 ring-sky-400/30">
                                         💧
                                     </div>
-                                    <span class="absolute bottom-0 left-0 w-3 h-3 bg-emerald-500 border-2 border-[#202c33] rounded-full"></span>
+                                    <span class="absolute bottom-0 left-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#202c33] rounded-full"></span>
                                 </div>
                                 <div class="min-w-0">
-                                    <div class="font-bold text-sm text-slate-100 truncate flex items-center gap-1.5">
+                                    <div class="font-bold text-xs text-slate-100 truncate flex items-center gap-1">
                                         <span>نادية</span>
-                                        <span class="text-[10px] text-sky-400 font-semibold bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20">بيرين 💧</span>
+                                        <span class="text-[9px] text-sky-400 font-semibold bg-sky-500/10 px-1 py-0.2 rounded border border-sky-500/20">بيرين 💧</span>
                                     </div>
-                                    <div class="text-[11px] text-emerald-400 truncate flex items-center gap-1">
+                                    <div class="text-[10px] text-emerald-400 truncate flex items-center gap-1">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                                         <span>متصل الآن • تفهم كل اللهجات 🌍</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- Actions --}}
-                            <div class="flex items-center gap-2.5 text-slate-400 text-sm">
-                                <button onclick="window.speakLastReply()" title="استماع لرد نادية الصوتي" class="w-8 h-8 rounded-full hover:bg-white/5 hover:text-sky-400 flex items-center justify-center transition">
-                                    <i class="fa-solid fa-volume-high text-xs"></i>
+                            {{-- Header Icons --}}
+                            <div class="flex items-center gap-2 text-slate-400 text-xs">
+                                <button onclick="window.speakLastReply()" title="استماع لرد نادية الصوتي" class="w-7 h-7 rounded-full hover:bg-white/5 hover:text-sky-400 flex items-center justify-center transition">
+                                    <i class="fa-solid fa-volume-high"></i>
                                 </button>
-                                <a href="https://wa.me/{{ $cleanBotPhone }}?text={{ urlencode('ديمو مياه بيرين') }}" target="_blank" title="محادثة واتساب الحقيقية" class="w-8 h-8 rounded-full hover:bg-white/5 hover:text-emerald-400 flex items-center justify-center transition">
-                                    <i class="fa-brands fa-whatsapp text-base"></i>
+                                <a href="https://wa.me/{{ $cleanBotPhone }}?text={{ urlencode('ديمو مياه بيرين') }}" target="_blank" title="محادثة واتساب الحقيقية" class="w-7 h-7 rounded-full hover:bg-white/5 hover:text-emerald-400 flex items-center justify-center transition">
+                                    <i class="fa-brands fa-whatsapp text-sm"></i>
                                 </a>
-                                <button onclick="window.resetChat()" title="إعادة تشغيل المحادثة" class="w-8 h-8 rounded-full hover:bg-white/5 hover:text-white flex items-center justify-center transition">
-                                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                                <button onclick="window.resetChat()" title="إعادة تشغيل المحادثة" class="w-7 h-7 rounded-full hover:bg-white/5 hover:text-white flex items-center justify-center transition">
+                                    <i class="fa-solid fa-rotate-left"></i>
                                 </button>
                             </div>
                         </div>
 
                         {{-- WhatsApp Chat Area --}}
-                        <div id="chatMessages" class="flex-1 whatsapp-doodle-bg overflow-y-auto p-4 space-y-4 chat-scroll text-xs">
+                        <div id="chatMessages" class="flex-1 whatsapp-doodle-bg overflow-y-auto p-3.5 space-y-3 chat-scroll text-xs">
                             
                             {{-- Security Encryption Banner --}}
-                            <div class="text-center my-1">
-                                <span class="inline-block bg-[#182229]/95 text-[#ffd279] text-[10px] px-3.5 py-1.5 rounded-xl border border-[#ffd279]/20 shadow-sm max-w-[92%] leading-relaxed font-medium">
-                                    🔒 الرسائل مشفرة تماماً. أنت تتحدث الآن مع "نادية" من عناية العملاء في مياه بيرين.
-                                </span>
-                            </div>
-
-                            {{-- Date Bubble --}}
-                            <div class="text-center my-1">
-                                <span class="inline-block bg-[#182229] text-slate-400 text-[10px] px-3 py-0.5 rounded-lg font-mono border border-white/5">
-                                    اليوم
+                            <div class="text-center my-0.5">
+                                <span class="inline-block bg-[#182229]/95 text-[#ffd279] text-[9px] px-3 py-1 rounded-lg border border-[#ffd279]/20 shadow-sm max-w-[94%] leading-relaxed">
+                                    🔒 الرسائل مشفرة تماماً بين الطرفين. أنت تتحدث الآن مع "نادية" عناية العملاء.
                                 </span>
                             </div>
 
                             {{-- Initial Welcoming Message --}}
                             <div class="flex flex-col items-start message-bubble">
-                                <div class="bg-[#202c33] text-slate-100 rounded-2xl rounded-tr-none p-3.5 max-w-[90%] shadow-lg border border-slate-700/40 relative">
-                                    <div class="font-bold text-[11px] text-sky-400 mb-1.5 flex items-center justify-between gap-2 border-b border-white/5 pb-1">
+                                <div class="bg-[#202c33] text-slate-100 rounded-2xl rounded-tr-none p-3 max-w-[90%] shadow-md border border-slate-700/40 relative">
+                                    <div class="font-bold text-[10px] text-sky-400 mb-1 flex items-center justify-between gap-2 border-b border-white/5 pb-1">
                                         <span class="flex items-center gap-1">
                                             <span>نادية</span>
-                                            <span class="text-slate-400 font-normal text-[10px]">(عناية عملاء مياه بيرين)</span>
+                                            <span class="text-slate-400 font-normal text-[9px]">(عناية عملاء مياه بيرين)</span>
                                         </span>
                                         <button onclick="window.speakText(this.closest('.message-bubble').querySelector('.bubble-text').innerText)" class="text-slate-400 hover:text-sky-300 transition" title="استماع">
-                                            <i class="fa-solid fa-volume-high text-[11px]"></i>
+                                            <i class="fa-solid fa-volume-high text-[10px]"></i>
                                         </button>
                                     </div>
-                                    <div class="bubble-text leading-relaxed whitespace-pre-line text-[13px] text-slate-100">
+                                    <div class="bubble-text leading-relaxed whitespace-pre-line text-xs text-slate-100">
 يا هلا والله أستاذ محمد! 👋💧
 معك <strong class="text-sky-300 font-bold">نادية</strong> من عناية العملاء في مياه بيرين.. نورتنا والله!
 
@@ -253,27 +190,27 @@
 
 _(خذ راحتك كلمني بأي لهجة أو لغة تحبها، كتابة أو فويس 🎙️)_
                                     </div>
-                                    <div class="text-[10px] text-slate-400 text-left mt-1.5 font-mono">
+                                    <div class="text-[9px] text-slate-400 text-left mt-1 font-mono">
                                         {{ now()->format('h:i A') }}
                                     </div>
                                 </div>
 
                                 {{-- Quick Reply Chips inside Phone --}}
-                                <div class="flex flex-wrap gap-1.5 mt-2.5 max-w-[92%]">
+                                <div class="flex flex-wrap gap-1 mt-2 max-w-[92%]">
                                     <button onclick="window.sendScenario('كرري لي طلبي الأخير على حي الورود')"
-                                            class="bg-[#202c33] hover:bg-sky-950 text-sky-300 hover:text-sky-200 border border-sky-500/30 rounded-xl px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                                            class="bg-[#202c33] hover:bg-sky-950 text-sky-300 border border-sky-500/30 rounded-xl px-2.5 py-1 text-[11px] font-bold transition flex items-center gap-1 shadow-sm">
                                         <span>🔄 تكرار طلبي الأخير</span>
                                     </button>
                                     <button onclick="window.sendScenario('كم سعر كرتون مياه 600 مل؟')"
-                                            class="bg-[#202c33] hover:bg-sky-950 text-slate-200 hover:text-white border border-slate-700/60 rounded-xl px-3 py-1.5 text-xs font-medium transition shadow-sm">
+                                            class="bg-[#202c33] hover:bg-sky-950 text-slate-200 border border-slate-700/60 rounded-xl px-2.5 py-1 text-[11px] font-medium transition shadow-sm">
                                         <span>💧 سعر كرتون 600 مل</span>
                                     </button>
                                     <button onclick="window.sendScenario('كم رصيدي من النقاط؟')"
-                                            class="bg-[#202c33] hover:bg-sky-950 text-slate-200 hover:text-white border border-slate-700/60 rounded-xl px-3 py-1.5 text-xs font-medium transition shadow-sm">
+                                            class="bg-[#202c33] hover:bg-sky-950 text-slate-200 border border-slate-700/60 rounded-xl px-2.5 py-1 text-[11px] font-medium transition shadow-sm">
                                         <span>🎁 رصيد نقاطي</span>
                                     </button>
                                     <button onclick="window.sendScenario('أبي أتبرع لمسجد بمكة بموية بيرين')"
-                                            class="bg-[#202c33] hover:bg-sky-950 text-slate-200 hover:text-white border border-slate-700/60 rounded-xl px-3 py-1.5 text-xs font-medium transition shadow-sm">
+                                            class="bg-[#202c33] hover:bg-sky-950 text-slate-200 border border-slate-700/60 rounded-xl px-2.5 py-1 text-[11px] font-medium transition shadow-sm">
                                         <span>🕋 سقيا المساجد</span>
                                     </button>
                                 </div>
@@ -281,11 +218,11 @@ _(خذ راحتك كلمني بأي لهجة أو لغة تحبها، كتابة
 
                         </div>
 
-                        {{-- Typing Indicator Bubble (Hidden by default) --}}
-                        <div id="typingIndicator" class="hidden px-4 py-2 bg-[#0b141a] z-10">
-                            <div class="bg-[#202c33] text-slate-300 rounded-2xl rounded-tr-none px-4 py-2.5 inline-flex items-center gap-2.5 shadow-md border border-slate-700/50">
-                                <span class="text-xs text-sky-400 font-bold" id="typingText">نادية تكتب الآن</span>
-                                <div class="flex items-center gap-1.5">
+                        {{-- Typing Indicator Bubble --}}
+                        <div id="typingIndicator" class="hidden px-3.5 py-1.5 bg-[#0b141a] z-10">
+                            <div class="bg-[#202c33] text-slate-300 rounded-2xl rounded-tr-none px-3.5 py-2 inline-flex items-center gap-2 shadow-md border border-slate-700/50">
+                                <span class="text-[11px] text-sky-400 font-bold" id="typingText">نادية تكتب الآن</span>
+                                <div class="flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full bg-sky-400 typing-dot"></span>
                                     <span class="w-1.5 h-1.5 rounded-full bg-sky-400 typing-dot"></span>
                                     <span class="w-1.5 h-1.5 rounded-full bg-sky-400 typing-dot"></span>
@@ -294,36 +231,35 @@ _(خذ راحتك كلمني بأي لهجة أو لغة تحبها، كتابة
                         </div>
 
                         {{-- Voice Recording Banner --}}
-                        <div id="recordingBar" class="hidden bg-[#202c33] px-4 py-3 border-t border-slate-800 flex items-center justify-between text-xs text-rose-400 z-10">
-                            <div class="flex items-center gap-2.5 font-bold animate-pulse">
-                                <span class="w-3 h-3 rounded-full bg-rose-500"></span>
-                                <span>جاري تسجيل صوتك... تحدث بأي لهجة أو لغة 🎙️</span>
+                        <div id="recordingBar" class="hidden bg-[#202c33] px-3 py-2.5 border-t border-slate-800 flex items-center justify-between text-xs text-rose-400 z-10">
+                            <div class="flex items-center gap-2 font-bold animate-pulse text-xs">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                                <span>جاري تسجيل صوتك... 🎙️</span>
                             </div>
-                            <button onclick="window.stopRecording()" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 px-3 py-1 rounded-xl text-xs font-bold transition">
-                                إرسال التسجيل
+                            <button onclick="window.stopRecording()" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 px-2.5 py-0.5 rounded-lg text-xs font-bold transition">
+                                إرسال
                             </button>
                         </div>
 
                         {{-- WhatsApp Input Bar --}}
-                        <div class="bg-[#202c33] p-3 border-t border-slate-800/80 flex items-center gap-2 z-10">
-                            
+                        <div class="bg-[#202c33] p-2.5 border-t border-slate-800/80 flex items-center gap-2 z-10">
                             {{-- Mic Button --}}
                             <button id="micBtn" onclick="window.toggleRecording()"
-                                    class="w-10 h-10 rounded-full bg-[#182229] hover:bg-sky-600 text-slate-300 hover:text-white flex items-center justify-center transition flex-shrink-0 shadow-sm"
+                                    class="w-9 h-9 rounded-full bg-[#182229] hover:bg-sky-600 text-slate-300 hover:text-white flex items-center justify-center transition flex-shrink-0"
                                     title="تحدث بالمايكروفون (Voice Note)">
-                                <i class="fa-solid fa-microphone text-sm"></i>
+                                <i class="fa-solid fa-microphone text-xs"></i>
                             </button>
 
                             {{-- Input Field --}}
                             <div class="flex-1 relative">
                                 <input type="text" id="userInput"
                                        placeholder="اكتب لنادية بأي لهجة أو لغة..."
-                                       class="w-full bg-[#2a3942] text-white text-xs sm:text-sm rounded-2xl px-4 py-2.5 outline-none placeholder-slate-400 border border-transparent focus:border-sky-500/50 transition">
+                                       class="w-full bg-[#2a3942] text-white text-xs rounded-2xl px-3.5 py-2 outline-none placeholder-slate-400 border border-transparent focus:border-sky-500/50 transition">
                             </div>
 
                             {{-- Send Button --}}
                             <button id="sendBtn" onclick="window.sendMessage()"
-                                    class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white flex items-center justify-center transition shadow-md flex-shrink-0"
+                                    class="w-9 h-9 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center transition shadow-md flex-shrink-0"
                                     title="إرسال">
                                 <i class="fa-solid fa-paper-plane text-xs"></i>
                             </button>
@@ -334,182 +270,207 @@ _(خذ راحتك كلمني بأي لهجة أو لغة تحبها، كتابة
 
             </div>
 
-            {{-- Left Column (RTL: Right in display): Executive Control Center (5 Cols) --}}
-            <div class="lg:col-span-5 space-y-6 order-2 lg:order-1">
+            {{-- Column 2: Harmonious Executive Control Center (7 Cols on desktop) --}}
+            <div class="lg:col-span-7 space-y-4">
 
-                {{-- VIP Customer Intelligence Card --}}
-                <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden backdrop-blur-xl">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
+                {{-- VIP Customer Card (Sleek Banking/Membership Style) --}}
+                <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-amber-500/30 rounded-3xl p-5 shadow-xl relative overflow-hidden backdrop-blur-xl">
+                    <div class="absolute -top-10 -right-10 w-36 h-36 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
-                    <div class="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-800">
-                        <div class="flex items-center gap-2">
-                            <span class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/25 flex items-center justify-center text-xs">
-                                <i class="fa-solid fa-id-card"></i>
-                            </span>
-                            <span class="text-xs font-black text-white uppercase tracking-wider">سجل العميل الذكي (CRM Context)</span>
+                    {{-- Card Header --}}
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-amber-400 text-base">👑</span>
+                            <span class="text-xs font-black text-white tracking-wider">بطاقة العميل المتصل (Live Customer CRM)</span>
                         </div>
-                        <span class="inline-flex items-center gap-1.5 text-xs font-black bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-full shadow-sm">
-                            <i class="fa-solid fa-crown text-[11px]"></i>
-                            <span>عميل ذهبي</span>
+                        <span class="text-xs font-bold text-amber-300 bg-amber-500/15 px-2.5 py-0.5 rounded-full border border-amber-500/30 font-mono">
+                            VIP GOLD
                         </span>
                     </div>
 
-                    {{-- Customer Identity --}}
-                    <div class="flex items-center gap-4 mb-5">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-lg shadow-lg flex-shrink-0">
-                            م.ع
+                    {{-- Customer Identity & 3 Key Stats in One Neat Row --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                        {{-- Name & Contact (5 cols) --}}
+                        <div class="sm:col-span-5 flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-600 text-slate-950 font-black text-sm flex items-center justify-center shadow-md flex-shrink-0">
+                                م.ع
+                            </div>
+                            <div class="min-w-0">
+                                <div class="font-bold text-white text-sm truncate">{{ $customer['full_name'] ?? 'محمد عبدالحميد' }}</div>
+                                <div class="text-[11px] text-slate-400 font-mono mt-0.5">+{{ $customer['mobile_number'] ?? '966540506796' }}</div>
+                            </div>
                         </div>
-                        <div class="min-w-0">
-                            <h3 class="font-bold text-white text-base truncate">{{ $customer['full_name'] ?? 'محمد عبدالحميد (Mohammed Abdulhamid)' }}</h3>
-                            <div class="flex items-center gap-2 mt-1 text-xs text-slate-400 font-mono">
-                                <i class="fa-solid fa-phone text-[10px] text-sky-400"></i>
-                                <span>+{{ $customer['mobile_number'] ?? '966540506796' }}</span>
+
+                        {{-- 3 Clean Stat Badges (7 cols) --}}
+                        <div class="sm:col-span-7 grid grid-cols-3 gap-2 text-center text-xs">
+                            <div class="bg-slate-800/70 p-2 rounded-xl border border-slate-700/60">
+                                <span class="text-[10px] text-slate-400 block">نقاط الولاء</span>
+                                <span class="text-sky-300 font-black font-mono text-sm">{{ $points }}</span>
+                            </div>
+                            <div class="bg-slate-800/70 p-2 rounded-xl border border-slate-700/60">
+                                <span class="text-[10px] text-slate-400 block">آخر طلب</span>
+                                <span class="text-amber-400 font-black font-mono text-sm">{{ $lastOrder['amount'] ?? '48.77' }} <span class="text-[9px] font-normal font-sans">ر.س</span></span>
+                            </div>
+                            <div class="bg-slate-800/70 p-2 rounded-xl border border-slate-700/60">
+                                <span class="text-[10px] text-slate-400 block">المنتج المفضل</span>
+                                <span class="text-emerald-400 font-bold text-[11px] truncate block mt-0.5">بيرين 600 مل</span>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Quick Metrics Grid --}}
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div class="bg-slate-800/50 p-3.5 rounded-2xl border border-slate-700/50 hover:border-sky-500/30 transition">
-                            <span class="text-slate-400 text-xs block mb-1">نقاط الولاء (قطاف / مكافأة):</span>
-                            <div class="flex items-baseline gap-1.5 font-mono">
-                                <span class="text-2xl font-black text-sky-300">{{ $points }}</span>
-                                <span class="text-xs text-slate-400 font-sans">نقطة</span>
-                            </div>
+                    {{-- Saved Address Pill --}}
+                    <div class="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-300">
+                        <div class="flex items-center gap-1.5 truncate">
+                            <i class="fa-solid fa-location-dot text-sky-400 text-xs"></i>
+                            <span>حي الورود (الرياض) • سقيا المساجد بمكة (جمعية جوار)</span>
                         </div>
-
-                        <div class="bg-slate-800/50 p-3.5 rounded-2xl border border-slate-700/50 hover:border-emerald-500/30 transition">
-                            <span class="text-slate-400 text-xs block mb-1">المنتج المفضل كالعادة:</span>
-                            <span class="text-emerald-400 font-bold text-xs truncate block mt-1.5">بيرين 600 مل (24 عبوة)</span>
-                        </div>
-
-                        <div class="bg-slate-800/50 p-3.5 rounded-2xl border border-slate-700/50 col-span-2 hover:border-amber-500/30 transition">
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="text-slate-400">آخر طلب مسجل بالمنظومة:</span>
-                                <span class="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded text-[11px]">مكتمل ✅</span>
-                            </div>
-                            <div class="flex items-center justify-between mt-2 font-mono">
-                                <span class="text-white font-bold text-sm">#{{ $lastOrder['order_id'] ?? '695818066' }}</span>
-                                <span class="text-amber-400 font-black text-sm">{{ $lastOrder['amount'] ?? '48.77' }} ر.س</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Delivery Address & Habits --}}
-                    <div class="space-y-2 text-xs bg-slate-800/30 p-3.5 rounded-2xl border border-slate-700/40">
-                        <div class="flex items-start gap-2.5 text-slate-300">
-                            <i class="fa-solid fa-location-dot text-sky-400 mt-1 flex-shrink-0"></i>
-                            <span><strong>العناوين:</strong> حي الورود (الرياض) • جمعية جوار لسقيا المساجد (مكة المكرمة).</span>
-                        </div>
-                        <div class="flex items-start gap-2.5 text-slate-300">
-                            <i class="fa-regular fa-clock text-amber-400 mt-1 flex-shrink-0"></i>
-                            <span><strong>الموعد المفضل:</strong> الفترة المسائية (5 إلى 9 مساءً) مع ترك الطلب عند الباب.</span>
-                        </div>
+                        <span class="text-slate-400 text-[10px] font-mono flex-shrink-0">رقم الطلب #{{ $lastOrder['order_id'] ?? '695818066' }}</span>
                     </div>
                 </div>
 
-                {{-- Interactive Scenarios Control Center --}}
-                <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl backdrop-blur-xl space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                {{-- Interactive Scenario Bank (Organized & Harmonious 2-Column Grid) --}}
+                <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-xl backdrop-blur-xl space-y-3">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-800">
                         <div class="flex items-center gap-2">
-                            <span class="w-8 h-8 rounded-xl bg-sky-500/15 text-sky-400 border border-sky-500/25 flex items-center justify-center text-xs">
-                                <i class="fa-solid fa-flask-vial"></i>
-                            </span>
-                            <h3 class="text-xs font-black text-white uppercase tracking-wider">بنك السيناريوهات واللهجات بنقرة واحدة</h3>
+                            <span class="text-sky-400 text-sm">⚡</span>
+                            <h3 class="text-xs font-black text-white uppercase tracking-wider">بنك السيناريوهات الحية (اضغط للتجربة الفورية)</h3>
                         </div>
-                        <span class="text-[11px] text-slate-400 font-mono">6 سيناريوهات</span>
+                        <span class="text-[10px] text-slate-400 font-mono">نقرة واحدة تُرسل للشات</span>
                     </div>
 
-                    <div class="space-y-3">
-                        {{-- Saudi Dialect --}}
-                        <div class="bg-slate-800/60 hover:bg-slate-800/90 border border-slate-700/60 hover:border-sky-500/50 rounded-2xl p-3.5 transition group">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="inline-flex items-center gap-1.5 text-xs font-black text-sky-300">
-                                    <span>🇸🇦</span>
-                                    <span>اللهجة السعودية الدارجة (تكرار الطلب + موية أبو نص)</span>
-                                </span>
-                                <button onclick="window.sendScenario('هلا نادية، بالله كرري لي طلبي الأخير على عنواني بالرياض وأبي معه 5 كراتين موية أبو نص')"
-                                        class="text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 px-3 py-1 rounded-xl transition flex items-center gap-1">
-                                    <span>تشغيل</span>
-                                    <i class="fa-solid fa-play text-[9px]"></i>
-                                </button>
+                    {{-- 6 Balanced Scenario Cards (2x3 Grid) --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        
+                        {{-- Scenario 1: Saudi Dialect --}}
+                        <div onclick="window.sendScenario('هلا نادية، بالله كرري لي طلبي الأخير على عنواني بالرياض وأبي معه 5 كراتين موية أبو نص')"
+                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-sky-500/50 rounded-2xl p-3 transition cursor-pointer group flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-black text-sky-300 flex items-center gap-1.5">
+                                        <span>🇸🇦</span>
+                                        <span>سعودي: تكرار الطلب + موية أبو نص</span>
+                                    </span>
+                                    <span class="w-6 h-6 rounded-lg bg-sky-500/20 text-sky-300 group-hover:bg-sky-500 group-hover:text-white flex items-center justify-center text-[10px] transition">
+                                        <i class="fa-solid fa-play"></i>
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
+                                    "هلا نادية، بالله كرري لي طلبي الأخير على عنواني بالرياض وأبي معه 5 كراتين موية أبو نص"
+                                </p>
                             </div>
-                            <p class="text-xs text-slate-300 line-clamp-2 leading-relaxed">
-                                "هلا نادية، بالله كرري لي طلبي الأخير على عنواني بالرياض وأبي معه 5 كراتين موية أبو نص"
-                            </p>
                         </div>
 
-                        {{-- Egyptian Dialect --}}
-                        <div class="bg-slate-800/60 hover:bg-slate-800/90 border border-slate-700/60 hover:border-emerald-500/50 rounded-2xl p-3.5 transition group">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="inline-flex items-center gap-1.5 text-xs font-black text-emerald-300">
-                                    <span>🇪🇬</span>
-                                    <span>اللهجة المصرية (مية للمبرد + نقاط قطاف)</span>
-                                </span>
-                                <button onclick="window.sendScenario('إزيك يا نادية، عايز أطلب كرتونتين مية 600 مل وقارورة كبيرة للمبرد، وهل ينفع أدفع بنقاط قطاف؟')"
-                                        class="text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-xl transition flex items-center gap-1">
-                                    <span>تشغيل</span>
-                                    <i class="fa-solid fa-play text-[9px]"></i>
-                                </button>
+                        {{-- Scenario 2: Egyptian Dialect --}}
+                        <div onclick="window.sendScenario('إزيك يا نادية، عايز أطلب كرتونتين مية 600 مل وقارورة كبيرة للمبرد، وهل ينفع أدفع بنقاط قطاف؟')"
+                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-emerald-500/50 rounded-2xl p-3 transition cursor-pointer group flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-black text-emerald-300 flex items-center gap-1.5">
+                                        <span>🇪🇬</span>
+                                        <span>مصري: مية للمبرد + نقاط قطاف</span>
+                                    </span>
+                                    <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-300 group-hover:bg-emerald-500 group-hover:text-white flex items-center justify-center text-[10px] transition">
+                                        <i class="fa-solid fa-play"></i>
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
+                                    "إزيك يا نادية، عايز أطلب كرتونتين مية 600 مل وقارورة كبيرة للمبرد، وهل ينفع أدفع بنقاط قطاف؟"
+                                </p>
                             </div>
-                            <p class="text-xs text-slate-300 line-clamp-2 leading-relaxed">
-                                "إزيك يا نادية، عايز أطلب كرتونتين مية 600 مل وقارورة كبيرة للمبرد، وهل ينفع أدفع بنقاط قطاف؟"
-                            </p>
                         </div>
 
-                        {{-- Mosque Charity --}}
-                        <div class="bg-slate-800/60 hover:bg-slate-800/90 border border-slate-700/60 hover:border-amber-500/50 rounded-2xl p-3.5 transition group">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="inline-flex items-center gap-1.5 text-xs font-black text-amber-300">
-                                    <span>🕋</span>
-                                    <span>سقيا المساجد بمكة (جمعية جوار)</span>
-                                </span>
-                                <button onclick="window.sendScenario('نادية أبي أرسل 10 كراتين موية لمسجد في مكة عن طريق جمعية جوار')"
-                                        class="text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-xl transition flex items-center gap-1">
-                                    <span>تشغيل</span>
-                                    <i class="fa-solid fa-play text-[9px]"></i>
-                                </button>
+                        {{-- Scenario 3: Mosque Charity --}}
+                        <div onclick="window.sendScenario('نادية أبي أرسل 10 كراتين موية لمسجد في مكة عن طريق جمعية جوار')"
+                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-amber-500/50 rounded-2xl p-3 transition cursor-pointer group flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-black text-amber-300 flex items-center gap-1.5">
+                                        <span>🕋</span>
+                                        <span>سقيا المساجد: مكة (جمعية جوار)</span>
+                                    </span>
+                                    <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-300 group-hover:bg-amber-500 group-hover:text-white flex items-center justify-center text-[10px] transition">
+                                        <i class="fa-solid fa-play"></i>
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
+                                    "نادية أبي أرسل 10 كراتين موية لمسجد في مكة عن طريق جمعية جوار"
+                                </p>
                             </div>
-                            <p class="text-xs text-slate-300 line-clamp-2 leading-relaxed">
-                                "نادية أبي أرسل 10 كراتين موية لمسجد في مكة عن طريق جمعية جوار"
-                            </p>
                         </div>
 
-                        {{-- English Language --}}
-                        <div class="bg-slate-800/60 hover:bg-slate-800/90 border border-slate-700/60 hover:border-indigo-500/50 rounded-2xl p-3.5 transition group" dir="ltr">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="inline-flex items-center gap-1.5 text-xs font-black text-indigo-300">
-                                    <span>🇬🇧</span>
-                                    <span>English (Sodium & Reorder)</span>
-                                </span>
-                                <button onclick="window.sendScenario('Hi Nadia, how much sodium is in Berain water? And can you repeat my last order?')"
-                                        class="text-xs font-bold bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-xl transition flex items-center gap-1">
-                                    <span>Run</span>
-                                    <i class="fa-solid fa-play text-[9px]"></i>
-                                </button>
+                        {{-- Scenario 4: English Language --}}
+                        <div onclick="window.sendScenario('Hi Nadia, how much sodium is in Berain water? And can you repeat my last order?')"
+                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-indigo-500/50 rounded-2xl p-3 transition cursor-pointer group flex flex-col justify-between" dir="ltr">
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-black text-indigo-300 flex items-center gap-1.5">
+                                        <span>🇬🇧</span>
+                                        <span>English: Sodium & Re-order</span>
+                                    </span>
+                                    <span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-300 group-hover:bg-indigo-500 group-hover:text-white flex items-center justify-center text-[10px] transition">
+                                        <i class="fa-solid fa-play"></i>
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
+                                    "Hi Nadia, how much sodium is in Berain water? And can you repeat my last order?"
+                                </p>
                             </div>
-                            <p class="text-xs text-slate-300 line-clamp-2 leading-relaxed">
-                                "Hi Nadia, how much sodium is in Berain water? And can you repeat my last order?"
-                            </p>
                         </div>
 
-                        {{-- Quality SLA & Complaints --}}
-                        <div class="bg-slate-800/60 hover:bg-slate-800/90 border border-slate-700/60 hover:border-rose-500/50 rounded-2xl p-3.5 transition group">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="inline-flex items-center gap-1.5 text-xs font-black text-rose-300">
-                                    <span>🧪</span>
-                                    <span>استفسار جودة وشكوى (SLA & تعويض)</span>
-                                </span>
-                                <button onclick="window.sendScenario('نادية، وصلني كرتون فيه طعم غريب وتاريخ إنتاجه جديد، ايش الإجراء؟')"
-                                        class="text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-xl transition flex items-center gap-1">
-                                    <span>تشغيل</span>
-                                    <i class="fa-solid fa-play text-[9px]"></i>
-                                </button>
+                        {{-- Scenario 5: Catalog & Pricing --}}
+                        <div onclick="window.sendScenario('كم سعر كرتون بيرين 600 مل وبيرين 200 مل، وإيش الأحجام المتوفرة؟')"
+                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/50 rounded-2xl p-3 transition cursor-pointer group flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-black text-teal-300 flex items-center gap-1.5">
+                                        <span>📦</span>
+                                        <span>الأسعار والأحجام: كتالوج بيرين</span>
+                                    </span>
+                                    <span class="w-6 h-6 rounded-lg bg-teal-500/20 text-teal-300 group-hover:bg-teal-500 group-hover:text-white flex items-center justify-center text-[10px] transition">
+                                        <i class="fa-solid fa-play"></i>
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
+                                    "كم سعر كرتون بيرين 600 مل وبيرين 200 مل، وإيش الأحجام المتوفرة؟"
+                                </p>
                             </div>
-                            <p class="text-xs text-slate-300 line-clamp-2 leading-relaxed">
-                                "نادية، وصلني كرتون فيه طعم غريب وتاريخ إنتاجه جديد، ايش الإجراء؟"
-                            </p>
                         </div>
+
+                        {{-- Scenario 6: Quality SLA & Complaints --}}
+                        <div onclick="window.sendScenario('نادية، وصلني كرتون فيه طعم غريب وتاريخ إنتاجه جديد، ايش الإجراء؟')"
+                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-rose-500/50 rounded-2xl p-3 transition cursor-pointer group flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-black text-rose-300 flex items-center gap-1.5">
+                                        <span>🧪</span>
+                                        <span>استفسار جودة: SLA والتعويض الفوري</span>
+                                    </span>
+                                    <span class="w-6 h-6 rounded-lg bg-rose-500/20 text-rose-300 group-hover:bg-rose-500 group-hover:text-white flex items-center justify-center text-[10px] transition">
+                                        <i class="fa-solid fa-play"></i>
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
+                                    "نادية، وصلني كرتون فيه طعم غريب وتاريخ إنتاجه جديد، ايش الإجراء؟"
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                {{-- Key Capabilities Banner (Bottom Pill Bar) --}}
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-amber-400"></i>
+                        <span>استجابة فورية <strong>&lt; 1 ثانية</strong></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-microphone text-emerald-400"></i>
+                        <span>دعم الفويس نوت <strong>(OpenAI Whisper + Gemini)</strong></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-sky-400"></i>
+                        <span>دقة الحقائق <strong>100%</strong></span>
                     </div>
                 </div>
 
@@ -583,11 +544,11 @@ _(خذ راحتك كلمني بأي لهجة أو لغة تحبها، كتابة
 
         const userHtml = `
             <div class="flex flex-col items-end message-bubble">
-                <div class="bg-[#005c4b] text-white rounded-2xl rounded-tl-none p-3.5 max-w-[85%] shadow-md border border-emerald-600/30">
-                    <div class="bubble-text leading-relaxed whitespace-pre-line text-[13px]">${escapeHtml(text)}</div>
-                    <div class="text-[10px] text-emerald-200 text-left mt-1.5 font-mono flex items-center justify-end gap-1">
+                <div class="bg-[#005c4b] text-white rounded-2xl rounded-tl-none p-3 max-w-[85%] shadow-md border border-emerald-600/30">
+                    <div class="bubble-text leading-relaxed whitespace-pre-line text-xs">${escapeHtml(text)}</div>
+                    <div class="text-[9px] text-emerald-200 text-left mt-1 font-mono flex items-center justify-end gap-1">
                         <span>${time}</span>
-                        <i class="fa-solid fa-check-double text-[9px] text-sky-300"></i>
+                        <i class="fa-solid fa-check-double text-[8px] text-sky-300"></i>
                     </div>
                 </div>
             </div>
@@ -627,18 +588,18 @@ _(خذ راحتك كلمني بأي لهجة أو لغة تحبها، كتابة
 
                 const replyHtml = `
                     <div class="flex flex-col items-start message-bubble">
-                        <div class="bg-[#202c33] text-slate-100 rounded-2xl rounded-tr-none p-3.5 max-w-[90%] shadow-lg border border-slate-700/40">
-                            <div class="font-bold text-[11px] text-sky-400 mb-1.5 flex items-center justify-between gap-2 border-b border-white/5 pb-1">
+                        <div class="bg-[#202c33] text-slate-100 rounded-2xl rounded-tr-none p-3 max-w-[90%] shadow-md border border-slate-700/40">
+                            <div class="font-bold text-[10px] text-sky-400 mb-1 flex items-center justify-between gap-2 border-b border-white/5 pb-1">
                                 <span class="flex items-center gap-1">
                                     <span>نادية</span>
-                                    <span class="text-slate-400 font-normal text-[10px]">(عناية عملاء مياه بيرين)</span>
+                                    <span class="text-slate-400 font-normal text-[9px]">(عناية عملاء مياه بيرين)</span>
                                 </span>
                                 <button onclick="window.speakText(this.closest('.message-bubble').querySelector('.bubble-text').innerText)" class="text-slate-400 hover:text-sky-300 transition" title="استماع">
-                                    <i class="fa-solid fa-volume-high text-[11px]"></i>
+                                    <i class="fa-solid fa-volume-high text-[10px]"></i>
                                 </button>
                             </div>
-                            <div class="bubble-text leading-relaxed whitespace-pre-line text-[13px] text-slate-100">${formatMarkdown(replyText)}</div>
-                            <div class="text-[10px] text-slate-400 text-left mt-1.5 font-mono">
+                            <div class="bubble-text leading-relaxed whitespace-pre-line text-xs text-slate-100">${formatMarkdown(replyText)}</div>
+                            <div class="text-[9px] text-slate-400 text-left mt-1 font-mono">
                                 ${data.timestamp || getCurrentTime()}
                             </div>
                         </div>
@@ -655,7 +616,7 @@ _(خذ راحتك كلمني بأي لهجة أو لغة تحبها، كتابة
             typingIndicator.classList.add('hidden');
             const errHtml = `
                 <div class="flex flex-col items-start">
-                    <div class="bg-[#202c33] text-rose-300 rounded-2xl p-3.5 max-w-[90%] shadow-md border border-rose-500/30 text-xs">
+                    <div class="bg-[#202c33] text-rose-300 rounded-2xl p-3 max-w-[90%] shadow-md border border-rose-500/30 text-xs">
                         يا هلا والله أستاذ محمد! حدث ضغط مؤقت على الخادم، أعد إرسال سؤالك وأنا معك بالخدمة فوراً.
                     </div>
                 </div>
