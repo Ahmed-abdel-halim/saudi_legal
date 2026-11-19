@@ -18,11 +18,21 @@ class CreateWhatsAppTemplates extends Command
 
         // القائمة الرئيسية — تظهر عند بدء المحادثة وعند أي رسالة غير مفهومة
         'main_menu' => [
-            'friendly_name' => 'radiif_main_menu_v1',
+            'friendly_name' => 'radiif_main_menu_v2',
             'buttons' => [
-                ['title' => 'الاطلاع على الباقات', 'id' => 'view_plans'],
                 ['title' => 'المساعد القانوني',     'id' => 'start_chat'],
-                ['title' => 'طلب تنقيح بيانات',     'id' => 'request_refinement'],
+                ['title' => 'ديمو مياه بيرين 💧',  'id' => 'berain_demo'],
+                ['title' => 'الاطلاع على الباقات', 'id' => 'view_plans'],
+            ],
+        ],
+
+        // أزرار أثناء محادثة ديمو مياه بيرين مع نادية
+        'in_berain_chat' => [
+            'friendly_name' => 'radiif_in_berain_chat_v1',
+            'buttons' => [
+                ['title' => '🔄 تكرار طلبي الأخير', 'id' => 'repeat_order'],
+                ['title' => 'إنهاء المحادثة',      'id' => 'end_chat'],
+                ['title' => 'القائمة الرئيسية',   'id' => 'main_menu'],
             ],
         ],
 

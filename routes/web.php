@@ -492,3 +492,11 @@ Route::get('/sitemap-legal-en-index.xml', function () {
     return response()->file($path, ['Content-Type' => 'application/xml']);
 })->name('sitemap.legal.en');
 
+// =========================================================================
+// Berain WhatsApp Interactive Web Demo (شخصية نادية - مياه بيرين)
+// =========================================================================
+Route::get('/demo/whatsapp-berain', [App\Http\Controllers\BerainDemoController::class, 'index'])->name('demo.berain');
+Route::post('/demo/whatsapp-berain/chat', [App\Http\Controllers\BerainDemoController::class, 'chat'])->name('demo.berain.chat');
+Route::post('/demo/whatsapp-berain/transcribe', [App\Http\Controllers\BerainDemoController::class, 'transcribe'])->name('demo.berain.transcribe');
+
+

@@ -7,6 +7,7 @@ use App\Services\Legal\LegalQueryExpansionService;
 use App\Services\AzureSearchService;
 use App\Services\QdrantSearchService;
 use App\Services\Legal\LegalReferenceService;
+use App\Models\WhatsAppConversation;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -420,6 +421,129 @@ class WhatsAppRagService
             return "العفو! أهلاً وسهلاً بك في أي وقت. ⚖️ هل لديك أي استفسار قانوني آخر؟";
         }
 
-        return "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nيرجى الاختيار من الخيارات التالية:\n\n1️⃣ الاطلاع على الباقات 💳\n2️⃣ تجربة المساعد القانوني ⚖️\n3️⃣ طلب تنقيح بيانات 📝";
+        return "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nيرجى الاختيار من الخيارات التالية:\n\n1️⃣ الاطلاع على الباقات 💳\n2️⃣ تجربة المساعد القانوني ⚖️\n3️⃣ طلب تنقيح بيانات 📝\n4️⃣ ديمو مياه بيرين (نادية) 💧";
+    }
+
+    /**
+     * الإجابة على استفسار ديمو مياه بيرين بشخصية "نادية" (خدمة العملاء الذكية متعددة اللهجات واللغات)
+     *
+     * @param WhatsAppConversation|array $conversationOrHistory
+     * @param string $query
+     * @return string
+     */
+    public function handleBerainDemoQuery($conversationOrHistory, string $query): string
+    {
+        $jsonPath = storage_path('app/demo/berain_complete_structured_database.json');
+        if (!file_exists($jsonPath)) {
+            $jsonPath = base_path('code_artifact.md');
+        }
+        $berainData = file_exists($jsonPath) ? file_get_contents($jsonPath) : '{}';
+
+        // استخراج سجل المحادثة
+        $history = [];
+        if ($conversationOrHistory instanceof WhatsAppConversation) {
+            foreach ($conversationOrHistory->getRecentHistory(10) as $msg) {
+                $history[] = [
+                    'role'    => $msg->role === 'assistant' ? 'assistant' : 'user',
+                    'content' => $msg->content,
+                ];
+            }
+        } elseif (is_array($conversationOrHistory)) {
+            $history = $conversationOrHistory;
+        }
+
+        $systemPrompt = <<<EOT
+أنتِ "نادية" (Nadia)، موظفة خدمة عملاء حقيقية، ذكية، وودودة جداً في شركة "مياه بيرين" (Berain Water) في المملكة العربية السعودية.
+أنتِ تتحدثين الآن عبر الواتساب مع العميل المميز "محمد عبدالحميد" (Mohammed Abdulhamid).
+
+### 1. قواعد الشخصية والأسلوب البشري (صارمة جداً):
+- تحدثي كإنسان حقيقي 100% وليس كروبوت. لا تقولي أبداً "أنا مساعد ذكي" أو "بصفتي ذكاء اصطناعي". أنتِ "نادية" من فريق عناية العملاء في بيرين.
+- اجعلي ردودك قصيرة، مريحة للعين، شبيهة برسائل البشر على واتساب (سطرين إلى 4 أسطر كحد أقصى إلا إذا طلب العميل قائمة أسعار أو تفاصيل كثيرة)، واستخدمي الإيموجي باعتدال وذوق (💧🤍✨👍).
+
+### 2. التفوق في فهم اللهجات العربية (السعودية + المصرية + كافة اللهجات) واللغات الأجنبية:
+- **إذا تحدث العميل باللهجة السعودية أو الخليجية:**
+  افهمي كافة مصطلحاته العامية (مثل: "أبي موية أبو نص"، "جيك للبراد"، "موية قزاز"، "سقيا مسجد"، "كم حبة بالكرتون") وردي عليه بلهجة سعودية بيضاء راقية ودافئة ("يا هلا والله أستاذ محمد"، "أبشر بسعدك"، "من عيوني"، "توصلك بالعافية").
+- **إذا تحدث العميل باللهجة المصرية:**
+  افهمي كافة المصطلحات والتعبيرات المصرية الدارجة فوراً (مثل: "عايز كرتونة مية"، "إزاي أطلب؟"، "قارورة كبيرة للمبرد / كولمن"، "إزيك يا نادية"، "الأوردر اتأخر ليه؟"، "مية معدنية صغيرة"، "بكام الكرتونة؟"، "تبرع لمسجد") وردي عليه بروح ترحيبية دافئة ومألوفة تجمع بين الذوق السعودي واللباقة القريبة للعميل المصري (مثل: "يا أهلاً وسهلاً بحضرتك يا أستاذ محمد! منورنا والله 💧"، "من عيوني حاضر، طلبك هيكون عندك في الميعاد"، "تحت أمر حضرتك").
+- **إذا تحدث العميل بأي لهجة عربية أخرى (شامية، مغاربية، سودانية، يمنية) أو بالعربية الفصحى:**
+  افهمي مقصده بدقة تامة وردي عليه بلغة عربية بيضاء دافئة ومفهومة وطبيعية جداً.
+- **إذا تحدث العميل بأي لغة غير العربية (English, Français, Urdu, Hindi, Tagalog, Español, etc.) أو حتى بالـ Franco-Arab:**
+  اكتشفي لغته تلقائياً وردي عليه **بنفس لغته** بطلاقة واحترافية ودفء بشري كأنكِ موظفة خدمة عملاء تتحدث لغته الأم (مثلاً بالإنجليزية: "Hello Mr. Mohammed! 👋💧 This is Nadia from Berain Customer Care...").
+
+### 3. التفاعل الذكي والاستباقي مع بيانات العميل (محمد عبدالحميد):
+- أنتِ تعرفين محمد جيداً من ملفه: هو عميل ذهبي منذ 2020، منتجه المفضل "بيرين 600 مل (كرتون 24 عبوة بـ 18.86 ريال)"، ولديه اشتراك كل أسبوعين، وآخر طلب له رقمه (#695818066) بقيمة 48.77 ريال، ولديه 58.8 نقطة ولاء، ووقت توصيله المفضل في المساء (5 إلى 9 مساءً) مع ترك الطلب عند الباب الخارجي.
+- إذا طلب تكرار طلبه أو طلب ماء بدون تحديد، اقترحي عليه بذكاء طلبه المفضل أو تكرار طلبه الأخير (#695818066) على عنوانه بحي الورود في الرياض أو توصيل المساجد عبر جمعية جوار في مكة.
+
+### 4. التعاطف البشري في الشكاوى والاستفسارات والاعتماد الحصري على الحقائق:
+- إذا اشتكى من تأخير أو مشكلة في الطعم أو استرداد مبلغ، أظهري تعاطفاً بشرياً حقيقياً أولاً قبل ذكر الإجراءات.
+- استخرجي كافة الأسعار، الأحجام، نسبة الصوديوم (12.0) والـ pH (7.2)، شروط قطاف ومكافأة الراجحي، وتفاصيل عناوين العميل وطلباته الـ 63 ومحفظته من قاعدة البيانات المرفقة أدناه فقط دون أي اختلاق:
+
+<berain_database>
+{$berainData}
+</berain_database>
+EOT;
+
+        $rawAnswer = null;
+
+        // 1. تجربة Bedrock (Claude Sonnet)
+        if ($this->bedrockService->isEnabled()) {
+            $bedrockMessages = [];
+            foreach ($history as $msg) {
+                $bedrockMessages[] = [
+                    'role'    => $msg['role'] === 'assistant' ? 'assistant' : 'user',
+                    'content' => $msg['content'],
+                ];
+            }
+            $bedrockMessages[] = ['role' => 'user', 'content' => $query];
+
+            try {
+                $rawAnswer = $this->bedrockService->generateContent($bedrockMessages, $systemPrompt, [
+                    'temperature' => 0.4,
+                    'max_tokens'  => 1024,
+                    'timeout'     => 45,
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('[WhatsAppRagService] Bedrock call for Berain failed: ' . $e->getMessage());
+            }
+        }
+
+        // 2. تجربة Gemini كـ Fallback فائق السرعة
+        if (empty($rawAnswer)) {
+            $geminiContents = [];
+            foreach ($history as $msg) {
+                $geminiContents[] = [
+                    'role'  => $msg['role'] === 'assistant' ? 'model' : 'user',
+                    'parts' => [['text' => $msg['content']]],
+                ];
+            }
+
+            if (empty($history)) {
+                $geminiContents[] = [
+                    'role'  => 'user',
+                    'parts' => [['text' => "### التعليمات والشخصية:\n{$systemPrompt}\n\n### رسالة العميل:\n{$query}"]],
+                ];
+            } else {
+                $geminiContents[0]['parts'][0]['text'] = "### التعليمات والشخصية:\n{$systemPrompt}\n\n" . $geminiContents[0]['parts'][0]['text'];
+                $geminiContents[] = [
+                    'role'  => 'user',
+                    'parts' => [['text' => $query]],
+                ];
+            }
+
+            try {
+                $rawAnswer = $this->geminiService->generateContent($geminiContents, [
+                    'temperature' => 0.4,
+                    'timeout'     => 20,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('[WhatsAppRagService] Gemini call for Berain failed: ' . $e->getMessage());
+            }
+        }
+
+        if (empty($rawAnswer)) {
+            return "يا هلا والله أستاذ محمد! 🤍💧 اعتذر منك يبدو أن الشبكة عندي معلقة لثواني. أعد إرسال رسالتك وأنا معك بالخدمة فوراً!";
+        }
+
+        return $this->cleanResponse($rawAnswer);
     }
 }

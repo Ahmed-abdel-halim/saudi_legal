@@ -10,6 +10,7 @@ use App\Models\LegalJudgment;
 use App\Services\TwilioService;
 use App\Services\WhatsAppRagService;
 use App\Services\ChatwootService;
+use App\Services\AudioTranscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -21,9 +22,10 @@ class WhatsAppController extends Controller
     const DISCLAIMER = "\n\n───────────────\n⚠️ _إخلاء مسؤولية: جميع الإجابات والمعلومات القانونية المرفقة هي لغايات الاسترشاد والمعرفة العامة فقط ولا تُعد استشارة قانونية رسمية ملزمة._";
 
     public function __construct(
-        protected TwilioService      $twilio,
-        protected WhatsAppRagService $rag,
-        protected ChatwootService    $chatwoot
+        protected TwilioService               $twilio,
+        protected WhatsAppRagService          $rag,
+        protected ChatwootService             $chatwoot,
+        protected AudioTranscriptionService   $audioService
     ) {}
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -51,6 +53,19 @@ class WhatsAppController extends Controller
         // حقول خاصة بضغطات أزرار Content Templates
         $buttonPayload = trim($request->input('ButtonPayload', ''));
         $buttonText    = trim($request->input('ButtonText', ''));
+
+        // فحص وتفريغ الرسائل الصوتية (Voice Notes) تلقائياً بكل اللهجات واللغات
+        $numMedia          = (int) $request->input('NumMedia', 0);
+        $mediaContentType0 = $request->input('MediaContentType0', '');
+        $mediaUrl0         = $request->input('MediaUrl0', '');
+
+        if ($numMedia > 0 && str_starts_with($mediaContentType0, 'audio/')) {
+            $transcription = $this->audioService->transcribeTwilioMedia($mediaUrl0, $mediaContentType0);
+            if (!empty($transcription)) {
+                $body = $transcription;
+                Log::info('[WhatsApp] صوت مفرغ بنجاح إلى نص:', ['body' => $body]);
+            }
+        }
 
         // إذا كان Body فارغاً وضغط المستخدم زراراً من Content Template
         // Twilio يُرسل ButtonPayload (ID الزر) و ButtonText (نص الزر) في هذه الحالة
@@ -105,21 +120,46 @@ class WhatsAppController extends Controller
 
         switch ($intent) {
             case 'main_menu':
-                $reply       = "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nاختر من الخيارات التالية 👇";
-                $buttons     = ['الاطلاع على الباقات', 'المساعد القانوني', 'طلب تنقيح بيانات'];
+                $reply       = "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nاختر من الخيارات التالية 👇\n1️⃣ الاطلاع على الباقات 💳\n2️⃣ المساعد القانوني ⚖️\n3️⃣ طلب تنقيح بيانات 📝\n4️⃣ ديمو مياه بيرين (نادية) 💧";
+                $buttons     = ['المساعد القانوني', 'ديمو مياه بيرين 💧', 'الاطلاع على الباقات'];
+                $templateKey = 'main_menu';
+                break;
+
+            case 'berain_demo':
+                $reply       = $this->handleStartBerainDemo($conversation);
+                $buttons     = ['🔄 تكرار طلبي الأخير', 'إنهاء المحادثة', 'القائمة الرئيسية'];
+                $templateKey = 'in_berain_chat';
+                break;
+
+            case 'berain_chat':
+                $reply       = $this->handleBerainChat($conversation, $body);
+                $buttons     = ['🔄 تكرار طلبي الأخير', 'إنهاء المحادثة', 'القائمة الرئيسية'];
+                $templateKey = 'in_berain_chat';
+                break;
+
+            case 'berain_repeat_order':
+                $reply       = $this->handleBerainChat($conversation, "أبي أكرر طلبي الأخير (#695818066) بنفس العنوان المعتاد");
+                $buttons     = ['🔄 تكرار طلبي الأخير', 'إنهاء المحادثة', 'القائمة الرئيسية'];
+                $templateKey = 'in_berain_chat';
+                break;
+
+            case 'end_berain_chat':
+                $conversation->update(['session_state' => 'idle']);
+                $reply       = "سعدت بخدمتك أستاذ محمد! 🤍💧 في أمان الله وحفظه، ونورتنا دائماً في مياه بيرين.\n\n_(أرسل أي رسالة في أي وقت للعودة لقائمة رديف الرئيسية)_";
+                $buttons     = ['المساعد القانوني', 'ديمو مياه بيرين 💧', 'الاطلاع على الباقات'];
                 $templateKey = 'main_menu';
                 break;
 
             case 'view_plans':
                 $appUrl      = config('app.url', 'https://radiif.com');
                 $reply       = "💳 *باقات منصة رديف للذكاء الاصطناعي:*\n\nاطلع على كافة الباقات والمميزات عبر الرابط التالي:\n🔗 {$appUrl}/plans" . self::DISCLAIMER;
-                $buttons     = ['المساعد القانوني', 'طلب تنقيح بيانات', 'القائمة الرئيسية'];
+                $buttons     = ['المساعد القانوني', 'ديمو مياه بيرين 💧', 'القائمة الرئيسية'];
                 $templateKey = 'after_plans';
                 break;
 
             case 'request_refinement':
                 $reply       = "📝 *طلب تنقيح البيانات:*\n\nنرجو تزويدنا بالمتطلبات والبريد الالكتروني وسيتم إفادتكم بالرد خلال يوم عمل." . self::DISCLAIMER;
-                $buttons     = ['المساعد القانوني', 'الاطلاع على الباقات', 'القائمة الرئيسية'];
+                $buttons     = ['المساعد القانوني', 'ديمو مياه بيرين 💧', 'القائمة الرئيسية'];
                 $templateKey = 'after_plans';
                 break;
 
@@ -132,7 +172,7 @@ class WhatsAppController extends Controller
 
             case 'end_chat':
                 $reply       = $this->handleEndChat($conversation);
-                $buttons     = ['تنشيط المحادثة', 'القائمة الرئيسية'];
+                $buttons     = ['تنشيط المحادثة', 'ديمو مياه بيرين 💧', 'القائمة الرئيسية'];
                 $templateKey = 'ended_chat';
                 break;
 
@@ -144,7 +184,7 @@ class WhatsAppController extends Controller
 
             case 'pure_greeting':
                 $reply       = $this->handlePureGreeting($conversation, $body);
-                $buttons     = ['المساعد القانوني', 'الاطلاع على الباقات', 'طلب تنقيح بيانات'];
+                $buttons     = ['المساعد القانوني', 'ديمو مياه بيرين 💧', 'الاطلاع على الباقات'];
                 $templateKey = 'main_menu';
                 break;
 
@@ -157,7 +197,7 @@ class WhatsAppController extends Controller
             case 'idle_prompt':
             default:
                 $reply       = $this->getIdlePrompt();
-                $buttons     = ['الاطلاع على الباقات', 'المساعد القانوني', 'طلب تنقيح بيانات'];
+                $buttons     = ['المساعد القانوني', 'ديمو مياه بيرين 💧', 'الاطلاع على الباقات'];
                 $templateKey = 'main_menu';
                 break;
         }
@@ -186,17 +226,20 @@ class WhatsAppController extends Controller
         // ── 0. كشف مباشر لـ ButtonPayload (ID الزر من Content Template) ──
         // عند ضغط زرار Content Template، Twilio قد يُرسل ID الزر مباشرةً في Body أو ButtonPayload
         $buttonPayloadMap = [
-            'view_plans'          => 'view_plans',
-            'start_chat'          => 'start_chat',
-            'request_refinement'  => 'request_refinement',
-            'end_chat'            => 'end_chat',
-            'main_menu'           => 'main_menu',
+            'view_plans'            => 'view_plans',
+            'start_chat'            => 'start_chat',
+            'request_refinement'    => 'request_refinement',
+            'end_chat'              => 'end_chat',
+            'main_menu'             => 'main_menu',
+            'berain_demo'           => 'berain_demo',
+            'repeat_order'          => 'berain_repeat_order',
+            'btn_repeat_last_order' => 'berain_repeat_order',
         ];
         if (isset($buttonPayloadMap[$normalizedBody])) {
             return $buttonPayloadMap[$normalizedBody];
         }
 
-        // 1. كشف طلب رقم خيار: 1 (الباقات) ، 2 (المساعد) ، 3 (تنقيح)
+        // 1. كشف طلب رقم خيار: 1 (الباقات) ، 2 (المساعد) ، 3 (تنقيح) ، 4 (ديمو بيرين)
         if ($normalizedBody === '1' || in_array($normalizedBody, [
             'الاطلاع على الباقات', 'الاطلاع على الباقات 💳', 'الباقات', 'باقات', 'الاسعار', 'الأسعار', 'عرض الباقات'
         ], true)) {
@@ -217,36 +260,58 @@ class WhatsAppController extends Controller
             return 'request_refinement';
         }
 
-        // 2. زر القائمة الرئيسية أو العودة
-        if (in_array($normalizedBody, [
-            'القائمة الرئيسية', 'القائمة الرئيسية 🏠', 'الرئيسية', 'قائمة', '0', 'رجوع'
+        if ($normalizedBody === '4' || $normalizedBody === '٤' || in_array($normalizedBody, [
+            'ديمو مياه بيرين', 'ديمو مياه بيرين 💧', 'مياه بيرين', 'مياه بيرين 💧', 'بيرين', 'نادية', 'ناديه', 'ديمو', 'berain', 'nadia', 'berain_demo'
         ], true)) {
-            return 'main_menu';
+            return 'berain_demo';
         }
 
-        // 3. زر إنهاء المحادثة
+        // 2. زر القائمة الرئيسية أو العودة
+        if (in_array($normalizedBody, [
+            'القائمة الرئيسية', 'القائمة الرئيسية 🏠', 'الرئيسية', 'قائمة', '0', '٠', 'رجوع'
+        ], true)) {
+            return ($sessionState === 'berain_demo') ? 'end_berain_chat' : 'main_menu';
+        }
+
+        // 3. كشف جلسة ديمو مياه بيرين (نادية)
+        if ($sessionState === 'berain_demo') {
+            $exitTriggers = ['خروج', 'انهاء', 'إنهاء', 'وداعا', 'وداعاً', 'bye', 'exit', 'quit'];
+            foreach ($exitTriggers as $trigger) {
+                if ($normalizedBody === $trigger || mb_strpos($normalizedBody, 'خروج') !== false || mb_strpos($normalizedBody, 'إنهاء') !== false) {
+                    return 'end_berain_chat';
+                }
+            }
+
+            if (in_array($normalizedBody, ['تكرار طلبي الأخير', 'تكرار الطلب', 'كرر الطلب', 'كرر طلبي', 'repeat_order', 'تكرار'], true)) {
+                return 'berain_repeat_order';
+            }
+
+            return 'berain_chat';
+        }
+
+        // 4. زر إنهاء المحادثة القانونية
         if (in_array($normalizedBody, [
             'إنهاء المحادثة', 'إنهاء المحادثة 🛑', 'إنهاء الجلسة', 'إنهاء', 'انهاء'
         ], true)) {
             return 'end_chat';
         }
 
-        // 4. كشف الاستفسار عن رقم قضية مباشر (مثل: 4471036594 أو قضية 4471036594 أو حكم 4430630992)
+        // 5. كشف الاستفسار عن رقم قضية مباشر (مثل: 4471036594 أو قضية 4471036594 أو حكم 4430630992)
         if (preg_match('/^(?:عرض\s+|قضية\s+|مرجع\s+|رقم\s+|حكم\s+|قرار\s+|حكم\s+رقم\s+|قضية\s+رقم\s+)?(\d{3,15})$/u', $normalizedBody)) {
             return 'case_lookup';
         }
 
-        // 5. إذا كانت الجلسة غير نشطة (idle) والرسالة تحية -> نعرض القائمة الرئيسية فوراً
+        // 6. إذا كانت الجلسة غير نشطة (idle) والرسالة تحية -> نعرض القائمة الرئيسية فوراً
         if ($sessionState === 'idle' && $this->isPureGreeting($body)) {
             return 'main_menu';
         }
 
-        // 6. إذا كانت الجلسة نشطة (in_chat) والرسالة تحية -> نرد تحية بسيطة
+        // 7. إذا كانت الجلسة نشطة (in_chat) والرسالة تحية -> نرد تحية بسيطة
         if ($sessionState === 'in_chat' && $this->isPureGreeting($body)) {
             return 'pure_greeting';
         }
 
-        // 7. إذا كانت الجلسة نشطة بالفعل (in_chat)
+        // 8. إذا كانت الجلسة نشطة بالفعل (in_chat)
         if ($sessionState === 'in_chat') {
             // كشف طلب الخروج Explicit Exit
             $endExactTriggers = ['خروج', 'انهاء', 'إنهاء', 'وداعا', 'وداعاً', 'bye', 'exit', 'quit'];
@@ -260,13 +325,62 @@ class WhatsAppController extends Controller
             return 'legal_query';
         }
 
-        // 8. إذا كانت الجلسة غير نشطة (idle) والرسالة نصية تحتوي على سؤال/استفسار -> نعتبرها legal_query ونجيب بالذكاء الاصطناعي فوراً
+        // 9. إذا كانت الجلسة غير نشطة (idle) والرسالة نصية تحتوي على سؤال/استفسار -> نعتبرها legal_query ونجيب بالذكاء الاصطناعي فوراً
         return 'legal_query';
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     //  HANDLERS
     // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * بدء جلسة محادثة ديمو مياه بيرين مع "نادية" (خدمة العملاء الذكية)
+     */
+    private function handleStartBerainDemo(WhatsAppConversation $conversation): string
+    {
+        $conversation->update([
+            'session_state'        => 'berain_demo',
+            'last_active_at'       => now(),
+            'inactivity_warned_at' => null,
+        ]);
+
+        $welcome = "يا هلا والله أستاذ محمد! 👋💧\n"
+                 . "معك *نادية* من عناية العملاء في مياه بيرين.. نورتنا والله!\n\n"
+                 . "بشرني، حاب نكرر طلبك الأخير زي العادة ولا ودك نطلب شي جديد اليوم للبيت أو للمسجد؟ 🤍\n\n"
+                 . "_(خذ راحتك كلمني بأي لهجة أو لغة تحبها، كتابة أو فويس 🎙️، ولو حاب ترجع لقائمة رديف ارسل 0)_";
+
+        WhatsAppMessage::create([
+            'whatsapp_conversation_id' => $conversation->id,
+            'role'                     => 'assistant',
+            'content'                  => $welcome,
+        ]);
+
+        return $welcome;
+    }
+
+    /**
+     * التفاعل الذكي مع نادية في مياه بيرين
+     */
+    private function handleBerainChat(WhatsAppConversation $conversation, string $body): string
+    {
+        $conversation->incrementAndTouch();
+
+        WhatsAppMessage::create([
+            'whatsapp_conversation_id' => $conversation->id,
+            'role'                     => 'user',
+            'content'                  => $body,
+        ]);
+
+        $reply = $this->rag->handleBerainDemoQuery($conversation, $body);
+
+        WhatsAppMessage::create([
+            'whatsapp_conversation_id' => $conversation->id,
+            'role'                     => 'assistant',
+            'content'                  => $reply,
+        ]);
+
+        return $reply;
+    }
 
     /**
      * بدء جلسة المحادثة وإرسال رسالة الترحيب مع خيارات التفاعل وإخلاء المسؤولية
