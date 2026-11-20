@@ -168,7 +168,9 @@ class WhatsAppController extends Controller
 
             case 'end_berain_chat':
                 $conversation->update(['session_state' => 'idle']);
-                $reply       = "سعدت بخدمتك أستاذ محمد! 🤍💧 في أمان الله وحفظه، ونورتنا دائماً في مياه بيرين.\n\nاختر المساعد الذي ترغب في استشارته 👇";
+                $userName    = trim($conversation->display_name ?: '');
+                $title       = $userName ? "أستاذ {$userName}" : "بحضرتك";
+                $reply       = "سعدت بخدمتك {$title}! 🤍💧 في أمان الله وحفظه، ونورتنا دائماً في مياه بيرين.\n\nاضغط على القائمة أدناه لاختيار الخدمة المطلوبة 👇";
                 $buttons     = ['المساعد القانوني', 'المفتي الذكي ⚖️', 'ديمو مياه بيرين 💧'];
                 $templateKey = 'main_menu';
                 break;
@@ -394,7 +396,10 @@ class WhatsAppController extends Controller
             'inactivity_warned_at' => null,
         ]);
 
-        $welcome = "يا هلا والله أستاذ محمد! 👋💧\n"
+        $userName = trim($conversation->display_name ?: '');
+        $title = $userName ? "أستاذ {$userName}" : "بحضرتك";
+
+        $welcome = "يا هلا والله {$title}! 👋💧\n"
                  . "معك *نادية* من عناية العملاء في مياه بيرين.. نورتنا والله!\n\n"
                  . "بشرني، حاب نكرر طلبك الأخير زي العادة ولا ودك نطلب شي جديد اليوم للبيت أو للمسجد؟ 🤍\n\n"
                  . "_(خذ راحتك كلمني بأي لهجة أو لغة تحبها، كتابة أو فويس 🎙️، ولو حاب ترجع لقائمة رديف ارسل 0)_";
