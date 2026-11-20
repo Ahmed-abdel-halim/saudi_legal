@@ -124,7 +124,7 @@ class WhatsAppController extends Controller
 
         switch ($intent) {
             case 'main_menu':
-                $reply       = "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nاضغط على القائمة أدناه لعرض واختيار الخدمة المطلوبة بكل سهولة 👇";
+                $reply       = "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nاختر المساعد الذكي الذي ترغب في استشارته 👇";
                 $buttons     = ['المساعد القانوني', 'المفتي الذكي ⚖️', 'ديمو مياه بيرين 💧'];
                 $templateKey = 'main_menu';
                 break;
@@ -143,7 +143,7 @@ class WhatsAppController extends Controller
 
             case 'end_sharia_chat':
                 $conversation->update(['session_state' => 'idle']);
-                $reply       = "تم إنهاء جلسة المفتي الذكي بنجاح. نسأل الله لنا ولكم السداد والتوفيق 🤲\n\n_(أرسل أي رسالة في أي وقت للعودة لقائمة رديف الرئيسية)_";
+                $reply       = "تم إنهاء جلسة المفتي الذكي بنجاح. نسأل الله لنا ولكم السداد والتوفيق 🤲\n\nاختر المساعد الذي ترغب في استشارته 👇";
                 $buttons     = ['المساعد القانوني', 'المفتي الذكي ⚖️', 'ديمو مياه بيرين 💧'];
                 $templateKey = 'main_menu';
                 break;
@@ -168,7 +168,7 @@ class WhatsAppController extends Controller
 
             case 'end_berain_chat':
                 $conversation->update(['session_state' => 'idle']);
-                $reply       = "سعدت بخدمتك أستاذ محمد! 🤍💧 في أمان الله وحفظه، ونورتنا دائماً في مياه بيرين.\n\n_(أرسل أي رسالة في أي وقت للعودة لقائمة رديف الرئيسية)_";
+                $reply       = "سعدت بخدمتك أستاذ محمد! 🤍💧 في أمان الله وحفظه، ونورتنا دائماً في مياه بيرين.\n\nاختر المساعد الذي ترغب في استشارته 👇";
                 $buttons     = ['المساعد القانوني', 'المفتي الذكي ⚖️', 'ديمو مياه بيرين 💧'];
                 $templateKey = 'main_menu';
                 break;
@@ -227,6 +227,14 @@ class WhatsAppController extends Controller
 
         // 6. إرسال الرد المنسق مع الأزرار التفاعلية الحقيقية عبر Content Template
         $this->twilio->sendMessage($from, $reply, $buttons, $mediaUrl, $templateKey);
+
+        // إذا كان التمبلت هو القائمة الرئيسية، نرسل فوراً الفقرة الثانية بالزرين (الباقات وتنقيح البيانات) لتظهر الـ 5 أزرار كاملة أمام العميل
+        if ($templateKey === 'main_menu') {
+            $extraReply       = "أو اختر من خدمات المنصة والاشتراكات أدناه 👇";
+            $extraButtons     = ['الاطلاع على الباقات', 'طلب تنقيح بيانات'];
+            $extraTemplateKey = 'extra_menu';
+            $this->twilio->sendMessage($from, $extraReply, $extraButtons, null, $extraTemplateKey);
+        }
 
         // 7. مزامنة الرسالة والرد مع حساب Chatwoot تلقائياً
         try {

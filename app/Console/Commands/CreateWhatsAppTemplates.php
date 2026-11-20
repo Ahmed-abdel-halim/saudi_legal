@@ -17,17 +17,24 @@ class CreateWhatsAppTemplates extends Command
      */
     private array $templates = [
 
-        // القائمة الرئيسية — قائمة تفاعلية منبثقة (List Picker) تضم الـ 5 خيارات كاملة بنقرة واحدة
+        // القائمة الرئيسية — الفقرة الأولى (المساعدين الأذكياء الـ 3)
         'main_menu' => [
-            'friendly_name' => 'radiif_main_menu_list_v1',
-            'type'          => 'list-picker',
-            'button'        => 'اختر من القائمة 👇',
-            'items'         => [
-                ['item' => 'المساعد القانوني',     'id' => 'start_chat',         'description' => 'استشارات وأنظمة قضائية سعودية'],
-                ['item' => 'المفتي الذكي ⚖️',     'id' => 'sharia_chat',        'description' => 'فتاوى وأحكام شرعية موثقة'],
-                ['item' => 'ديمو مياه بيرين 💧',  'id' => 'berain_demo',        'description' => 'عناية العملاء بمياه بيرين (نادية)'],
-                ['item' => 'الاطلاع على الباقات', 'id' => 'view_plans',         'description' => 'باقات وأسعار منصة رديف'],
-                ['item' => 'طلب تنقيح بيانات',   'id' => 'request_refinement', 'description' => 'طلب تدقيق وتحديث البيانات'],
+            'friendly_name' => 'radiif_main_menu_v3',
+            'type'          => 'quick-reply',
+            'buttons'       => [
+                ['title' => 'المساعد القانوني',     'id' => 'start_chat'],
+                ['title' => 'المفتي الذكي ⚖️',     'id' => 'sharia_chat'],
+                ['title' => 'ديمو مياه بيرين 💧',  'id' => 'berain_demo'],
+            ],
+        ],
+
+        // القائمة الإضافية — الفقرة الثانية (الزران المتبقيان: الباقات وتدقيق البيانات) لتظهر الـ 5 أزرار كاملة
+        'extra_menu' => [
+            'friendly_name' => 'radiif_extra_menu_v1',
+            'type'          => 'quick-reply',
+            'buttons'       => [
+                ['title' => 'الاطلاع على الباقات', 'id' => 'view_plans'],
+                ['title' => 'طلب تنقيح بيانات',   'id' => 'request_refinement'],
             ],
         ],
 

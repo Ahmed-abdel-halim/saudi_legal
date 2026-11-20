@@ -70,6 +70,7 @@ return [
         // Content Template SIDs — يتم ملؤها بعد تشغيل: php artisan whatsapp:create-templates
         'templates'     => [
             'main_menu'      => env('TWILIO_TEMPLATE_MAIN_MENU', ''),
+            'extra_menu'     => env('TWILIO_TEMPLATE_EXTRA_MENU', ''),
             'in_chat'        => env('TWILIO_TEMPLATE_IN_CHAT', ''),
             'in_berain_chat' => env('TWILIO_TEMPLATE_IN_BERAIN_CHAT', ''),
             'in_sharia_chat' => env('TWILIO_TEMPLATE_IN_SHARIA_CHAT', ''),
