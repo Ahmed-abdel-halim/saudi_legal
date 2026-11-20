@@ -50,9 +50,14 @@ class WhatsAppController extends Controller
         $body          = trim($request->input('Body', ''));
         $profileName   = $request->input('ProfileName', '');
         $messageSid    = $request->input('MessageSid', ''); // معرف الرسالة الواردة (SM...)
-        // حقول خاصة بضغطات أزرار Content Templates
+        // حقول خاصة بضغطات أزرار Content Templates وقوائم List Picker
         $buttonPayload = trim($request->input('ButtonPayload', ''));
         $buttonText    = trim($request->input('ButtonText', ''));
+        $listId        = trim($request->input('ListId', ''));
+
+        if (empty($buttonPayload) && !empty($listId)) {
+            $buttonPayload = $listId;
+        }
 
         // فحص وتفريغ الرسائل الصوتية (Voice Notes) تلقائياً بكل اللهجات واللغات
         $numMedia          = (int) $request->input('NumMedia', 0);
@@ -67,10 +72,9 @@ class WhatsAppController extends Controller
             }
         }
 
-        // إذا كان Body فارغاً وضغط المستخدم زراراً من Content Template
-        // Twilio يُرسل ButtonPayload (ID الزر) و ButtonText (نص الزر) في هذه الحالة
+        // إذا كان Body فارغاً وضغط المستخدم زراراً أو عنصراً من القائمة التفاعلية
         if (empty($body)) {
-            $body = $buttonText ?: $buttonPayload;
+            $body = !empty($buttonPayload) ? $buttonPayload : $buttonText;
         }
 
         // تنظيف رقم البوت لاستخدامه في روابط wa.me الضغطة الواحدة
@@ -120,7 +124,7 @@ class WhatsAppController extends Controller
 
         switch ($intent) {
             case 'main_menu':
-                $reply       = "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nاختر من الأزرار التفاعلية أدناه المساعد الذي ترغب في تجربته 👇:\n1️⃣ المساعد القانوني ⚖️\n2️⃣ المفتي الذكي 🕌\n3️⃣ ديمو مياه بيرين (نادية) 💧\n\n💳 للاطلاع على الباقات (أرسل 4)\n📝 لطلب تنقيح البيانات (أرسل 5)";
+                $reply       = "أهلاً بك في منصة رديف للذكاء الاصطناعي ✨\n\nاضغط على القائمة أدناه لعرض واختيار الخدمة المطلوبة بكل سهولة 👇";
                 $buttons     = ['المساعد القانوني', 'المفتي الذكي ⚖️', 'ديمو مياه بيرين 💧'];
                 $templateKey = 'main_menu';
                 break;
